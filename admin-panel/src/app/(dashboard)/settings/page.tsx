@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import RoomTypePriceForm from './RoomTypePriceForm'
+import IcalUrlList from './IcalUrlList'
 
 interface RoomType {
   id: string
@@ -15,14 +16,17 @@ export default async function SettingsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const { data: roomTypes } = await supabase
-    .from('room_types')
-    .select('id, name, base_price, description, max_occupancy')
-    .order('base_price')
+  const [{ data: roomTypes }, { data: rooms }] = await Promise.all([
+    supabase.from('room_types').select('id, name, base_price, description, max_occupancy').order('base_price'),
+    supabase.from('rooms').select('id, room_number').eq('is_active', true).order('room_number'),
+  ])
 
   const types = (roomTypes ?? []) as RoomType[]
+  const roomList = (rooms ?? []) as { id: string; room_number: string }[]
 
   const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL ?? '—'
+  const GUEST_SITE_URL = process.env.GUEST_SITE_URL ?? 'https://anor-avenue.vercel.app'
+  const ICAL_SECRET = process.env.ICAL_SECRET ?? null
 
   return (
     <div className="space-y-8 max-w-2xl">
@@ -90,6 +94,22 @@ export default async function SettingsPage() {
             <p className="font-mono">ADMIN_NOTIFICATION_EMAIL=a.kenja3683@gmail.com</p>
             <p className="font-mono">EMAIL_FROM=Anor Avenue Hotel &lt;noreply@seninadresi.com&gt;</p>
           </div>
+        </div>
+      </div>
+
+      {/* iCal Senkronu — OTA / Channel Manager */}
+      <div
+        className="rounded-xl border"
+        style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}
+      >
+        <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
+          <h2 className="text-sm font-semibold text-[#E8E8F0]">iCal Takvim URL&apos;leri</h2>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--color-admin-muted)' }}>
+            Nobeds veya başka bir channel manager&apos;a bağlamak için oda URL&apos;lerini kopyala
+          </p>
+        </div>
+        <div className="px-5 py-4">
+          <IcalUrlList rooms={roomList} guestSiteUrl={GUEST_SITE_URL} icalSecret={ICAL_SECRET} />
         </div>
       </div>
 

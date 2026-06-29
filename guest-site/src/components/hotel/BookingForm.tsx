@@ -152,6 +152,23 @@ export default function BookingForm({
           </div>
         )}
         <div style={{ marginTop: '2rem', display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+          {state.reservationCode && (
+            <Link
+              href={`/${locale}/pay/${state.reservationCode}`}
+              style={{
+                backgroundColor: 'var(--color-gold)',
+                color: 'var(--color-white)',
+                padding: '0.75rem 1.75rem',
+                borderRadius: 'var(--radius-md)',
+                fontWeight: '700',
+                fontSize: 'var(--text-base)',
+                display: 'inline-block',
+                boxShadow: 'var(--shadow-gold)',
+              }}
+            >
+              {locale === 'uz' ? '💳 Hozir to\'lash' : locale === 'ru' ? '💳 Оплатить сейчас' : '💳 Pay Now'}
+            </Link>
+          )}
           <Link
             href={`/${locale}`}
             style={{
