@@ -1,4 +1,5 @@
 {
+  "name": "anor-avenue-guest-site",
   "framework": "nextjs",
   "buildCommand": "pnpm build",
   "installCommand": "pnpm install",

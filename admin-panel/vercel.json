@@ -1,4 +1,5 @@
 {
+  "name": "anor-avenue-admin-panel",
   "framework": "nextjs",
   "buildCommand": "pnpm build",
   "installCommand": "pnpm install",
