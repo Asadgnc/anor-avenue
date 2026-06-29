@@ -4,7 +4,13 @@ import { useTranslations, useLocale } from 'next-intl'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
-export default function BookingWidget() {
+interface Props {
+  defaultCheckIn?: string
+  defaultCheckOut?: string
+  defaultAdults?: number
+}
+
+export default function BookingWidget({ defaultCheckIn, defaultCheckOut, defaultAdults }: Props) {
   const t = useTranslations('booking')
   const locale = useLocale()
   const router = useRouter()
@@ -12,9 +18,9 @@ export default function BookingWidget() {
   const today = new Date().toISOString().split('T')[0]
   const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0]
 
-  const [checkIn, setCheckIn] = useState(today)
-  const [checkOut, setCheckOut] = useState(tomorrow)
-  const [adults, setAdults] = useState(2)
+  const [checkIn, setCheckIn] = useState(defaultCheckIn || today)
+  const [checkOut, setCheckOut] = useState(defaultCheckOut || tomorrow)
+  const [adults, setAdults] = useState(defaultAdults ?? 2)
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()

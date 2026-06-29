@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { useActionState } from 'react'
 import { submitBookingInquiry, type BookingInquiryState } from '@/app/[locale]/book/actions'
 
@@ -128,24 +129,44 @@ export default function BookingForm({
           {l.success}
         </p>
         {state.reservationCode && (
-          <p
+          <div style={{ marginTop: '0.75rem' }}>
+            <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)', marginBottom: '0.25rem' }}>
+              {locale === 'uz' ? 'Buyurtma kodi' : locale === 'ru' ? 'Код бронирования' : 'Booking Code'}
+            </p>
+            <p
+              style={{
+                backgroundColor: 'var(--color-cream)',
+                border: '1px solid var(--color-gold)',
+                borderRadius: 'var(--radius-md)',
+                padding: '0.75rem 1.5rem',
+                fontFamily: 'monospace',
+                fontSize: 'var(--text-xl)',
+                fontWeight: '800',
+                color: 'var(--color-gold-dark)',
+                display: 'inline-block',
+                letterSpacing: '0.1em',
+              }}
+            >
+              {state.reservationCode}
+            </p>
+          </div>
+        )}
+        <div style={{ marginTop: '2rem', display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+          <Link
+            href={`/${locale}`}
             style={{
-              backgroundColor: 'var(--color-cream)',
-              border: '1px solid var(--color-gold)',
+              backgroundColor: 'var(--color-charcoal)',
+              color: 'var(--color-white)',
+              padding: '0.625rem 1.25rem',
               borderRadius: 'var(--radius-md)',
-              padding: '0.75rem 1.5rem',
-              fontFamily: 'monospace',
-              fontSize: 'var(--text-xl)',
-              fontWeight: '800',
-              color: 'var(--color-gold-dark)',
+              fontWeight: '600',
+              fontSize: 'var(--text-sm)',
               display: 'inline-block',
-              marginTop: '0.5rem',
-              letterSpacing: '0.1em',
             }}
           >
-            {state.reservationCode}
-          </p>
-        )}
+            {locale === 'uz' ? 'Bosh sahifaga' : locale === 'ru' ? 'На главную' : 'Go Home'}
+          </Link>
+        </div>
       </div>
     )
   }

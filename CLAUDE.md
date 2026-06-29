@@ -253,11 +253,34 @@ async function fetchFromClient() {
   - Tüm sayfalarda (ana sayfa, odalar, oda detay, rezervasyon formu) fiyatlar artık Supabase'den çekiliyor
     → Admin Settings'den fiyat değiştirince yeniden deploy sonrası guest site'de de güncelleniyor
 
-## Sonraki Adımlar
-1. Gerçek otel fotoğraflarını `/public/hotel-photos/` klasörüne ekle (kullanıcıdan bekleniyor)
-2. Payme/Click entegrasyonu (merchant hesabı onaylandıktan sonra)
-3. Booking.com iCal sync (en son)
-4. Guest site: BookingWidget'ten gelen tarih parametreleri rooms sayfasında oda müsaitliği gösterimi
+- [x] Guest site: odalar sayfasında tarih bazlı müsaitlik kontrolü (Müsait/Doldu badge'leri)
+- [x] Guest site: BookingWidget tarihleri odalar sayfasında korunuyor + oda detaydan booking'e geçiyor
+- [x] Guest site: rezervasyon başarı ekranına "Bosh sahifaga" butonu eklendi
+- [x] Admin panel: dashboard — bugünkü giriş/çıkış listesi + pending rezervasyon uyarı banner'ı
+- [x] Admin panel: rezervasyon takvimi önceki/sonraki 14 günlük navigasyon (CalendarNav)
+- [x] Admin panel: rezervasyon liste görünümü (/reservations/list) — arama + durum filtresi
+- [x] Admin panel: no-show eylemi — giriş tarihi geçmiş pending/confirmed rezervasyonlarda
+- [x] Admin panel: misafir listesi arama (GuestListClient)
+- [x] Admin panel: SidebarNav'a "Rezervasyon Listesi" linki eklendi
+- [x] Admin panel: rol bazlı erişim kontrolü tamamlandı
+  - Middleware: her rol için izin verilen path listesi — yetkisiz sayfa → /dashboard?blocked=1
+  - SidebarNav: role + userEmail prop alıyor, filtrelenmiş nav gösteriyor, footer'da kullanıcı bilgisi + renkli rol badge
+  - Layout (server): user_metadata.role + email çekip SidebarNav'a iletir
+  - Staff sayfası: rol artık profiles tablosundan doğru okunuyor + satır içi "Rol Değiştir" dropdown
+  - Staff/actions.ts: changeRoleAction eklendi (user_metadata + profiles senkronize); inviteStaffAction artık profiles satırı da oluşturuyor
+  - Dashboard: ?blocked=1 ile "Erişim yok" banner'ı
+  - DB: tüm kullanıcıların user_metadata.role → profiles.role senkronize edildi (SQL ile)
+
+- [x] Guest site: otel fotoğrafları yerleştirildi
+  - Hero: `hotel-exterior.jpeg` arka plan olarak (gerçek dış cephe)
+  - Oda kartları (ana sayfa + odalar sayfası): her oda tipi için gerçek fotoğraf
+  - YENİ "Experience" bölümü: gerçek kahvaltı masası + avlu + lobi fotoğrafları
+  - About bölümü: servis fotoğrafı sol tarafa eklendi
+  - Oda detay galeri: her oda için 4 fotoğraf (yatak odası, banyo, servis, görünüm)
+
+## Sonraki Adımlar (Kalan)
+1. Payme/Click entegrasyonu (merchant hesabı onaylandıktan sonra)
+2. Booking.com iCal sync (en son)
 
 ## Deploy Bilgisi
 - Vercel: her iki uygulama canlıda ✅

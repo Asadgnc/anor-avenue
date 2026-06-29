@@ -55,6 +55,11 @@ Her oturum başında bu dosyayı oku, devam etmeden önce nerede kaldığını a
 - [x] Excel dışa aktarım (CSV formatı — Excel açar)
 - [x] Misafir registratsiya modülü (yabancı misafir — Özbekistan yasal zorunluluğu)
 - [x] ADR / RevPAR / doluluk grafikleri (son 30 gün)
+- [x] Dashboard bugünkü giriş/çıkış listeleri + pending rezervasyon uyarı banner'ı
+- [x] Rezervasyon takvimi önceki/sonraki navigasyon (14 günlük pencere)
+- [x] Rezervasyon liste görünümü — arama + durum filtresi (/reservations/list)
+- [x] No-show eylemi — giriş tarihi geçmiş rezervasyonlarda
+- [x] Misafir listesi arama
 
 ---
 
@@ -67,6 +72,8 @@ Her oturum başında bu dosyayı oku, devam etmeden önce nerede kaldığını a
 - [x] Çok dil sistemi (uz/ru/en)
 - [x] SEO meta tags (title, description)
 - [x] Oda detay sayfası (galeri + fiyat + rezervasyon butonu)
+- [x] Odalar sayfası tarih bazlı müsaitlik kontrolü — Müsait/Sınırlı/Doldu badge'leri
+- [x] BookingWidget tarihleri tüm sayfalarda korunuyor (rooms → detail → book)
 - [ ] Ödeme sayfası (Payme/Click — merchant hesabı gerekli)
 
 ---

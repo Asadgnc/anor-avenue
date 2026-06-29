@@ -1,6 +1,7 @@
 import { setRequestLocale } from 'next-intl/server'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import Navbar from '@/components/hotel/Navbar'
 import Footer from '@/components/hotel/Footer'
 import { supabase } from '@/lib/supabase'
@@ -98,6 +99,36 @@ const ROOM_DATA = {
 
 type RoomType = keyof typeof ROOM_DATA
 
+const ROOM_PHOTOS: Record<RoomType, { hero: string; gallery: { src: string; labelKey: string }[] }> = {
+  standard: {
+    hero: '/hotel-photos/some-delicious-meal-bed-bedroom-side-view.jpg',
+    gallery: [
+      { src: '/hotel-photos/some-delicious-meal-bed-bedroom-side-view.jpg', labelKey: 'bedroom' },
+      { src: '/hotel-photos/hotel-bathroom-jacuzzi.jpeg', labelKey: 'bathroom' },
+      { src: '/hotel-photos/breakfast-set-with-various-food-table.jpg', labelKey: 'service' },
+      { src: '/hotel-photos/hotel-courtyard.jpeg', labelKey: 'view' },
+    ],
+  },
+  luxury: {
+    hero: '/hotel-photos/3d-rendering-beautiful-comtemporary-luxury-bedroom-suite-hotel-with-tv.jpg',
+    gallery: [
+      { src: '/hotel-photos/3d-rendering-beautiful-comtemporary-luxury-bedroom-suite-hotel-with-tv.jpg', labelKey: 'bedroom' },
+      { src: '/hotel-photos/hotel-bathroom-jacuzzi.jpeg', labelKey: 'bathroom' },
+      { src: '/hotel-photos/croissant-boiled-egg-orange-juice-yogurt-breakfast-tray-bed-hotel-room.jpg', labelKey: 'service' },
+      { src: '/hotel-photos/woman-laying-bed-enjoys-breakfast-tray-hotel-room.jpg', labelKey: 'view' },
+    ],
+  },
+  mansard: {
+    hero: '/hotel-photos/woman-laying-bed-enjoys-breakfast-tray-hotel-room.jpg',
+    gallery: [
+      { src: '/hotel-photos/woman-laying-bed-enjoys-breakfast-tray-hotel-room.jpg', labelKey: 'bedroom' },
+      { src: '/hotel-photos/hotel-bathroom-jacuzzi.jpeg', labelKey: 'bathroom' },
+      { src: '/hotel-photos/top-view-assorted-breakfast-with-oatmeal-fried-eggs-human-hand-white-plate.jpg', labelKey: 'service' },
+      { src: '/hotel-photos/some-delicious-meal-bed-bedroom-side-view.jpg', labelKey: 'view' },
+    ],
+  },
+}
+
 // ─── Metadata ────────────────────────────────────────────────────────────────
 
 export async function generateMetadata({
@@ -128,10 +159,13 @@ export function generateStaticParams() {
 
 export default async function RoomDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string; type: string }>
+  searchParams: Promise<{ checkIn?: string; checkOut?: string; adults?: string }>
 }) {
   const { locale, type } = await params
+  const { checkIn, checkOut, adults } = await searchParams
   setRequestLocale(locale)
 
   if (!(type in ROOM_DATA)) notFound()
@@ -149,12 +183,21 @@ export default async function RoomDetailPage({
     price: priceRow ? Number(priceRow.base_price) : roomStatic.price,
   }
 
+  const roomPhotos = ROOM_PHOTOS[type as RoomType]
+
   const names: Record<string, Record<string, string>> = {
     standard: { uz: 'Standart xona', ru: 'Стандартный номер', en: 'Standard Room' },
     luxury:   { uz: 'Lyuks xona',    ru: 'Люкс',             en: 'Luxury Room' },
     mansard:  { uz: 'Mansard lyuks', ru: 'Мансардный люкс',  en: 'Mansard Luxury' },
   }
   const roomName = names[type]?.[locale] ?? type
+
+  // Kitap bağlantısı — tarihleri URL'den geçir
+  const bookParams = new URLSearchParams({ roomType: type })
+  if (checkIn) bookParams.set('checkIn', checkIn)
+  if (checkOut) bookParams.set('checkOut', checkOut)
+  if (adults) bookParams.set('adults', adults)
+  const bookHref = `/${locale}/book?${bookParams.toString()}`
 
   const floorLabel = (floor: number) => {
     if (floor < 0) return locale === 'uz' ? 'Yer osti (-1 qavat)' : locale === 'ru' ? 'Цокольный (-1 этаж)' : 'Basement (-1F)'
@@ -174,16 +217,7 @@ export default async function RoomDetailPage({
     amenities: locale === 'uz' ? 'Xona imkoniyatlari' : locale === 'ru' ? 'Удобства номера' : 'Room Amenities',
     description: locale === 'uz' ? 'Xona haqida' : locale === 'ru' ? 'О номере' : 'About the Room',
     gallery: locale === 'uz' ? 'Galereya' : locale === 'ru' ? 'Галерея' : 'Gallery',
-    photoscoming: locale === 'uz' ? 'Tez orada fotosuratlar' : locale === 'ru' ? 'Фотографии скоро' : 'Photos coming soon',
   }
-
-  // Galeri için farklı ton/gölge tonları
-  const galleryItems = [
-    { opacity: '1', label: locale === 'uz' ? 'Yotoqxona' : locale === 'ru' ? 'Спальня' : 'Bedroom' },
-    { opacity: '0.85', label: locale === 'uz' ? 'Vanna xonasi' : locale === 'ru' ? 'Ванная' : 'Bathroom' },
-    { opacity: '0.7', label: locale === 'uz' ? 'Ko\'rinish' : locale === 'ru' ? 'Вид' : 'View' },
-    { opacity: '0.9', label: locale === 'uz' ? 'Tafsilotlar' : locale === 'ru' ? 'Детали' : 'Details' },
-  ]
 
   return (
     <>
@@ -206,7 +240,7 @@ export default async function RoomDetailPage({
           </p>
         </div>
         <Link
-          href={`/${locale}/book?roomType=${type}`}
+          href={bookHref}
           style={{
             backgroundColor: 'var(--color-gold)',
             color: 'var(--color-white)',
@@ -224,11 +258,20 @@ export default async function RoomDetailPage({
 
       <main className="pb-20 lg:pb-0">
         {/* ── Hero ─────────────────────────────────────────────────────── */}
-        <div style={{ background: room.gradient, minHeight: '420px', position: 'relative' }}>
+        <div style={{ minHeight: '420px', position: 'relative', overflow: 'hidden' }}>
+          <Image
+            src={roomPhotos.hero}
+            alt={roomName}
+            fill
+            style={{ objectFit: 'cover', objectPosition: 'center' }}
+            sizes="100vw"
+            priority
+            quality={85}
+          />
           <div
             style={{
               position: 'absolute', inset: 0,
-              background: 'linear-gradient(to top, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.2) 60%, transparent 100%)',
+              background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.25) 55%, rgba(0,0,0,0.15) 100%)',
             }}
           />
           <div
@@ -339,45 +382,58 @@ export default async function RoomDetailPage({
                   {labels.gallery}
                 </h2>
                 <div className="grid grid-cols-2 gap-3">
-                  {galleryItems.map((item, i) => (
-                    <div
-                      key={i}
-                      style={{
-                        background: room.gradient,
-                        opacity: Number(item.opacity),
-                        borderRadius: 'var(--radius-md)',
-                        minHeight: i === 0 ? '220px' : '140px',
-                        gridColumn: i === 0 ? 'span 2' : 'span 1',
-                        display: 'flex',
-                        alignItems: 'flex-end',
-                        padding: '1rem',
-                        position: 'relative',
-                        overflow: 'hidden',
-                      }}
-                    >
+                  {roomPhotos.gallery.map((item, i) => {
+                    const galleryLabel =
+                      item.labelKey === 'bedroom'
+                        ? locale === 'uz' ? 'Yotoqxona' : locale === 'ru' ? 'Спальня' : 'Bedroom'
+                        : item.labelKey === 'bathroom'
+                        ? locale === 'uz' ? 'Vanna xonasi' : locale === 'ru' ? 'Ванная' : 'Bathroom'
+                        : item.labelKey === 'service'
+                        ? locale === 'uz' ? 'Xizmat' : locale === 'ru' ? 'Сервис' : 'Service'
+                        : locale === 'uz' ? 'Ko\'rinish' : locale === 'ru' ? 'Вид' : 'View'
+                    return (
                       <div
+                        key={i}
                         style={{
-                          position: 'absolute', inset: 0,
-                          background: 'linear-gradient(to top, rgba(0,0,0,0.5) 0%, transparent 60%)',
-                        }}
-                      />
-                      <span
-                        style={{
-                          position: 'relative', zIndex: 1,
-                          color: 'rgba(255,255,255,0.8)',
-                          fontSize: 'var(--text-xs)',
-                          fontWeight: '500',
-                          letterSpacing: '0.05em',
+                          position: 'relative',
+                          borderRadius: 'var(--radius-md)',
+                          minHeight: i === 0 ? '220px' : '140px',
+                          gridColumn: i === 0 ? 'span 2' : 'span 1',
+                          overflow: 'hidden',
                         }}
                       >
-                        {item.label}
-                      </span>
-                    </div>
-                  ))}
+                        <Image
+                          src={item.src}
+                          alt={galleryLabel}
+                          fill
+                          style={{ objectFit: 'cover' }}
+                          sizes="(max-width: 768px) 100vw, 50vw"
+                          quality={80}
+                        />
+                        <div
+                          style={{
+                            position: 'absolute', inset: 0,
+                            background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)',
+                          }}
+                        />
+                        <span
+                          style={{
+                            position: 'absolute',
+                            bottom: '0.75rem',
+                            left: '0.75rem',
+                            zIndex: 1,
+                            color: 'rgba(255,255,255,0.9)',
+                            fontSize: 'var(--text-xs)',
+                            fontWeight: '600',
+                            letterSpacing: '0.05em',
+                          }}
+                        >
+                          {galleryLabel}
+                        </span>
+                      </div>
+                    )
+                  })}
                 </div>
-                <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)', marginTop: '0.5rem', textAlign: 'center' }}>
-                  {labels.photoscoming}
-                </p>
               </div>
 
               {/* Olanaklar */}
@@ -469,7 +525,7 @@ export default async function RoomDetailPage({
 
                 {/* CTA */}
                 <Link
-                  href={`/${locale}/book?roomType=${type}`}
+                  href={bookHref}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
