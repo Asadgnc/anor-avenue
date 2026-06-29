@@ -1,6 +1,7 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { addPaymentAction, type AddPaymentState } from './actions'
 
 const METHODS = [
@@ -12,8 +13,16 @@ const METHODS = [
 ] as const
 
 export default function AddPaymentFormClient({ reservationId }: { reservationId: string }) {
+  const router = useRouter()
   const boundAction = addPaymentAction.bind(null, reservationId)
   const [state, action, isPending] = useActionState<AddPaymentState, FormData>(boundAction, {})
+
+  useEffect(() => {
+    if (state.success) {
+      const t = setTimeout(() => router.refresh(), 800)
+      return () => clearTimeout(t)
+    }
+  }, [state.success, router])
 
   const inputClass = "w-full px-3 py-2 rounded-lg text-sm text-[#E8E8F0] focus:outline-none focus:ring-1"
   const inputStyle = {
@@ -24,7 +33,7 @@ export default function AddPaymentFormClient({ reservationId }: { reservationId:
   if (state.success) {
     return (
       <p className="text-sm font-medium" style={{ color: '#86EFAC' }}>
-        Ödeme başarıyla kaydedildi.
+        ✓ Ödeme kaydedildi, liste güncelleniyor…
       </p>
     )
   }

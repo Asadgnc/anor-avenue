@@ -1,7 +1,14 @@
 'use client'
 
-import { useActionState, useState } from 'react'
-import { addRoomAction, updateCleaningStatusAction, updateRoomStatusAction, type RoomFormState } from '@/app/(dashboard)/rooms/actions'
+import { Fragment, useActionState, useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import {
+  addRoomAction,
+  updateRoomAction,
+  updateCleaningStatusAction,
+  updateRoomStatusAction,
+  type RoomFormState,
+} from '@/app/(dashboard)/rooms/actions'
 import type { Room, RoomType } from '@/types/hotel'
 
 // ─── Sabitler ─────────────────────────────────────────────────────────────────
@@ -35,7 +42,14 @@ const FLOOR_OPTIONS = [
   { value: 4,  label: '4. Kat (Mansard)' },
 ]
 
-// ─── Yardımcılar ──────────────────────────────────────────────────────────────
+const inputCls = 'px-2 py-1.5 rounded-lg text-xs border outline-none w-full'
+const inputStyle = {
+  backgroundColor: 'var(--color-admin-bg)',
+  color: '#E8E8F0',
+  borderColor: 'var(--color-admin-border)',
+}
+
+// ─── StatusPill ───────────────────────────────────────────────────────────────
 
 function StatusPill({
   value,
@@ -87,16 +101,25 @@ function StatusPill({
 // ─── Oda Ekleme Formu ─────────────────────────────────────────────────────────
 
 function AddRoomForm({ roomTypes }: { roomTypes: RoomType[] }) {
+  const router = useRouter()
+  const formRef = useRef<HTMLFormElement>(null)
   const [state, action, pending] = useActionState<RoomFormState, FormData>(addRoomAction, {})
   const [added, setAdded] = useState(false)
 
+  useEffect(() => {
+    if (state.success) {
+      setAdded(true)
+      formRef.current?.reset()
+      router.refresh()
+      const t = setTimeout(() => setAdded(false), 3000)
+      return () => clearTimeout(t)
+    }
+  }, [state.success, router])
+
   return (
     <form
-      action={async (fd) => {
-        await action(fd)
-        setAdded(true)
-        setTimeout(() => setAdded(false), 3000)
-      }}
+      ref={formRef}
+      action={action}
       className="rounded-xl border p-5 space-y-4"
       style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}
     >
@@ -124,11 +147,7 @@ function AddRoomForm({ roomTypes }: { roomTypes: RoomType[] }) {
             name="roomNumber"
             placeholder="101"
             className="px-3 py-2 rounded-lg text-sm border outline-none"
-            style={{
-              backgroundColor: 'var(--color-admin-bg)',
-              color: '#E8E8F0',
-              borderColor: 'var(--color-admin-border)',
-            }}
+            style={{ backgroundColor: 'var(--color-admin-bg)', color: '#E8E8F0', borderColor: 'var(--color-admin-border)' }}
           />
         </div>
 
@@ -140,11 +159,7 @@ function AddRoomForm({ roomTypes }: { roomTypes: RoomType[] }) {
             name="floor"
             defaultValue={2}
             className="px-3 py-2 rounded-lg text-sm border outline-none appearance-none"
-            style={{
-              backgroundColor: 'var(--color-admin-bg)',
-              color: '#E8E8F0',
-              borderColor: 'var(--color-admin-border)',
-            }}
+            style={{ backgroundColor: 'var(--color-admin-bg)', color: '#E8E8F0', borderColor: 'var(--color-admin-border)' }}
           >
             {FLOOR_OPTIONS.map(({ value, label }) => (
               <option key={value} value={value}>{label}</option>
@@ -159,17 +174,11 @@ function AddRoomForm({ roomTypes }: { roomTypes: RoomType[] }) {
           <select
             name="roomTypeId"
             className="px-3 py-2 rounded-lg text-sm border outline-none appearance-none"
-            style={{
-              backgroundColor: 'var(--color-admin-bg)',
-              color: '#E8E8F0',
-              borderColor: 'var(--color-admin-border)',
-            }}
+            style={{ backgroundColor: 'var(--color-admin-bg)', color: '#E8E8F0', borderColor: 'var(--color-admin-border)' }}
           >
             <option value="">— Seçin —</option>
             {roomTypes.map((rt) => (
-              <option key={rt.id} value={rt.id}>
-                {rt.name}
-              </option>
+              <option key={rt.id} value={rt.id}>{rt.name}</option>
             ))}
           </select>
         </div>
@@ -187,6 +196,102 @@ function AddRoomForm({ roomTypes }: { roomTypes: RoomType[] }) {
   )
 }
 
+// ─── Oda Düzenleme Satırı ─────────────────────────────────────────────────────
+
+function EditRoomRow({
+  room,
+  roomTypes,
+  onClose,
+}: {
+  room: Room
+  roomTypes: RoomType[]
+  onClose: () => void
+}) {
+  const router = useRouter()
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setSaving(true)
+    setError(null)
+    const fd = new FormData(e.currentTarget)
+    const result = await updateRoomAction(room.id, fd)
+    setSaving(false)
+    if (result.error) {
+      setError(result.error)
+    } else {
+      onClose()
+      router.refresh()
+    }
+  }
+
+  return (
+    <tr style={{ backgroundColor: '#16213E', borderBottom: '1px solid var(--color-admin-border)' }}>
+      <td colSpan={6} className="px-4 py-3">
+        <form onSubmit={handleSubmit}>
+          {error && (
+            <p className="mb-2 text-xs px-2 py-1 rounded" style={{ backgroundColor: '#450A0A', color: '#FCA5A5' }}>
+              {error}
+            </p>
+          )}
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-2 items-end">
+            <div>
+              <label className="text-xs mb-1 block" style={{ color: 'var(--color-admin-muted)' }}>Oda No</label>
+              <input name="roomNumber" defaultValue={room.room_number} required className={inputCls} style={inputStyle} />
+            </div>
+            <div>
+              <label className="text-xs mb-1 block" style={{ color: 'var(--color-admin-muted)' }}>Kat</label>
+              <select name="floor" defaultValue={room.floor} className={inputCls} style={inputStyle}>
+                {FLOOR_OPTIONS.map(({ value, label }) => (
+                  <option key={value} value={value}>{label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs mb-1 block" style={{ color: 'var(--color-admin-muted)' }}>Oda Tipi</label>
+              <select name="roomTypeId" defaultValue={room.room_type_id} className={inputCls} style={inputStyle}>
+                {roomTypes.map((rt) => (
+                  <option key={rt.id} value={rt.id}>{rt.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs mb-1 block" style={{ color: 'var(--color-admin-muted)' }}>Notlar</label>
+              <input name="notes" defaultValue={room.notes ?? ''} className={inputCls} style={inputStyle} />
+            </div>
+            <div>
+              <label className="text-xs mb-1 block" style={{ color: 'var(--color-admin-muted)' }}>Aktif</label>
+              <select name="isActive" defaultValue={room.is_active ? 'true' : 'false'} className={inputCls} style={inputStyle}>
+                <option value="true">Aktif</option>
+                <option value="false">Pasif</option>
+              </select>
+            </div>
+          </div>
+          <div className="flex gap-2 mt-3">
+            <button
+              type="submit"
+              disabled={saving}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50"
+              style={{ backgroundColor: 'var(--color-accent)', color: '#0F0F1A' }}
+            >
+              {saving ? 'Kaydediliyor…' : 'Kaydet'}
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-3 py-1.5 rounded-lg text-xs border hover:opacity-80"
+              style={{ color: 'var(--color-admin-muted)', borderColor: 'var(--color-admin-border)' }}
+            >
+              İptal
+            </button>
+          </div>
+        </form>
+      </td>
+    </tr>
+  )
+}
+
 // ─── Ana Bileşen ──────────────────────────────────────────────────────────────
 
 interface Props {
@@ -201,6 +306,7 @@ export default function RoomsManager({ rooms, roomTypes }: Props) {
   const [cleaningStatuses, setCleaningStatuses] = useState<Record<string, string>>(
     Object.fromEntries(rooms.map((r) => [r.id, r.cleaning_status]))
   )
+  const [editingRoomId, setEditingRoomId] = useState<string | null>(null)
 
   const handleRoomStatus = async (roomId: string, status: string) => {
     setRoomStatuses((prev) => ({ ...prev, [roomId]: status }))
@@ -212,7 +318,6 @@ export default function RoomsManager({ rooms, roomTypes }: Props) {
     await updateCleaningStatusAction(roomId, status)
   }
 
-  // Oda tipine göre grupla
   const byFloor = rooms.reduce<Record<number, Room[]>>((acc, r) => {
     if (!acc[r.floor]) acc[r.floor] = []
     acc[r.floor].push(r)
@@ -229,9 +334,7 @@ export default function RoomsManager({ rooms, roomTypes }: Props) {
           style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}
         >
           <p className="text-[#E8E8F0]">Henüz oda yok.</p>
-          <p className="text-sm mt-1" style={{ color: 'var(--color-admin-muted)' }}>
-            Yukarıdan oda ekleyin.
-          </p>
+          <p className="text-sm mt-1" style={{ color: 'var(--color-admin-muted)' }}>Yukarıdan oda ekleyin.</p>
         </div>
       ) : (
         Object.entries(byFloor)
@@ -248,53 +351,72 @@ export default function RoomsManager({ rooms, roomTypes }: Props) {
                 className="rounded-xl border overflow-hidden"
                 style={{ borderColor: 'var(--color-admin-border)' }}
               >
-                <table className="w-full text-sm border-collapse">
-                  <thead>
-                    <tr style={{ backgroundColor: '#16213E' }}>
-                      {['Oda No', 'Tip', 'Oda Durumu', 'Temizlik', 'Fiyat/Gece'].map((h) => (
-                        <th
-                          key={h}
-                          className="px-4 py-2.5 text-left text-xs font-medium"
-                          style={{ color: 'var(--color-admin-muted)', borderBottom: '1px solid var(--color-admin-border)' }}
-                        >
-                          {h}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {floorRooms.map((room) => (
-                      <tr
-                        key={room.id}
-                        style={{ backgroundColor: 'var(--color-admin-card)', borderBottom: '1px solid var(--color-admin-border)' }}
-                      >
-                        <td className="px-4 py-3 font-semibold text-[#E8E8F0]">{room.room_number}</td>
-                        <td className="px-4 py-3" style={{ color: 'var(--color-admin-muted)' }}>
-                          {room.room_types?.name ?? '—'}
-                        </td>
-                        <td className="px-4 py-3">
-                          <StatusPill
-                            value={roomStatuses[room.id] ?? room.status}
-                            options={ROOM_STATUSES}
-                            onSelect={(v) => handleRoomStatus(room.id, v)}
-                          />
-                        </td>
-                        <td className="px-4 py-3">
-                          <StatusPill
-                            value={cleaningStatuses[room.id] ?? room.cleaning_status}
-                            options={CLEANING_STATUSES}
-                            onSelect={(v) => handleCleaningStatus(room.id, v)}
-                          />
-                        </td>
-                        <td className="px-4 py-3 tabular-nums" style={{ color: 'var(--color-admin-muted)' }}>
-                          {room.room_types?.base_price
-                            ? new Intl.NumberFormat('uz-UZ').format(room.room_types.base_price) + ' UZS'
-                            : '—'}
-                        </td>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm border-collapse" style={{ minWidth: '600px' }}>
+                    <thead>
+                      <tr style={{ backgroundColor: '#16213E' }}>
+                        {['Oda No', 'Tip', 'Oda Durumu', 'Temizlik', 'Fiyat/Gece', ''].map((h) => (
+                          <th
+                            key={h}
+                            className="px-4 py-2.5 text-left text-xs font-medium"
+                            style={{ color: 'var(--color-admin-muted)', borderBottom: '1px solid var(--color-admin-border)' }}
+                          >
+                            {h}
+                          </th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {floorRooms.map((room) => (
+                        <Fragment key={room.id}>
+                          <tr
+                            style={{ backgroundColor: 'var(--color-admin-card)', borderBottom: '1px solid var(--color-admin-border)' }}
+                          >
+                            <td className="px-4 py-3 font-semibold text-[#E8E8F0]">{room.room_number}</td>
+                            <td className="px-4 py-3" style={{ color: 'var(--color-admin-muted)' }}>
+                              {room.room_types?.name ?? '—'}
+                            </td>
+                            <td className="px-4 py-3">
+                              <StatusPill
+                                value={roomStatuses[room.id] ?? room.status}
+                                options={ROOM_STATUSES}
+                                onSelect={(v) => handleRoomStatus(room.id, v)}
+                              />
+                            </td>
+                            <td className="px-4 py-3">
+                              <StatusPill
+                                value={cleaningStatuses[room.id] ?? room.cleaning_status}
+                                options={CLEANING_STATUSES}
+                                onSelect={(v) => handleCleaningStatus(room.id, v)}
+                              />
+                            </td>
+                            <td className="px-4 py-3 tabular-nums" style={{ color: 'var(--color-admin-muted)' }}>
+                              {room.room_types?.base_price
+                                ? new Intl.NumberFormat('uz-UZ').format(room.room_types.base_price) + ' UZS'
+                                : '—'}
+                            </td>
+                            <td className="px-4 py-3">
+                              <button
+                                onClick={() => setEditingRoomId(editingRoomId === room.id ? null : room.id)}
+                                className="text-xs px-2 py-1 rounded-lg border transition-opacity hover:opacity-80"
+                                style={{ color: 'var(--color-accent)', borderColor: 'var(--color-admin-border)' }}
+                              >
+                                {editingRoomId === room.id ? 'İptal' : 'Düzenle'}
+                              </button>
+                            </td>
+                          </tr>
+                          {editingRoomId === room.id && (
+                            <EditRoomRow
+                              room={room}
+                              roomTypes={roomTypes}
+                              onClose={() => setEditingRoomId(null)}
+                            />
+                          )}
+                        </Fragment>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           ))

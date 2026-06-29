@@ -1,6 +1,7 @@
 'use server'
 
 import { z } from 'zod'
+import { revalidatePath } from 'next/cache'
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase'
 
@@ -17,36 +18,25 @@ const schema = z.object({
   notes:          z.string().optional(),
 })
 
-export type GuestFormState = {
-  error?: string
-  fieldErrors?: Partial<Record<string, string>>
-  guestId?: string   // başarı: client router.push() için
-}
+export type UpdateGuestState = { error?: string; success?: boolean }
 
-export async function createGuestAction(
-  _prev: GuestFormState,
+export async function updateGuestAction(
+  guestId: string,
   formData: FormData
-): Promise<GuestFormState> {
+): Promise<UpdateGuestState> {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Oturum geçersiz. Lütfen tekrar giriş yapın.' }
+  if (!user) return { error: 'Oturum geçersiz.' }
 
   const parsed = schema.safeParse(Object.fromEntries(formData))
-  if (!parsed.success) {
-    const fieldErrors: Record<string, string> = {}
-    for (const issue of parsed.error.issues) {
-      const key = issue.path[0]?.toString()
-      if (key) fieldErrors[key] = issue.message
-    }
-    return { fieldErrors }
-  }
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
 
   const d = parsed.data
   const service = createServiceClient()
 
-  const { data: guest, error } = await service
+  const { error } = await service
     .from('guests')
-    .insert({
+    .update({
       first_name:      d.firstName,
       last_name:       d.lastName,
       phone:           d.phone || null,
@@ -58,13 +48,11 @@ export async function createGuestAction(
       address:         d.address || null,
       notes:           d.notes || null,
     })
-    .select('id')
-    .single()
+    .eq('id', guestId)
 
-  if (error || !guest) {
-    return { error: `Misafir kaydı oluşturulamadı: ${error?.message ?? 'Bilinmeyen hata'}` }
-  }
+  if (error) return { error: error.message }
 
-  // redirect() kullanmıyoruz — client tarafında router.push() ile yönlendiriyoruz
-  return { guestId: guest.id }
+  revalidatePath(`/guests/${guestId}`)
+  revalidatePath('/guests')
+  return { success: true }
 }

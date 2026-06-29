@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase-server'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import type { ReservationStatus } from '@/types/hotel'
+import EditGuestFormClient from './EditGuestFormClient'
 
 interface GuestDetail {
   id: string
@@ -49,15 +50,6 @@ const STATUS_COLORS: Record<ReservationStatus, string> = {
 
 function formatUZS(n: number) {
   return new Intl.NumberFormat('uz-UZ', { maximumFractionDigits: 0 }).format(n) + ' UZS'
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between gap-4 py-2.5 text-sm" style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
-      <span style={{ color: 'var(--color-admin-muted)' }}>{label}</span>
-      <span className="text-[#E8E8F0]">{value || '—'}</span>
-    </div>
-  )
 }
 
 export default async function GuestDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -109,24 +101,8 @@ export default async function GuestDetailPage({ params }: { params: Promise<{ id
         </div>
       </div>
 
-      {/* Kişisel Bilgiler */}
-      <div className="rounded-xl border" style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}>
-        <p className="px-5 py-3 text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-admin-muted)', borderBottom: '1px solid var(--color-admin-border)' }}>
-          Kişisel Bilgiler
-        </p>
-        <div className="px-5 pb-2">
-          <Row label="Ad Soyad" value={`${guest.first_name} ${guest.last_name}`} />
-          <Row label="Telefon" value={guest.phone ?? ''} />
-          <Row label="E-posta" value={guest.email ?? ''} />
-          <Row label="Milliyet" value={guest.nationality ?? ''} />
-          <Row label="Pasaport No" value={guest.passport_number ?? ''} />
-          <Row label="Pasaport Serisi" value={guest.passport_series ?? ''} />
-          <Row label="Doğum Tarihi" value={guest.date_of_birth ?? ''} />
-          <Row label="Adres" value={guest.address ?? ''} />
-          {guest.notes && <Row label="Notlar" value={guest.notes} />}
-          <Row label="Kayıt Tarihi" value={new Date(guest.created_at).toLocaleDateString('tr-TR')} />
-        </div>
-      </div>
+      {/* Kişisel Bilgiler — düzenlenebilir */}
+      <EditGuestFormClient guest={guest} />
 
       {/* Rezervasyonlar */}
       <div className="rounded-xl border" style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}>

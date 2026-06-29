@@ -73,12 +73,19 @@ Her oturum başında bu dosyayı oku, devam etmeden önce nerede kaldığını a
 
 ## Faz 5 — İyileştirmeler (Deneme Sonrası)
 
-- [ ] Booking.com iCal senkronu test
+- [ ] Booking.com iCal senkronu — en son yapılacak, şimdilik pas
 - [ ] AI: yorum özetleme
 - [ ] AI: talep tahmini / fiyat önerisi
 - [ ] 3D oda turu (isteğe bağlı, performans testinden sonra)
-- [ ] Mobil optimizasyon testi
-- [ ] Yavaş bağlantı testi (3G simülasyon)
+- [x] Mobil optimizasyon — Admin panel hamburger drawer, guest site yapışkan CTA barı
+- [x] Yavaş bağlantı optimizasyonu — guest site zaten SSG (pre-rendered), JS 102kB
+
+---
+
+## Faz 4b — Deploy ✅ (Tamamlandı)
+
+- [x] Vercel'e deploy edildi — her iki uygulama çalışıyor (anor-avenue-guest-site + anor-avenue-admin-panel)
+- [x] Supabase bağlantısı canlı ortamda doğrulandı
 
 ---
 

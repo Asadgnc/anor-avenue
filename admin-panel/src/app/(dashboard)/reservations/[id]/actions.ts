@@ -6,6 +6,80 @@ import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase'
 import type { ReservationStatus } from '@/types/hotel'
 
+// ─── Rezervasyon Düzenleme ────────────────────────────────────────────────────
+
+const updateResSchema = z.object({
+  checkIn:         z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Geçersiz tarih'),
+  checkOut:        z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Geçersiz tarih'),
+  adults:          z.coerce.number().int().min(1).max(10),
+  roomRate:        z.coerce.number().positive('Fiyat 0\'dan büyük olmalı'),
+  specialRequests: z.string().max(1000).optional(),
+  notes:           z.string().max(1000).optional(),
+})
+
+export type UpdateResState = { error?: string; success?: boolean }
+
+export async function updateReservationAction(
+  reservationId: string,
+  formData: FormData
+): Promise<UpdateResState> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Oturum geçersiz.' }
+
+  const parsed = updateResSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
+
+  const d = parsed.data
+  if (d.checkOut <= d.checkIn) return { error: 'Çıkış tarihi girişten sonra olmalı.' }
+
+  const nights = Math.round(
+    (new Date(d.checkOut).getTime() - new Date(d.checkIn).getTime()) / 86400000
+  )
+  const totalAmount = d.roomRate * nights
+
+  const service = createServiceClient()
+  const { error } = await service
+    .from('reservations')
+    .update({
+      check_in:         d.checkIn,
+      check_out:        d.checkOut,
+      adults:           d.adults,
+      // nights: GENERATED ALWAYS AS (check_out - check_in) STORED — buraya yazılmaz
+      room_rate:        d.roomRate,
+      total_amount:     totalAmount,
+      special_requests: d.specialRequests || null,
+      notes:            d.notes || null,
+    })
+    .eq('id', reservationId)
+
+  if (error) return { error: error.message }
+
+  revalidatePath(`/reservations/${reservationId}`)
+  revalidatePath('/reservations')
+  revalidatePath('/dashboard')
+  return { success: true }
+}
+
+// ─── Ödeme Silme ──────────────────────────────────────────────────────────────
+
+export async function deletePaymentAction(
+  paymentId: string,
+  reservationId: string
+): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Oturum geçersiz.' }
+
+  const service = createServiceClient()
+  const { error } = await service.from('payments').delete().eq('id', paymentId)
+  if (error) return { error: error.message }
+
+  revalidatePath(`/reservations/${reservationId}`)
+  revalidatePath('/payments')
+  return {}
+}
+
 // ─── Durum Güncelleme ─────────────────────────────────────────────────────────
 
 export async function updateReservationStatusAction(

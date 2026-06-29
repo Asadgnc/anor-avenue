@@ -5,6 +5,8 @@ import Link from 'next/link'
 import ReservationActions from './ReservationActions'
 import AddPaymentFormClient from './AddPaymentFormClient'
 import CreateRegistrationForm from './CreateRegistrationForm'
+import EditReservationFormClient from './EditReservationFormClient'
+import DeletePaymentButton from './DeletePaymentButton'
 import type { ReservationStatus, PaymentMethod, PaymentStatus } from '@/types/hotel'
 
 // ─── Tipler ───────────────────────────────────────────────────────────────────
@@ -115,7 +117,7 @@ export default async function ReservationDetailPage({
   return (
     <div className="space-y-6 max-w-3xl">
       {/* Başlık */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-wrap items-center gap-3">
         <Link
           href="/reservations"
           className="text-sm px-3 py-1.5 rounded-lg transition-opacity hover:opacity-70"
@@ -132,8 +134,8 @@ export default async function ReservationDetailPage({
         >
           Fatura Yazdır
         </Link>
-        <div className="flex-1">
-          <div className="flex items-center gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl font-semibold text-[#E8E8F0]">
               {res.guests?.first_name} {res.guests?.last_name}
             </h1>
@@ -152,6 +154,19 @@ export default async function ReservationDetailPage({
 
       {/* İşlemler (Check-in / Check-out / İptal) */}
       <ReservationActions reservationId={id} status={res.status} />
+
+      {/* Rezervasyon Düzenleme */}
+      {!['cancelled', 'no_show', 'checked_out'].includes(res.status) && (
+        <EditReservationFormClient
+          reservationId={id}
+          checkIn={res.check_in}
+          checkOut={res.check_out}
+          adults={res.adults}
+          roomRate={res.room_rate}
+          specialRequests={res.special_requests}
+          notes={res.notes}
+        />
+      )}
 
       {/* Rezervasyon Bilgileri */}
       <div
@@ -181,6 +196,9 @@ export default async function ReservationDetailPage({
           />
           {res.special_requests && (
             <Row label="Özel İstek" value={res.special_requests} />
+          )}
+          {res.notes && (
+            <Row label="Notlar" value={res.notes} />
           )}
           {res.actual_check_in && (
             <Row label="Gerçek Giriş" value={new Date(res.actual_check_in).toLocaleString('tr-TR')} />
@@ -215,7 +233,6 @@ export default async function ReservationDetailPage({
             >
               Misafir profilini aç →
             </Link>
-            {/* Yabancı misafir için registratsiya kaydı */}
             {res.guests.nationality && res.guests.nationality.toLowerCase() !== 'özbekistan' && res.guests.nationality.toLowerCase() !== 'uzbekistan' && (
               <div style={{ borderTop: '1px solid var(--color-admin-border)', paddingTop: '12px' }}>
                 <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--color-admin-muted)' }}>
@@ -244,8 +261,8 @@ export default async function ReservationDetailPage({
         ) : (
           <div className="divide-y" style={{ borderColor: 'var(--color-admin-border)' }}>
             {payments.map((p) => (
-              <div key={p.id} className="px-5 py-3 flex items-center justify-between text-sm">
-                <div>
+              <div key={p.id} className="px-5 py-3 flex items-center justify-between text-sm gap-3">
+                <div className="flex-1 min-w-0">
                   <span className="text-[#E8E8F0] font-medium">{METHOD_LABELS[p.method]}</span>
                   {p.notes && (
                     <span className="ml-2 text-xs" style={{ color: 'var(--color-admin-muted)' }}>
@@ -256,15 +273,17 @@ export default async function ReservationDetailPage({
                     {p.paid_at ? new Date(p.paid_at).toLocaleString('tr-TR') : ''}
                   </p>
                 </div>
-                <span className="font-bold tabular-nums" style={{ color: 'var(--color-accent)' }}>
-                  {formatUZS(p.amount)}
-                </span>
+                <div className="flex items-center gap-3">
+                  <span className="font-bold tabular-nums" style={{ color: 'var(--color-accent)' }}>
+                    {formatUZS(p.amount)}
+                  </span>
+                  <DeletePaymentButton paymentId={p.id} reservationId={id} />
+                </div>
               </div>
             ))}
           </div>
         )}
 
-        {/* Ödeme Ekle — sadece aktif rezervasyonlarda */}
         {!['cancelled', 'no_show', 'checked_out'].includes(res.status) && (
           <div className="px-5 py-4" style={{ borderTop: '1px solid var(--color-admin-border)' }}>
             <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--color-admin-muted)' }}>

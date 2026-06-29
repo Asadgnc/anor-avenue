@@ -206,7 +206,7 @@ async function fetchFromClient() {
 - [x] CLAUDE.md oluşturuldu
 - [x] Proje mimarisi kararlaştırıldı (Next.js 15 + Supabase + pnpm)
 - [x] Roller tanımlandı: admin, manager, receptionist, housekeeper, accountant
-- [x] OTA kararı: iCal/channel manager, kendi kodumuzda değil
+- [x] OTA kararı: iCal/channel manager, kendi kodumuzda değil — Booking.com en sona bırakıldı
 - [x] Ödeme: Payme + Click (PayTechUz)
 - [x] Tasarım: az fotoğraf + CSS animasyon + 3D sadece özel sayfalarda
 - [x] Supabase projesi oluşturuldu (qvpflkspmisxcnfnyeve)
@@ -227,13 +227,32 @@ async function fetchFromClient() {
 - [x] Admin panel: registratsiya modülü (/registrations — durum takibi, filtre)
 - [x] Admin panel: dashboard 30 günlük ADR/RevPAR/doluluk bar grafikleri
 - [x] Personel hesabı: Muzaffar (admin) — a.kenja3683@gmail.com
-- [x] TypeScript — her iki uygulama hatasız
+- [x] Mobil optimizasyon: admin sidebar drawer + guest site sticky CTA
+- [x] Admin panel: tüm sayfalarda Düzenle butonu + inline edit form (misafir, rezervasyon, oda)
+- [x] Admin panel: ödeme silme (DeletePaymentButton)
+- [x] Email bildirimi: Resend API entegrasyonu — admin bildirim + misafir onay emaili (uz/ru/en)
+  - guest-site/src/lib/email.ts + actions.ts güncellendi
+  - Vercel env: RESEND_API_KEY + ADMIN_NOTIFICATION_EMAIL + EMAIL_FROM gerekli
+- [x] Admin panel: Ayarlar sayfası — oda tipi fiyatları düzenlenebilir (/settings)
+- [x] Admin panel: Personel yönetimi — davet gönder + hesap sil (/staff)
+- [x] SidebarNav: Personel ve Ayarlar linkleri eklendi
+- [x] Admin panel: kritik UI bug fix — kaydet sonrası sayfa güncellenmiyor sorunu
+  - AddPaymentFormClient: ödeme kaydedince liste otomatik yenileniyor (router.refresh)
+  - RoomsManager EditRoomRow: oda düzenlenince satır güncelleniyor (router.refresh)
+  - RoomsManager AddRoomForm: oda eklenince liste yenileniyor + form sıfırlanıyor
+  - RoomsManager: React Fragment key hatası düzeltildi
+  - housekeeping/actions.ts: service_role client kullanılıyor (RLS bypass)
+  - /api/reports/export route eklendi — Excel/CSV indirme çalışıyor
 
 ## Sonraki Adımlar
-1. `pnpm dev` ile her iki uygulamayı test et — `cd admin-panel && pnpm dev`
+1. Vercel'e deploy et (pnpm build başarılı ✓)
 2. Gerçek otel fotoğraflarını `/public/hotel-photos/` klasörüne ekle
-3. Vercel'e deploy
-4. Payme/Click entegrasyonu (merchant hesabı onaylandıktan sonra)
+3. Payme/Click entegrasyonu (merchant hesabı onaylandıktan sonra)
+4. Booking.com iCal sync (en son)
+
+## Deploy Bilgisi
+- Vercel: her iki uygulama canlıda ✅
+- Supabase: qvpflkspmisxcnfnyeve — canlı ve bağlı ✅
 
 ---
 

@@ -1,6 +1,7 @@
 'use client'
 
-import { useActionState, useMemo, useState } from 'react'
+import { useActionState, useEffect, useMemo, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { createReservationAction, type ReservationFormState } from '@/app/(dashboard)/reservations/new/actions'
 import type { Room } from '@/types/hotel'
 
@@ -114,7 +115,15 @@ interface Props {
 const initial: ReservationFormState = {}
 
 export default function NewReservationForm({ rooms }: Props) {
+  const router = useRouter()
   const [state, action, pending] = useActionState(createReservationAction, initial)
+
+  // Başarı → rezervasyon detay sayfasına yönlendir
+  useEffect(() => {
+    if (state.reservationId) {
+      router.push(`/reservations/${state.reservationId}`)
+    }
+  }, [state.reservationId, router])
 
   const [selectedRoomId, setSelectedRoomId] = useState('')
   const [checkIn, setCheckIn] = useState('')
@@ -334,11 +343,11 @@ export default function NewReservationForm({ rooms }: Props) {
       <div className="flex items-center gap-4 pb-8">
         <button
           type="submit"
-          disabled={pending}
+          disabled={pending || !!state.reservationId}
           className="px-6 py-2.5 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-50"
           style={{ backgroundColor: 'var(--color-accent)', color: '#0F0F1A' }}
         >
-          {pending ? 'Kaydediliyor…' : 'Rezervasyon Oluştur'}
+          {pending ? 'Kaydediliyor…' : state.reservationId ? 'Yönlendiriliyor…' : 'Rezervasyon Oluştur'}
         </button>
         <a
           href="/reservations"

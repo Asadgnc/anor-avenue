@@ -2,6 +2,13 @@
 
 import { z } from 'zod'
 import { createServiceClient } from '@/lib/supabase'
+import { sendEmail } from '@/lib/email'
+
+const ROOM_TYPE_LABELS: Record<string, string> = {
+  standard: 'Standart Xona / Стандартный / Standard',
+  luxury:   'Lyuks Xona / Люкс / Luxury',
+  mansard:  'Mansard Lyuks / Мансардный / Mansard',
+}
 
 const ROOM_TYPE_NAMES: Record<string, string> = {
   standard: 'Standart',
@@ -152,5 +159,80 @@ export async function submitBookingInquiry(
     return { error: locale === 'uz' ? 'Buyurtma yaratishda xatolik.' : locale === 'ru' ? 'Ошибка создания бронирования.' : 'Failed to create reservation.' }
   }
 
-  return { success: true, reservationCode: reservation.reservation_code }
+  const code = reservation.reservation_code
+  const guestName = `${d.firstName} ${d.lastName}`
+  const roomLabel = ROOM_TYPE_LABELS[d.roomType] ?? d.roomType
+
+  // Admin bildirimi
+  const adminEmail = process.env.ADMIN_NOTIFICATION_EMAIL
+  if (adminEmail) {
+    const rows = [
+      ['Misafir', guestName],
+      ['Telefon', d.phone],
+      d.email ? ['E-posta', d.email] : null,
+      ['Oda', roomLabel],
+      ['Giriş', d.checkIn],
+      ['Çıkış', d.checkOut],
+      ['Gece', String(nights)],
+      ['Toplam', `${new Intl.NumberFormat('uz-UZ').format(totalAmount)} UZS`],
+    ]
+      .filter(Boolean)
+      .map((r) => `<tr><td style="padding:8px 0;color:#888;border-bottom:1px solid #1E1E3A">${r![0]}</td><td style="padding:8px 0;border-bottom:1px solid #1E1E3A;text-align:right">${r![1]}</td></tr>`)
+      .join('')
+
+    await sendEmail({
+      to: adminEmail,
+      subject: `🏨 Yeni Rezervasyon — ${code}`,
+      html: `<div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#0F0F1A;color:#E8E8F0;padding:32px;border-radius:12px">
+        <h1 style="color:#C9A96E;font-size:20px;margin-bottom:4px">Yeni Rezervasyon Talebi</h1>
+        <p style="color:#888;font-size:14px;margin-bottom:24px">Misafir sitesinden yeni rezervasyon geldi</p>
+        <table style="width:100%;border-collapse:collapse;font-size:14px">${rows}</table>
+        <div style="margin-top:24px;padding:16px;background:#1E1E3A;border-radius:8px;text-align:center">
+          <p style="color:#888;font-size:12px;margin:0 0 4px">Rezervasyon Kodu</p>
+          <p style="color:#C9A96E;font-size:22px;font-weight:800;font-family:monospace;margin:0">${code}</p>
+        </div>
+        <p style="margin-top:24px;font-size:12px;color:#555;text-align:center">Anor Avenue Hotel Admin Paneli</p>
+      </div>`,
+    })
+  }
+
+  // Misafire onay emaili (email adresi vermişse)
+  if (d.email) {
+    const isUz = locale === 'uz'
+    const isRu = locale === 'ru'
+    const subj = isUz ? `Buyurtma qabul qilindi — ${code}` : isRu ? `Бронирование принято — ${code}` : `Booking Received — ${code}`
+    const title = isUz ? 'Buyurtmangiz qabul qilindi!' : isRu ? 'Бронирование принято!' : 'Booking Received!'
+    const note = isUz
+      ? 'Tez orada siz bilan bog\'lanamiz.'
+      : isRu ? 'Мы свяжемся с вами в ближайшее время.'
+      : 'We will contact you shortly.'
+    const lbl = isUz
+      ? { room: 'Xona', in: 'Kelish', out: 'Ketish', nights: 'Kecha', total: 'Jami', code: 'Kod' }
+      : isRu
+      ? { room: 'Номер', in: 'Заезд', out: 'Выезд', nights: 'Ночей', total: 'Итого', code: 'Код' }
+      : { room: 'Room', in: 'Check-in', out: 'Check-out', nights: 'Nights', total: 'Total', code: 'Code' }
+
+    await sendEmail({
+      to: d.email,
+      subject: subj,
+      html: `<div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#0F0F1A;color:#E8E8F0;padding:32px;border-radius:12px">
+        <h1 style="color:#C9A96E;font-size:20px;margin-bottom:4px">${title}</h1>
+        <p style="color:#888;font-size:14px;margin-bottom:24px">${note}</p>
+        <table style="width:100%;border-collapse:collapse;font-size:14px">
+          <tr><td style="padding:8px 0;color:#888;border-bottom:1px solid #1E1E3A">${lbl.room}</td><td style="padding:8px 0;border-bottom:1px solid #1E1E3A;text-align:right">${roomLabel}</td></tr>
+          <tr><td style="padding:8px 0;color:#888;border-bottom:1px solid #1E1E3A">${lbl.in}</td><td style="padding:8px 0;border-bottom:1px solid #1E1E3A;text-align:right">${d.checkIn}</td></tr>
+          <tr><td style="padding:8px 0;color:#888;border-bottom:1px solid #1E1E3A">${lbl.out}</td><td style="padding:8px 0;border-bottom:1px solid #1E1E3A;text-align:right">${d.checkOut}</td></tr>
+          <tr><td style="padding:8px 0;color:#888;border-bottom:1px solid #1E1E3A">${lbl.nights}</td><td style="padding:8px 0;border-bottom:1px solid #1E1E3A;text-align:right">${nights}</td></tr>
+          <tr><td style="padding:8px 0;color:#888">${lbl.total}</td><td style="padding:8px 0;text-align:right;color:#C9A96E;font-weight:700">${new Intl.NumberFormat('uz-UZ').format(totalAmount)} UZS</td></tr>
+        </table>
+        <div style="margin-top:24px;padding:16px;background:#1E1E3A;border-radius:8px;text-align:center">
+          <p style="color:#888;font-size:12px;margin:0 0 4px">${lbl.code}</p>
+          <p style="color:#C9A96E;font-size:22px;font-weight:800;font-family:monospace;margin:0">${code}</p>
+        </div>
+        <p style="margin-top:24px;font-size:12px;color:#555;text-align:center">Anor Avenue Hotel · Toshkent</p>
+      </div>`,
+    })
+  }
+
+  return { success: true, reservationCode: code }
 }

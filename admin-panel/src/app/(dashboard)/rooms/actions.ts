@@ -71,6 +71,55 @@ export async function updateRoomStatusAction(
   return {}
 }
 
+// ─── Oda Düzenleme ───────────────────────────────────────────────────────────
+
+const updateRoomSchema = z.object({
+  roomNumber:  z.string().min(1, 'Oda numarası zorunlu'),
+  floor:       z.coerce.number().int(),
+  roomTypeId:  z.string().uuid('Oda tipi seçin'),
+  notes:       z.string().optional(),
+  isActive:    z.coerce.boolean().optional(),
+})
+
+export async function updateRoomAction(
+  roomId: string,
+  formData: FormData
+): Promise<RoomFormState> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Oturum geçersiz.' }
+
+  const raw = Object.fromEntries(formData)
+  const parsed = updateRoomSchema.safeParse({
+    ...raw,
+    isActive: formData.get('isActive') === 'true',
+  })
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
+
+  const { roomNumber, floor, roomTypeId, notes, isActive } = parsed.data
+  const service = createServiceClient()
+
+  const { error } = await service
+    .from('rooms')
+    .update({
+      room_number:   roomNumber,
+      floor,
+      room_type_id:  roomTypeId,
+      notes:         notes || null,
+      is_active:     isActive ?? true,
+    })
+    .eq('id', roomId)
+
+  if (error) {
+    if (error.code === '23505') return { error: `"${roomNumber}" numaralı oda zaten mevcut.` }
+    return { error: error.message }
+  }
+
+  revalidatePath('/rooms')
+  revalidatePath('/reservations')
+  return { success: true }
+}
+
 // ─── Temizlik Durumu Güncelleme ───────────────────────────────────────────────
 
 export async function updateCleaningStatusAction(

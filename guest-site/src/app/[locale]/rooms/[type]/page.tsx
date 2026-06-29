@@ -169,7 +169,41 @@ export default async function RoomDetailPage({
   return (
     <>
       <Navbar />
-      <main>
+
+      {/* ── Mobil yapışkan rezervasyon barı ── */}
+      <div
+        className="lg:hidden fixed bottom-0 left-0 right-0 z-40 flex items-center justify-between gap-3 px-4 py-3 border-t"
+        style={{
+          backgroundColor: 'var(--color-white)',
+          borderColor: 'var(--color-cream-dark)',
+          boxShadow: '0 -4px 16px rgba(0,0,0,0.08)',
+        }}
+      >
+        <div>
+          <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{labels.from}</p>
+          <p style={{ fontWeight: '800', color: 'var(--color-gold-dark)', fontSize: 'var(--text-lg)', lineHeight: '1.2' }}>
+            {new Intl.NumberFormat().format(room.price)}{' '}
+            <span style={{ fontSize: 'var(--text-xs)', fontWeight: '500', color: 'var(--color-text-muted)' }}>UZS</span>
+          </p>
+        </div>
+        <Link
+          href={`/${locale}/book?roomType=${type}`}
+          style={{
+            backgroundColor: 'var(--color-gold)',
+            color: 'var(--color-white)',
+            padding: '0.75rem 1.5rem',
+            borderRadius: 'var(--radius-md)',
+            fontWeight: '700',
+            fontSize: 'var(--text-sm)',
+            boxShadow: 'var(--shadow-gold)',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {labels.bookNow} →
+        </Link>
+      </div>
+
+      <main className="pb-20 lg:pb-0">
         {/* ── Hero ─────────────────────────────────────────────────────── */}
         <div style={{ background: room.gradient, minHeight: '420px', position: 'relative' }}>
           <div
@@ -446,3 +480,4 @@ export default async function RoomDetailPage({
     </>
   )
 }
+
