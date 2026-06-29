@@ -115,7 +115,7 @@ export async function updateReservationStatusAction(
       await service.from('rooms').update({ status: 'occupied' }).eq('id', res.room_id)
     } else if (newStatus === 'checked_out') {
       await service.from('rooms').update({ status: 'available', cleaning_status: 'dirty' }).eq('id', res.room_id)
-    } else if (newStatus === 'cancelled') {
+    } else if (newStatus === 'cancelled' || newStatus === 'no_show') {
       await service.from('rooms').update({ status: 'available' }).eq('id', res.room_id)
     }
   }

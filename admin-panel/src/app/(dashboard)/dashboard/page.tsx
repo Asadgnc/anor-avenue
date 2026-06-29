@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 import {
   BedDouble,
   TrendingUp,
@@ -11,10 +12,41 @@ import {
   Wind,
   Clock,
   CheckCircle2,
+  AlertCircle,
 } from 'lucide-react'
 import MetricCharts from '@/components/admin/MetricCharts'
 
-// ─── Veri çekme ────────────────────────────────────────────────────────────────
+// ─── Tipler ───────────────────────────────────────────────────────────────────
+
+interface ArrivalRow {
+  id: string
+  reservation_code: string
+  status: string
+  check_in: string
+  adults: number
+  room_rate: number
+  guests: { first_name: string; last_name: string } | null
+  rooms: { room_number: string; room_types: { name: string } | null } | null
+}
+
+interface DepartureRow {
+  id: string
+  reservation_code: string
+  check_out: string
+  total_amount: number
+  guests: { first_name: string; last_name: string } | null
+  rooms: { room_number: string } | null
+}
+
+interface PendingRow {
+  id: string
+  reservation_code: string
+  check_in: string
+  created_at: string
+  guests: { first_name: string; last_name: string } | null
+}
+
+// ─── Veri çekme ───────────────────────────────────────────────────────────────
 
 async function fetch30DayMetrics() {
   const supabase = await createClient()
@@ -72,6 +104,9 @@ async function fetchDashboardData() {
     dirtyResult,
     inProgressResult,
     inspectedResult,
+    arrivalsResult,
+    departuresResult,
+    pendingReservationsResult,
   ] = await Promise.all([
     supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('is_active', true),
     supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('status', 'occupied').eq('is_active', true),
@@ -83,6 +118,27 @@ async function fetchDashboardData() {
     supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('cleaning_status', 'dirty').eq('is_active', true),
     supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('cleaning_status', 'in_progress').eq('is_active', true),
     supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('cleaning_status', 'inspected').eq('is_active', true),
+    // Bugünkü check-in listesi
+    supabase
+      .from('reservations')
+      .select('id, reservation_code, status, check_in, adults, room_rate, guests(first_name, last_name), rooms(room_number, room_types(name))')
+      .eq('check_in', today)
+      .in('status', ['confirmed', 'pending', 'checked_in'])
+      .order('created_at'),
+    // Bugünkü check-out listesi
+    supabase
+      .from('reservations')
+      .select('id, reservation_code, check_out, total_amount, guests(first_name, last_name), rooms(room_number)')
+      .eq('check_out', today)
+      .eq('status', 'checked_in')
+      .order('created_at'),
+    // Onay bekleyen rezervasyonlar (pending — misafir sitesinden gelenler)
+    supabase
+      .from('reservations')
+      .select('id, reservation_code, check_in, created_at, guests(first_name, last_name)')
+      .eq('status', 'pending')
+      .order('created_at', { ascending: false })
+      .limit(10),
   ])
 
   const totalRooms = totalRoomsResult.count ?? 0
@@ -108,6 +164,9 @@ async function fetchDashboardData() {
       in_progress: inProgressResult.count ?? 0,
       inspected: inspectedResult.count ?? 0,
     },
+    arrivals: (arrivalsResult.data ?? []) as unknown as ArrivalRow[],
+    departures: (departuresResult.data ?? []) as unknown as DepartureRow[],
+    pendingReservations: (pendingReservationsResult.data ?? []) as unknown as PendingRow[],
   }
 }
 
@@ -215,6 +274,9 @@ export default async function DashboardPage() {
     checkouts: 0,
     pendingPayments: 0,
     cleaning: { clean: 0, dirty: 0, in_progress: 0, inspected: 0 },
+    arrivals: [],
+    departures: [],
+    pendingReservations: [],
   }
 
   const today = new Date().toLocaleDateString('uz-UZ', {
@@ -223,6 +285,17 @@ export default async function DashboardPage() {
     month: 'long',
     day: 'numeric',
   })
+
+  const STATUS_LABELS: Record<string, string> = {
+    pending: 'Bekliyor',
+    confirmed: 'Onaylı',
+    checked_in: 'Girişte',
+  }
+  const STATUS_COLORS: Record<string, string> = {
+    pending: '#FCD34D',
+    confirmed: '#93C5FD',
+    checked_in: '#86EFAC',
+  }
 
   return (
     <div className="space-y-8">
@@ -233,6 +306,55 @@ export default async function DashboardPage() {
           {today}
         </p>
       </div>
+
+      {/* Pending rezervasyon uyarısı */}
+      {metrics.pendingReservations.length > 0 && (
+        <section>
+          <div
+            className="rounded-xl border p-4"
+            style={{ backgroundColor: '#1C1505', borderColor: '#D97706' }}
+          >
+            <div className="flex items-start gap-3">
+              <AlertCircle size={18} style={{ color: '#FCD34D', flexShrink: 0, marginTop: '1px' }} />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold" style={{ color: '#FCD34D' }}>
+                  {metrics.pendingReservations.length} onay bekleyen rezervasyon var
+                </p>
+                <p className="text-xs mt-1" style={{ color: '#D4A017' }}>
+                  Misafir sitesinden gelen rezervasyonlar — onaylamak veya iptal etmek için tıklayın
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {metrics.pendingReservations.slice(0, 5).map((r) => (
+                    <Link
+                      key={r.id}
+                      href={`/reservations/${r.id}`}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-opacity hover:opacity-80"
+                      style={{ backgroundColor: '#2D1A00', color: '#FCD34D', border: '1px solid #D97706' }}
+                    >
+                      <span className="font-mono">{r.reservation_code}</span>
+                      {r.guests && (
+                        <span style={{ color: '#D4A017' }}>
+                          · {r.guests.first_name} {r.guests.last_name}
+                        </span>
+                      )}
+                      <span style={{ color: '#92681A' }}>· {r.check_in}</span>
+                    </Link>
+                  ))}
+                  {metrics.pendingReservations.length > 5 && (
+                    <Link
+                      href="/reservations/list?status=pending"
+                      className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium transition-opacity hover:opacity-80"
+                      style={{ backgroundColor: '#2D1A00', color: '#D4A017', border: '1px solid #D97706' }}
+                    >
+                      +{metrics.pendingReservations.length - 5} daha →
+                    </Link>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* 6 Metrik Kartı */}
       <section>
@@ -279,6 +401,108 @@ export default async function DashboardPage() {
             value={String(metrics.pendingPayments)}
             description="İşlem bekleyen ödeme kaydı"
           />
+        </div>
+      </section>
+
+      {/* Bugünkü Giriş / Çıkış Listeleri */}
+      <section>
+        <h2 style={{ color: 'var(--color-admin-muted)' }} className="text-xs font-medium uppercase tracking-widest mb-4">
+          Bugünkü Operasyon
+        </h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {/* Arrivals */}
+          <div
+            className="rounded-xl border overflow-hidden"
+            style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}
+          >
+            <div
+              className="px-5 py-3 flex items-center gap-2"
+              style={{ borderBottom: '1px solid var(--color-admin-border)', backgroundColor: '#0D1F14' }}
+            >
+              <LogIn size={14} style={{ color: '#86EFAC' }} />
+              <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#86EFAC' }}>
+                Bugün Giriş ({metrics.arrivals.length})
+              </p>
+            </div>
+            {metrics.arrivals.length === 0 ? (
+              <p className="px-5 py-6 text-sm text-center" style={{ color: 'var(--color-admin-muted)' }}>
+                Bugün için beklenen giriş yok
+              </p>
+            ) : (
+              <div className="divide-y" style={{ borderColor: 'var(--color-admin-border)' }}>
+                {metrics.arrivals.map((r) => (
+                  <Link
+                    key={r.id}
+                    href={`/reservations/${r.id}`}
+                    className="flex items-center justify-between px-5 py-3 hover:bg-white/5 transition-colors"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-[#E8E8F0] truncate">
+                        {r.guests?.first_name} {r.guests?.last_name}
+                      </p>
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--color-admin-muted)' }}>
+                        {r.rooms?.room_number ?? '—'} · {r.rooms?.room_types?.name ?? '—'} · {r.adults} kişi
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0 ml-3">
+                      <span
+                        className="text-xs font-bold px-2 py-0.5 rounded-full"
+                        style={{
+                          color: STATUS_COLORS[r.status] ?? '#9CA3AF',
+                          backgroundColor: `${STATUS_COLORS[r.status] ?? '#9CA3AF'}20`,
+                        }}
+                      >
+                        {STATUS_LABELS[r.status] ?? r.status}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Departures */}
+          <div
+            className="rounded-xl border overflow-hidden"
+            style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}
+          >
+            <div
+              className="px-5 py-3 flex items-center gap-2"
+              style={{ borderBottom: '1px solid var(--color-admin-border)', backgroundColor: '#1A1405' }}
+            >
+              <LogOut size={14} style={{ color: '#FCD34D' }} />
+              <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#FCD34D' }}>
+                Bugün Çıkış ({metrics.departures.length})
+              </p>
+            </div>
+            {metrics.departures.length === 0 ? (
+              <p className="px-5 py-6 text-sm text-center" style={{ color: 'var(--color-admin-muted)' }}>
+                Bugün için beklenen çıkış yok
+              </p>
+            ) : (
+              <div className="divide-y" style={{ borderColor: 'var(--color-admin-border)' }}>
+                {metrics.departures.map((r) => (
+                  <Link
+                    key={r.id}
+                    href={`/reservations/${r.id}`}
+                    className="flex items-center justify-between px-5 py-3 hover:bg-white/5 transition-colors"
+                  >
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-[#E8E8F0] truncate">
+                        {r.guests?.first_name} {r.guests?.last_name}
+                      </p>
+                      <p className="text-xs mt-0.5" style={{ color: 'var(--color-admin-muted)' }}>
+                        {r.rooms?.room_number ?? '—'}
+                      </p>
+                    </div>
+                    <span className="text-sm font-semibold shrink-0 ml-3" style={{ color: 'var(--color-accent)' }}>
+                      {formatUZS(r.total_amount)}
+                    </span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       </section>
 

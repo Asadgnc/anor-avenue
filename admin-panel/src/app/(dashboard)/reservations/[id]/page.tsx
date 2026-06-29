@@ -152,8 +152,8 @@ export default async function ReservationDetailPage({
         </div>
       </div>
 
-      {/* İşlemler (Check-in / Check-out / İptal) */}
-      <ReservationActions reservationId={id} status={res.status} />
+      {/* İşlemler (Check-in / Check-out / İptal / No-show) */}
+      <ReservationActions reservationId={id} status={res.status} checkIn={res.check_in} />
 
       {/* Rezervasyon Düzenleme */}
       {!['cancelled', 'no_show', 'checked_out'].includes(res.status) && (

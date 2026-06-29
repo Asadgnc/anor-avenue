@@ -8,6 +8,7 @@ import type { ReservationStatus } from '@/types/hotel'
 interface Props {
   reservationId: string
   status: ReservationStatus
+  checkIn: string
 }
 
 interface ActionButton {
@@ -17,16 +18,21 @@ interface ActionButton {
   confirm?: string
 }
 
-function getButtons(status: ReservationStatus): ActionButton[] {
+function getButtons(status: ReservationStatus, checkIn: string): ActionButton[] {
+  const today = new Date().toISOString().split('T')[0]
+  const isPastCheckIn = today > checkIn
+
   switch (status) {
     case 'pending':
       return [
         { label: 'Onayla', newStatus: 'confirmed', color: '#2563EB', confirm: 'Rezervasyon onaylanacak. Devam edilsin mi?' },
+        ...(isPastCheckIn ? [{ label: 'Gelmedi (No-show)', newStatus: 'no_show' as ReservationStatus, color: '#7C3AED', confirm: 'Misafir gelmedi olarak işaretlenecek. Devam edilsin mi?' }] : []),
         { label: 'İptal Et', newStatus: 'cancelled', color: '#C62828', confirm: 'Rezervasyon iptal edilecek. Bu işlem geri alınamaz. Devam edilsin mi?' },
       ]
     case 'confirmed':
       return [
         { label: 'Check-in Yap', newStatus: 'checked_in', color: '#16A34A', confirm: 'Check-in yapılacak. Devam edilsin mi?' },
+        ...(isPastCheckIn ? [{ label: 'Gelmedi (No-show)', newStatus: 'no_show' as ReservationStatus, color: '#7C3AED', confirm: 'Misafir gelmedi olarak işaretlenecek. Devam edilsin mi?' }] : []),
         { label: 'İptal Et', newStatus: 'cancelled', color: '#C62828', confirm: 'Rezervasyon iptal edilecek. Bu işlem geri alınamaz. Devam edilsin mi?' },
       ]
     case 'checked_in':
@@ -38,10 +44,10 @@ function getButtons(status: ReservationStatus): ActionButton[] {
   }
 }
 
-export default function ReservationActions({ reservationId, status }: Props) {
+export default function ReservationActions({ reservationId, status, checkIn }: Props) {
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
-  const buttons = getButtons(status)
+  const buttons = getButtons(status, checkIn)
 
   if (buttons.length === 0) return null
 

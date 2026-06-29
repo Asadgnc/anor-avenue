@@ -6,6 +6,7 @@ import { useState } from 'react'
 import {
   LayoutDashboard,
   CalendarDays,
+  List,
   Plus,
   BedDouble,
   Users,
@@ -23,7 +24,8 @@ import { supabase } from '@/lib/supabase'
 
 const NAV_LINKS = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/reservations', label: 'Rezervasyonlar', icon: CalendarDays },
+  { href: '/reservations', label: 'Takvim', icon: CalendarDays },
+  { href: '/reservations/list', label: 'Rezervasyon Listesi', icon: List },
   { href: '/reservations/new', label: 'Yeni Rezervasyon', icon: Plus },
   { href: '/rooms', label: 'Odalar', icon: BedDouble },
   { href: '/guests', label: 'Misafirler', icon: Users },
@@ -60,7 +62,10 @@ export default function SidebarNav() {
       {/* Navigation */}
       <nav className="flex-1 px-3 py-4 space-y-0.5">
         {NAV_LINKS.map(({ href, label, icon: Icon }) => {
-          const active = pathname === href || (href !== '/dashboard' && pathname.startsWith(href))
+          const exactOnly = ['/dashboard', '/reservations', '/reservations/list', '/reservations/new']
+          const active = exactOnly.includes(href)
+            ? pathname === href
+            : pathname === href || pathname.startsWith(href + '/')
           return (
             <Link
               key={href}
