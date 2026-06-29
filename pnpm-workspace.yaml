@@ -1,0 +1,8 @@
+packages:
+  - "guest-site"
+  - "admin-panel"
+  - "packages/*"
+
+onlyBuiltDependencies:
+  - sharp
+  - unrs-resolver

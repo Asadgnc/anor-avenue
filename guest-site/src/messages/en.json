@@ -1,0 +1,43 @@
+{
+  "nav": {
+    "home": "Home",
+    "rooms": "Rooms",
+    "about": "About",
+    "contact": "Contact",
+    "book": "Book Now"
+  },
+  "hero": {
+    "title": "Welcome to Anor Avenue",
+    "subtitle": "Luxury stays in the heart of Tashkent",
+    "cta": "Book a Room"
+  },
+  "rooms": {
+    "title": "Our Rooms",
+    "from": "from",
+    "perNight": "per night",
+    "viewDetails": "View Details",
+    "bookNow": "Book Now",
+    "types": {
+      "standard": "Standard Room",
+      "luxury": "Luxury Room",
+      "mansard": "Mansard Luxury"
+    }
+  },
+  "booking": {
+    "checkIn": "Check-in Date",
+    "checkOut": "Check-out Date",
+    "guests": "Number of Guests",
+    "adults": "Adults",
+    "children": "Children",
+    "search": "Search",
+    "confirm": "Confirm Booking",
+    "total": "Total",
+    "nights": "nights"
+  },
+  "footer": {
+    "address": "Tashkent, Uzbekistan",
+    "phone": "Phone",
+    "email": "Email",
+    "rights": "All rights reserved"
+  }
+}

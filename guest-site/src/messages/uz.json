@@ -1,0 +1,43 @@
+{
+  "nav": {
+    "home": "Bosh sahifa",
+    "rooms": "Xonalar",
+    "about": "Biz haqimizda",
+    "contact": "Aloqa",
+    "book": "Bron qilish"
+  },
+  "hero": {
+    "title": "Anor Avenue mehmonxonasiga xush kelibsiz",
+    "subtitle": "Toshkentning yuragida hashamatli dam olish",
+    "cta": "Xonani bron qilish"
+  },
+  "rooms": {
+    "title": "Bizning xonalar",
+    "from": "dan boshlab",
+    "perNight": "bir kecha",
+    "viewDetails": "Batafsil",
+    "bookNow": "Hozir bron qilish",
+    "types": {
+      "standard": "Standart xona",
+      "luxury": "Lyuks xona",
+      "mansard": "Mansard lyuks"
+    }
+  },
+  "booking": {
+    "checkIn": "Kelish sanasi",
+    "checkOut": "Ketish sanasi",
+    "guests": "Mehmonlar soni",
+    "adults": "Kattalar",
+    "children": "Bolalar",
+    "search": "Qidirish",
+    "confirm": "Bronni tasdiqlash",
+    "total": "Jami",
+    "nights": "kecha"
+  },
+  "footer": {
+    "address": "Toshkent, O'zbekiston",
+    "phone": "Telefon",
+    "email": "Elektron pochta",
+    "rights": "Barcha huquqlar himoyalangan"
+  }
+}

@@ -1,0 +1,63 @@
+/* Anor Avenue — Design Tokens
+   Bu dosyadan sapma yok. Tüm renkler, font ve boşluklar buradan alınır. */
+
+@layer base {
+  :root {
+    /* Renkler */
+    --color-gold: #C9A96E;
+    --color-gold-light: #E2C99B;
+    --color-gold-dark: #A07840;
+
+    --color-charcoal: #1C1C1E;
+    --color-charcoal-soft: #2C2C2E;
+    --color-stone: #3A3A3C;
+
+    --color-cream: #F8F5F0;
+    --color-cream-dark: #EDE8E0;
+    --color-white: #FFFFFF;
+
+    --color-text-primary: #1C1C1E;
+    --color-text-secondary: #6B6B6B;
+    --color-text-muted: #9B9B9B;
+    --color-text-inverse: #FFFFFF;
+
+    --color-success: #2D7D46;
+    --color-warning: #B8860B;
+    --color-error: #C0392B;
+
+    /* Tipografi */
+    --font-display: var(--font-playfair), Georgia, serif;
+    --font-body: var(--font-inter), system-ui, sans-serif;
+
+    --text-xs: 0.75rem;
+    --text-sm: 0.875rem;
+    --text-base: 1rem;
+    --text-lg: 1.125rem;
+    --text-xl: 1.25rem;
+    --text-2xl: 1.5rem;
+    --text-3xl: 1.875rem;
+    --text-4xl: 2.25rem;
+    --text-5xl: 3rem;
+
+    /* Boşluklar */
+    --spacing-section: 5rem;
+    --spacing-container: 1.5rem;
+    --max-width: 1200px;
+
+    /* Gölgeler */
+    --shadow-soft: 0 2px 20px rgba(0, 0, 0, 0.08);
+    --shadow-card: 0 4px 30px rgba(0, 0, 0, 0.12);
+    --shadow-gold: 0 4px 20px rgba(201, 169, 110, 0.3);
+
+    /* Geçişler */
+    --transition-fast: 150ms ease;
+    --transition-base: 250ms ease;
+    --transition-slow: 400ms ease;
+
+    /* Border radius */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 16px;
+    --radius-full: 9999px;
+  }
+}
