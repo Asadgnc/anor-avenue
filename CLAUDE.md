@@ -243,12 +243,21 @@ async function fetchFromClient() {
   - RoomsManager: React Fragment key hatası düzeltildi
   - housekeeping/actions.ts: service_role client kullanılıyor (RLS bypass)
   - /api/reports/export route eklendi — Excel/CSV indirme çalışıyor
+- [x] Admin panel + Guest site: RLS sonsuz özyineleme (infinite recursion) hatası düzeltildi
+  - `profiles_select_admin` policy kendine referans veriyordu → tüm join sorgular 500 hatası veriyordu
+  - SECURITY DEFINER `get_user_role()` fonksiyonuyla policy yeniden yazıldı
+  - Etkilenen sayfalar düzeldi: rezervasyonlar, misafirler, ödemeler, kayıt (registratsiya)
+- [x] Guest site: kritik bug + iyileştirmeler
+  - actions.ts: mansard oda tipi DB adı 'Mansard Lüks'→'Delüks' düzeltildi (mansard rezervasyonlar çalışmıyordu)
+  - BookingForm: oda tipi ve tarihler URL parametrelerinden otomatik dolduruluyor (?roomType=luxury&checkIn=...)
+  - Tüm sayfalarda (ana sayfa, odalar, oda detay, rezervasyon formu) fiyatlar artık Supabase'den çekiliyor
+    → Admin Settings'den fiyat değiştirince yeniden deploy sonrası guest site'de de güncelleniyor
 
 ## Sonraki Adımlar
-1. Vercel'e deploy et (pnpm build başarılı ✓)
-2. Gerçek otel fotoğraflarını `/public/hotel-photos/` klasörüne ekle
-3. Payme/Click entegrasyonu (merchant hesabı onaylandıktan sonra)
-4. Booking.com iCal sync (en son)
+1. Gerçek otel fotoğraflarını `/public/hotel-photos/` klasörüne ekle (kullanıcıdan bekleniyor)
+2. Payme/Click entegrasyonu (merchant hesabı onaylandıktan sonra)
+3. Booking.com iCal sync (en son)
+4. Guest site: BookingWidget'ten gelen tarih parametreleri rooms sayfasında oda müsaitliği gösterimi
 
 ## Deploy Bilgisi
 - Vercel: her iki uygulama canlıda ✅
