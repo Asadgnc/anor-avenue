@@ -4,6 +4,7 @@ import Link from 'next/link'
 import Navbar from '@/components/hotel/Navbar'
 import Footer from '@/components/hotel/Footer'
 import BookingWidget from '@/components/hotel/BookingWidget'
+import { supabase } from '@/lib/supabase'
 
 type Props = { params: Promise<{ locale: string }> }
 
@@ -11,12 +12,25 @@ export default async function HomePage({ params }: Props) {
   const { locale } = await params
   setRequestLocale(locale)
 
+  const { data: roomTypeData } = await supabase
+    .from('room_types')
+    .select('name, base_price')
+
+  const byName = (name: string, fallback: number) =>
+    Number(roomTypeData?.find((rt) => rt.name === name)?.base_price ?? fallback)
+
+  const prices = {
+    standard: byName('Standart', 350000),
+    luxury: byName('Lüks', 600000),
+    mansard: byName('Delüks', 850000),
+  }
+
   return (
     <>
       <Navbar />
       <main>
         <HeroSection locale={locale} />
-        <RoomsPreviewSection locale={locale} />
+        <RoomsPreviewSection locale={locale} prices={prices} />
         <AboutSection locale={locale} />
         <ContactSection locale={locale} />
       </main>
@@ -140,28 +154,25 @@ function HeroSection({ locale }: { locale: string }) {
 const roomData = [
   {
     key: 'standard' as const,
-    price: 350000,
     floor: '-1',
     amenities: ['WiFi', 'TV', 'A/C'],
     gradient: 'linear-gradient(135deg, #2c2c2e 0%, #1c1c1e 100%)',
   },
   {
     key: 'luxury' as const,
-    price: 600000,
     floor: '2-3',
     amenities: ['WiFi', 'TV', 'A/C', 'Minibar'],
     gradient: 'linear-gradient(135deg, #3a2e1e 0%, #2a2018 100%)',
   },
   {
     key: 'mansard' as const,
-    price: 850000,
     floor: '4',
     amenities: ['WiFi', 'TV', 'A/C', 'Minibar', 'Panorama'],
     gradient: 'linear-gradient(135deg, #2a1e0e 0%, #1c1208 100%)',
   },
 ]
 
-function RoomsPreviewSection({ locale }: { locale: string }) {
+function RoomsPreviewSection({ locale, prices }: { locale: string; prices: Record<string, number> }) {
   const t = useTranslations('rooms')
 
   return (
@@ -277,7 +288,7 @@ function RoomsPreviewSection({ locale }: { locale: string }) {
                       {t('from')}
                     </span>
                     <p style={{ color: 'var(--color-gold-dark)', fontWeight: '700', fontSize: 'var(--text-lg)' }}>
-                      {new Intl.NumberFormat().format(room.price)}{' '}
+                      {new Intl.NumberFormat().format(prices[room.key])}{' '}
                       <span style={{ fontSize: 'var(--text-xs)', fontWeight: '500' }}>UZS / {t('perNight')}</span>
                     </p>
                   </div>

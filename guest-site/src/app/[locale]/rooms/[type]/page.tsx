@@ -3,9 +3,16 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Navbar from '@/components/hotel/Navbar'
 import Footer from '@/components/hotel/Footer'
+import { supabase } from '@/lib/supabase'
 import type { Metadata } from 'next'
 
 // ─── Oda Verisi ──────────────────────────────────────────────────────────────
+
+const TYPE_TO_DB_NAME: Record<string, string> = {
+  standard: 'Standart',
+  luxury: 'Lüks',
+  mansard: 'Delüks',
+}
 
 const ROOM_DATA = {
   standard: {
@@ -128,7 +135,19 @@ export default async function RoomDetailPage({
   setRequestLocale(locale)
 
   if (!(type in ROOM_DATA)) notFound()
-  const room = ROOM_DATA[type as RoomType]
+  const roomStatic = ROOM_DATA[type as RoomType]
+
+  const dbName = TYPE_TO_DB_NAME[type]
+  const { data: priceRow } = await supabase
+    .from('room_types')
+    .select('base_price')
+    .eq('name', dbName)
+    .single()
+
+  const room = {
+    ...roomStatic,
+    price: priceRow ? Number(priceRow.base_price) : roomStatic.price,
+  }
 
   const names: Record<string, Record<string, string>> = {
     standard: { uz: 'Standart xona', ru: 'Стандартный номер', en: 'Standard Room' },

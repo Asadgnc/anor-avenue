@@ -13,7 +13,7 @@ const ROOM_TYPE_LABELS: Record<string, string> = {
 const ROOM_TYPE_NAMES: Record<string, string> = {
   standard: 'Standart',
   luxury: 'Lüks',
-  mansard: 'Mansard Lüks',
+  mansard: 'Delüks',
 }
 
 export type BookingInquiryState = {

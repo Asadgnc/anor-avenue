@@ -16,13 +16,14 @@ const labels = {
     checkOut: 'Ketish sanasi',
     adults: 'Kattalar soni',
     requests: 'Maxsus xohishlar (ixtiyoriy)',
-    submit: 'So\'rov yuborish',
+    submit: "So'rov yuborish",
     submitting: 'Yuborilmoqda…',
-    success: 'So\'rovingiz qabul qilindi! Tez orada siz bilan bog\'lanamiz.',
-    roomTypes: {
-      standard: 'Standart xona — 350,000 UZS/kecha',
-      luxury: 'Lyuks xona — 600,000 UZS/kecha',
-      mansard: 'Mansard lyuks — 850,000 UZS/kecha',
+    success: "So'rovingiz qabul qilindi! Tez orada siz bilan bog'lanamiz.",
+    perNight: '/kecha',
+    roomNames: {
+      standard: 'Standart xona',
+      luxury: 'Lyuks xona',
+      mansard: 'Mansard lyuks',
     },
   },
   ru: {
@@ -38,10 +39,11 @@ const labels = {
     submit: 'Отправить запрос',
     submitting: 'Отправка…',
     success: 'Ваш запрос принят! Мы свяжемся с вами в ближайшее время.',
-    roomTypes: {
-      standard: 'Стандартный номер — 350,000 UZS/ночь',
-      luxury: 'Люкс — 600,000 UZS/ночь',
-      mansard: 'Мансардный люкс — 850,000 UZS/ночь',
+    perNight: '/ночь',
+    roomNames: {
+      standard: 'Стандартный номер',
+      luxury: 'Люкс',
+      mansard: 'Мансардный люкс',
     },
   },
   en: {
@@ -56,21 +58,48 @@ const labels = {
     requests: 'Special Requests (optional)',
     submit: 'Send Request',
     submitting: 'Sending…',
-    success: 'Your request has been received! We\'ll get back to you soon.',
-    roomTypes: {
-      standard: 'Standard Room — 350,000 UZS/night',
-      luxury: 'Luxury Room — 600,000 UZS/night',
-      mansard: 'Mansard Luxury — 850,000 UZS/night',
+    success: "Your request has been received! We'll get back to you soon.",
+    perNight: '/night',
+    roomNames: {
+      standard: 'Standard Room',
+      luxury: 'Luxury Room',
+      mansard: 'Mansard Luxury',
     },
   },
 }
 
-type Props = { locale: string }
+type RoomPrices = { standard: number; luxury: number; mansard: number }
 
-export default function BookingForm({ locale }: Props) {
+type Props = {
+  locale: string
+  roomPrices: RoomPrices
+  defaultRoomType?: string
+  defaultCheckIn?: string
+  defaultCheckOut?: string
+  defaultAdults?: string
+}
+
+export default function BookingForm({
+  locale,
+  roomPrices,
+  defaultRoomType,
+  defaultCheckIn,
+  defaultCheckOut,
+  defaultAdults,
+}: Props) {
   const l = labels[locale as keyof typeof labels] ?? labels.uz
   const today = new Date().toISOString().split('T')[0]
   const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0]
+
+  const validRoomType = ['standard', 'luxury', 'mansard'].includes(defaultRoomType ?? '')
+    ? (defaultRoomType as 'standard' | 'luxury' | 'mansard')
+    : 'standard'
+
+  const checkIn = defaultCheckIn || today
+  const checkOut = defaultCheckOut || tomorrow
+  const adults = defaultAdults || '2'
+
+  const fmt = (n: number) => new Intl.NumberFormat().format(n)
 
   const boundAction = submitBookingInquiry.bind(null, locale)
   const [state, action, isPending] = useActionState(boundAction, initialState)
@@ -181,10 +210,12 @@ export default function BookingForm({ locale }: Props) {
       {/* Room type */}
       <div>
         <label style={labelStyle}>{l.roomType} *</label>
-        <select name="roomType" required disabled={isPending} style={inputStyle}>
-          <option value="standard">{l.roomTypes.standard}</option>
-          <option value="luxury">{l.roomTypes.luxury}</option>
-          <option value="mansard">{l.roomTypes.mansard}</option>
+        <select name="roomType" required disabled={isPending} defaultValue={validRoomType} style={inputStyle}>
+          {(['standard', 'luxury', 'mansard'] as const).map((key) => (
+            <option key={key} value={key}>
+              {l.roomNames[key]} — {fmt(roomPrices[key])} UZS{l.perNight}
+            </option>
+          ))}
         </select>
       </div>
 
@@ -192,18 +223,18 @@ export default function BookingForm({ locale }: Props) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label style={labelStyle}>{l.checkIn} *</label>
-          <input name="checkIn" type="date" min={today} defaultValue={today} required disabled={isPending} style={inputStyle} />
+          <input name="checkIn" type="date" min={today} defaultValue={checkIn} required disabled={isPending} style={inputStyle} />
         </div>
         <div>
           <label style={labelStyle}>{l.checkOut} *</label>
-          <input name="checkOut" type="date" min={tomorrow} defaultValue={tomorrow} required disabled={isPending} style={inputStyle} />
+          <input name="checkOut" type="date" min={tomorrow} defaultValue={checkOut} required disabled={isPending} style={inputStyle} />
         </div>
       </div>
 
       {/* Adults */}
       <div className="w-32">
         <label style={labelStyle}>{l.adults} *</label>
-        <select name="adults" defaultValue="2" required disabled={isPending} style={inputStyle}>
+        <select name="adults" defaultValue={adults} required disabled={isPending} style={inputStyle}>
           {[1, 2, 3, 4].map((n) => <option key={n} value={n}>{n}</option>)}
         </select>
       </div>

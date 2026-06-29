@@ -4,12 +4,26 @@ import Link from 'next/link'
 import Navbar from '@/components/hotel/Navbar'
 import Footer from '@/components/hotel/Footer'
 import BookingWidget from '@/components/hotel/BookingWidget'
+import { supabase } from '@/lib/supabase'
 
 type Props = { params: Promise<{ locale: string }> }
 
 export default async function RoomsPage({ params }: Props) {
   const { locale } = await params
   setRequestLocale(locale)
+
+  const { data: roomTypeData } = await supabase
+    .from('room_types')
+    .select('name, base_price')
+
+  const byName = (name: string, fallback: number) =>
+    Number(roomTypeData?.find((rt) => rt.name === name)?.base_price ?? fallback)
+
+  const prices = {
+    standard: byName('Standart', 350000),
+    luxury: byName('Lüks', 600000),
+    mansard: byName('Delüks', 850000),
+  }
 
   return (
     <>
@@ -38,7 +52,7 @@ export default async function RoomsPage({ params }: Props) {
           }}
         >
           <div style={{ maxWidth: 'var(--max-width)' }} className="mx-auto">
-            <RoomsList locale={locale} />
+            <RoomsList locale={locale} prices={prices} />
           </div>
         </section>
       </main>
@@ -77,10 +91,9 @@ function RoomsHeader({ locale }: { locale: string }) {
   )
 }
 
-const rooms = [
+const roomMeta = [
   {
     key: 'standard' as const,
-    price: 350000,
     floor: -1,
     maxOccupancy: 2,
     area: 22,
@@ -95,7 +108,6 @@ const rooms = [
   },
   {
     key: 'luxury' as const,
-    price: 600000,
     floor: 2,
     maxOccupancy: 2,
     area: 35,
@@ -112,7 +124,6 @@ const rooms = [
   },
   {
     key: 'mansard' as const,
-    price: 850000,
     floor: 4,
     maxOccupancy: 2,
     area: 42,
@@ -131,7 +142,7 @@ const rooms = [
   },
 ]
 
-function RoomsList({ locale }: { locale: string }) {
+function RoomsList({ locale, prices }: { locale: string; prices: Record<string, number> }) {
   const t = useTranslations('rooms')
 
   const floorLabel = (floor: number) => {
@@ -141,7 +152,7 @@ function RoomsList({ locale }: { locale: string }) {
 
   return (
     <div className="flex flex-col gap-8">
-      {rooms.map((room) => (
+      {roomMeta.map((room) => (
         <div
           key={room.key}
           style={{
@@ -199,7 +210,7 @@ function RoomsList({ locale }: { locale: string }) {
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
                   <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)' }}>{t('from')}</p>
                   <p style={{ color: 'var(--color-gold-dark)', fontWeight: '800', fontSize: 'var(--text-xl)' }}>
-                    {new Intl.NumberFormat().format(room.price)}{' '}
+                    {new Intl.NumberFormat().format(prices[room.key])}{' '}
                     <span style={{ fontSize: 'var(--text-xs)', fontWeight: '500' }}>UZS</span>
                   </p>
                   <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)' }}>/ {t('perNight')}</p>
