@@ -22,25 +22,58 @@ import {
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 
-const NAV_LINKS = [
-  { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/reservations', label: 'Takvim', icon: CalendarDays },
-  { href: '/reservations/list', label: 'Rezervasyon Listesi', icon: List },
-  { href: '/reservations/new', label: 'Yeni Rezervasyon', icon: Plus },
-  { href: '/rooms', label: 'Odalar', icon: BedDouble },
-  { href: '/guests', label: 'Misafirler', icon: Users },
-  { href: '/registrations', label: 'Kayıt (Reg.)', icon: ClipboardList },
-  { href: '/housekeeping', label: 'Temizlik', icon: Sparkles },
-  { href: '/payments', label: 'Ödemeler', icon: CreditCard },
-  { href: '/reports', label: 'Raporlar', icon: BarChart3 },
-  { href: '/staff', label: 'Personel', icon: UserCog },
-  { href: '/settings', label: 'Ayarlar', icon: Settings },
-] as const
+type UserRole = 'admin' | 'manager' | 'receptionist' | 'housekeeper' | 'accountant'
 
-export default function SidebarNav() {
+type NavLink = {
+  href: string
+  label: string
+  icon: React.ComponentType<{ size?: number }>
+  roles: UserRole[]
+}
+
+const NAV_LINKS: NavLink[] = [
+  { href: '/dashboard',          label: 'Dashboard',            icon: LayoutDashboard, roles: ['admin', 'manager', 'receptionist', 'housekeeper', 'accountant'] },
+  { href: '/reservations',       label: 'Takvim',               icon: CalendarDays,    roles: ['admin', 'manager', 'receptionist'] },
+  { href: '/reservations/list',  label: 'Rezervasyon Listesi',  icon: List,            roles: ['admin', 'manager', 'receptionist'] },
+  { href: '/reservations/new',   label: 'Yeni Rezervasyon',     icon: Plus,            roles: ['admin', 'manager', 'receptionist'] },
+  { href: '/rooms',              label: 'Odalar',               icon: BedDouble,       roles: ['admin', 'manager', 'receptionist'] },
+  { href: '/guests',             label: 'Misafirler',           icon: Users,           roles: ['admin', 'manager', 'receptionist'] },
+  { href: '/registrations',      label: 'Kayıt (Reg.)',         icon: ClipboardList,   roles: ['admin', 'manager', 'receptionist'] },
+  { href: '/housekeeping',       label: 'Temizlik',             icon: Sparkles,        roles: ['admin', 'manager', 'receptionist', 'housekeeper'] },
+  { href: '/payments',           label: 'Ödemeler',             icon: CreditCard,      roles: ['admin', 'manager', 'receptionist', 'accountant'] },
+  { href: '/reports',            label: 'Raporlar',             icon: BarChart3,       roles: ['admin', 'manager', 'accountant'] },
+  { href: '/staff',              label: 'Personel',             icon: UserCog,         roles: ['admin'] },
+  { href: '/settings',           label: 'Ayarlar',              icon: Settings,        roles: ['admin'] },
+]
+
+const ROLE_LABELS: Record<UserRole, string> = {
+  admin:        'Admin',
+  manager:      'Müdür',
+  receptionist: 'Resepsiyon',
+  housekeeper:  'Temizlik',
+  accountant:   'Muhasebeci',
+}
+
+const ROLE_COLORS: Record<UserRole, string> = {
+  admin:        '#C9A96E',
+  manager:      '#93C5FD',
+  receptionist: '#86EFAC',
+  housekeeper:  '#C4B5FD',
+  accountant:   '#FCD34D',
+}
+
+type Props = {
+  role: string
+  userEmail: string
+}
+
+export default function SidebarNav({ role, userEmail }: Props) {
+  const userRole = (role as UserRole) ?? 'receptionist'
   const pathname = usePathname()
   const router = useRouter()
   const [mobileOpen, setMobileOpen] = useState(false)
+
+  const visibleLinks = NAV_LINKS.filter((link) => link.roles.includes(userRole))
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -60,8 +93,8 @@ export default function SidebarNav() {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5">
-        {NAV_LINKS.map(({ href, label, icon: Icon }) => {
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+        {visibleLinks.map(({ href, label, icon: Icon }) => {
           const exactOnly = ['/dashboard', '/reservations', '/reservations/list', '/reservations/new']
           const active = exactOnly.includes(href)
             ? pathname === href
@@ -84,8 +117,22 @@ export default function SidebarNav() {
         })}
       </nav>
 
-      {/* Footer */}
-      <div className="px-3 py-4 border-t space-y-1" style={{ borderColor: 'var(--color-admin-border)' }}>
+      {/* Footer — kullanıcı bilgisi + çıkış */}
+      <div className="px-3 py-4 border-t space-y-2" style={{ borderColor: 'var(--color-admin-border)' }}>
+        {/* Kullanıcı bilgisi */}
+        <div
+          className="px-3 py-2.5 rounded-lg space-y-0.5"
+          style={{ backgroundColor: 'var(--color-admin-bg)' }}
+        >
+          <p className="text-xs text-[#E8E8F0] truncate leading-tight">{userEmail}</p>
+          <span
+            className="text-xs font-semibold"
+            style={{ color: ROLE_COLORS[userRole] ?? '#9CA3AF' }}
+          >
+            {ROLE_LABELS[userRole] ?? role}
+          </span>
+        </div>
+
         <button
           onClick={handleLogout}
           className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm w-full transition-colors hover:bg-red-900/20"
@@ -94,7 +141,6 @@ export default function SidebarNav() {
           <LogOut size={16} />
           Çıkış Yap
         </button>
-        <p className="text-xs px-3" style={{ color: 'var(--color-admin-muted)' }}>v0.1 · Geliştirme</p>
       </div>
     </>
   )

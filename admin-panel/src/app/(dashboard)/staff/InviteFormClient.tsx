@@ -16,8 +16,27 @@ const init: StaffState = {}
 export default function InviteFormClient() {
   const [state, action, pending] = useActionState<StaffState, FormData>(inviteStaffAction, init)
 
+  const inputStyle = {
+    backgroundColor: 'var(--color-admin-bg)',
+    color: '#E8E8F0',
+    borderColor: 'var(--color-admin-border)',
+  }
+
   return (
     <form action={action} className="flex flex-wrap gap-3 items-end">
+      <div className="flex flex-col gap-1.5">
+        <label className="text-xs font-medium" style={{ color: 'var(--color-admin-muted)' }}>
+          Ad Soyad
+        </label>
+        <input
+          name="fullName"
+          type="text"
+          placeholder="Ahmet Yılmaz"
+          required
+          className="px-3 py-2 rounded-lg text-sm border outline-none w-44"
+          style={inputStyle}
+        />
+      </div>
       <div className="flex flex-col gap-1.5">
         <label className="text-xs font-medium" style={{ color: 'var(--color-admin-muted)' }}>
           E-posta adresi
@@ -27,10 +46,9 @@ export default function InviteFormClient() {
           type="email"
           placeholder="personel@ornek.com"
           required
-          className="px-3 py-2 rounded-lg text-sm border outline-none w-64"
+          className="px-3 py-2 rounded-lg text-sm border outline-none w-56"
           style={{
-            backgroundColor: 'var(--color-admin-bg)',
-            color: '#E8E8F0',
+            ...inputStyle,
             borderColor: state.error ? '#C62828' : 'var(--color-admin-border)',
           }}
         />
@@ -43,11 +61,7 @@ export default function InviteFormClient() {
           name="role"
           defaultValue="receptionist"
           className="px-3 py-2 rounded-lg text-sm border outline-none appearance-none"
-          style={{
-            backgroundColor: 'var(--color-admin-bg)',
-            color: '#E8E8F0',
-            borderColor: 'var(--color-admin-border)',
-          }}
+          style={inputStyle}
         >
           {ROLES.map((r) => (
             <option key={r.value} value={r.value}>{r.label}</option>

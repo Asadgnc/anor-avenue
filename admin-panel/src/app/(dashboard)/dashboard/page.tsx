@@ -248,13 +248,19 @@ function CleaningBadge({ label, count, color, icon }: CleaningBadgeProps) {
 
 // ─── Sayfa ─────────────────────────────────────────────────────────────────────
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ blocked?: string }>
+}) {
   const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()
 
   if (!user) redirect('/login')
+
+  const { blocked } = await searchParams
 
   const [data, chartData] = await Promise.all([
     fetchDashboardData().catch((err: unknown) => {
@@ -306,6 +312,19 @@ export default async function DashboardPage() {
           {today}
         </p>
       </div>
+
+      {/* Erişim engellendi bildirimi */}
+      {blocked === '1' && (
+        <div
+          className="rounded-xl border p-4 flex items-center gap-3"
+          style={{ backgroundColor: '#1A0A0A', borderColor: '#C62828' }}
+        >
+          <AlertCircle size={18} style={{ color: '#FCA5A5', flexShrink: 0 }} />
+          <p className="text-sm" style={{ color: '#FCA5A5' }}>
+            Bu sayfaya erişim yetkiniz yok. Rolünüze uygun sayfaları sol menüden seçebilirsiniz.
+          </p>
+        </div>
+      )}
 
       {/* Pending rezervasyon uyarısı */}
       {metrics.pendingReservations.length > 0 && (

@@ -3,14 +3,7 @@ import { createServiceClient } from '@/lib/supabase'
 import { redirect } from 'next/navigation'
 import InviteFormClient from './InviteFormClient'
 import DeleteStaffButton from './DeleteStaffButton'
-
-const ROLE_LABELS: Record<string, string> = {
-  admin:        'Admin',
-  manager:      'Müdür',
-  receptionist: 'Resepsiyon',
-  housekeeper:  'Temizlik',
-  accountant:   'Muhasebeci',
-}
+import ChangeRoleSelect from './ChangeRoleSelect'
 
 const ROLE_COLORS: Record<string, string> = {
   admin:        '#C9A96E',
@@ -26,8 +19,30 @@ export default async function StaffPage() {
   if (!user) redirect('/login')
 
   const service = createServiceClient()
+
+  // Tüm auth kullanıcılarını çek
   const { data: usersData } = await service.auth.admin.listUsers()
-  const users = usersData?.users ?? []
+  const authUsers = usersData?.users ?? []
+
+  // profiles tablosundan isim + rol bilgisi çek (doğru kaynak)
+  const { data: profiles } = await service
+    .from('profiles')
+    .select('id, full_name, role')
+
+  const profileMap = new Map(profiles?.map((p) => [p.id, p]))
+
+  // İkisini birleştir
+  const users = authUsers.map((u) => {
+    const profile = profileMap.get(u.id)
+    return {
+      id: u.id,
+      email: u.email ?? '',
+      fullName: profile?.full_name ?? '—',
+      // profiles tablosu birincil kaynak; yoksa user_metadata fallback
+      role: (profile?.role ?? u.user_metadata?.role ?? 'receptionist') as string,
+      lastSignIn: u.last_sign_in_at ?? null,
+    }
+  })
 
   return (
     <div className="space-y-8 max-w-3xl">
@@ -79,40 +94,49 @@ export default async function StaffPage() {
         ) : (
           <div className="divide-y" style={{ borderColor: 'var(--color-admin-border)' }}>
             {users.map((u) => {
-              const role = (u.user_metadata?.role as string | undefined) ?? 'receptionist'
               const isMe = u.id === user.id
               return (
                 <div
                   key={u.id}
-                  className="px-5 py-3 flex items-center justify-between gap-4"
+                  className="px-5 py-3 flex flex-wrap items-center justify-between gap-3"
                   style={{ backgroundColor: 'var(--color-admin-card)' }}
                 >
+                  {/* İsim + Email */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-[#E8E8F0] truncate">
-                      {u.email}
+                    <p className="text-sm text-[#E8E8F0] font-medium">
+                      {u.fullName}
                       {isMe && (
-                        <span className="ml-2 text-xs" style={{ color: 'var(--color-admin-muted)' }}>
+                        <span className="ml-2 text-xs font-normal" style={{ color: 'var(--color-admin-muted)' }}>
                           (ben)
                         </span>
                       )}
                     </p>
-                    <p className="text-xs mt-0.5" style={{ color: 'var(--color-admin-muted)' }}>
-                      {u.last_sign_in_at
-                        ? `Son giriş: ${new Date(u.last_sign_in_at).toLocaleString('tr-TR')}`
+                    <p className="text-xs truncate" style={{ color: 'var(--color-admin-muted)' }}>
+                      {u.email}
+                    </p>
+                    <p className="text-xs mt-0.5" style={{ color: 'var(--color-admin-muted)', opacity: 0.7 }}>
+                      {u.lastSignIn
+                        ? `Son giriş: ${new Date(u.lastSignIn).toLocaleString('tr-TR')}`
                         : 'Henüz giriş yapılmadı'}
                     </p>
                   </div>
-                  <div className="flex items-center gap-3">
-                    <span
-                      className="text-xs font-semibold px-2 py-0.5 rounded-full"
-                      style={{
-                        color: ROLE_COLORS[role] ?? '#9CA3AF',
-                        backgroundColor: 'var(--color-admin-bg)',
-                      }}
-                    >
-                      {ROLE_LABELS[role] ?? role}
-                    </span>
-                    {!isMe && <DeleteStaffButton userId={u.id} email={u.email ?? ''} />}
+
+                  {/* Rol + Değiştir + Sil */}
+                  <div className="flex items-center gap-3 flex-wrap">
+                    {isMe ? (
+                      <span
+                        className="text-xs font-semibold px-2 py-0.5 rounded-full"
+                        style={{
+                          color: ROLE_COLORS[u.role] ?? '#9CA3AF',
+                          backgroundColor: 'var(--color-admin-bg)',
+                        }}
+                      >
+                        {u.role}
+                      </span>
+                    ) : (
+                      <ChangeRoleSelect userId={u.id} currentRole={u.role} />
+                    )}
+                    {!isMe && <DeleteStaffButton userId={u.id} email={u.email} />}
                   </div>
                 </div>
               )
@@ -121,16 +145,17 @@ export default async function StaffPage() {
         )}
       </div>
 
+      {/* Rol Açıklamaları */}
       <div
         className="rounded-lg p-4 text-xs space-y-1"
         style={{ backgroundColor: '#1E1E3A', color: 'var(--color-admin-muted)' }}
       >
-        <p className="font-semibold text-[#E8E8F0]">Rol Açıklamaları</p>
-        <p><span className="font-mono" style={{ color: '#C9A96E' }}>admin</span> — Her şey: sistem ayarları, kullanıcı yönetimi</p>
-        <p><span className="font-mono" style={{ color: '#93C5FD' }}>manager</span> — Operasyon + finans + raporlar (sistem ayarları sınırlı)</p>
-        <p><span className="font-mono" style={{ color: '#86EFAC' }}>receptionist</span> — Rezervasyon, check-in/out, ödeme alma</p>
-        <p><span className="font-mono" style={{ color: '#C4B5FD' }}>housekeeper</span> — Sadece temizlik durumu + kendi görevleri</p>
-        <p><span className="font-mono" style={{ color: '#FCD34D' }}>accountant</span> — Finans/fatura/rapor; rezervasyona dokunamaz</p>
+        <p className="font-semibold text-[#E8E8F0]">Rol Erişim Seviyeleri</p>
+        <p><span className="font-mono" style={{ color: '#C9A96E' }}>admin</span> — Her şey: sistem ayarları, kullanıcı yönetimi, tüm raporlar</p>
+        <p><span className="font-mono" style={{ color: '#93C5FD' }}>manager</span> — Operasyon + finans + raporlar (personel/ayarlar sınırlı)</p>
+        <p><span className="font-mono" style={{ color: '#86EFAC' }}>receptionist</span> — Rezervasyon, check-in/out, ödeme, misafir, temizlik</p>
+        <p><span className="font-mono" style={{ color: '#C4B5FD' }}>housekeeper</span> — Sadece Dashboard ve Temizlik sayfası</p>
+        <p><span className="font-mono" style={{ color: '#FCD34D' }}>accountant</span> — Dashboard, Ödemeler, Raporlar</p>
       </div>
     </div>
   )
