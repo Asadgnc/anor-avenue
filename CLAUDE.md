@@ -277,10 +277,17 @@ async function fetchFromClient() {
   - YENİ "Experience" bölümü: gerçek kahvaltı masası + avlu + lobi fotoğrafları
   - About bölümü: servis fotoğrafı sol tarafa eklendi
   - Oda detay galeri: her oda için 4 fotoğraf (yatak odası, banyo, servis, görünüm)
+- [x] Ödeme sayfası UI: /[locale]/pay/[code] — Payme + Click (yakında, "soon" badge'li), Nakit (hemen çalışıyor)
+  - BookingForm başarı ekranına "Hozir to'lash / Оплатить сейчас / Pay Now" butonu eklendi
+  - Rezervasyon özeti + toplam tutar gösteriliyor
+- [x] iCal export: /api/ical/[roomId] — RFC 5545 formatı, ICAL_SECRET token auth
+  - Admin Settings sayfasında her oda için URL listesi + tek tıkla kopyala butonu
+  - Nobeds veya benzeri channel manager'a yapıştırılmaya hazır
 
-## Sonraki Adımlar (Kalan)
-1. Payme/Click entegrasyonu (merchant hesabı onaylandıktan sonra)
-2. Booking.com iCal sync (en son)
+## Sonraki Adımlar (Kalan — sadece merchant hesabı sonrası)
+1. Payme/Click gerçek entegrasyon — UI + endpoint hazır, sadece merchant credentials bekleniyor
+2. Vercel'e ekle: `GUEST_SITE_URL` (misafir sitesi URL'si) + `ICAL_SECRET` (rastgele şifre)
+3. Nobeds'e iCal URL'lerini tanımla (admin Settings → iCal bölümünden kopyala)
 
 ## Deploy Bilgisi
 - Vercel: her iki uygulama canlıda ✅

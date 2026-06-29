@@ -74,13 +74,13 @@ Her oturum başında bu dosyayı oku, devam etmeden önce nerede kaldığını a
 - [x] Oda detay sayfası (galeri + fiyat + rezervasyon butonu)
 - [x] Odalar sayfası tarih bazlı müsaitlik kontrolü — Müsait/Sınırlı/Doldu badge'leri
 - [x] BookingWidget tarihleri tüm sayfalarda korunuyor (rooms → detail → book)
-- [ ] Ödeme sayfası (Payme/Click — merchant hesabı gerekli)
+- [x] Ödeme sayfası UI — /[locale]/pay/[code] — Payme/Click UI hazır (merchant gelince bağlanır), Nakit hemen çalışıyor
 
 ---
 
 ## Faz 5 — İyileştirmeler (Deneme Sonrası)
 
-- [ ] Booking.com iCal senkronu — en son yapılacak, şimdilik pas
+- [x] iCal export endpoint — /api/ical/[roomId] — channel manager (Nobeds) ile bağlanmaya hazır; admin Settings'de URL'ler görünüyor
 - [ ] AI: yorum özetleme
 - [ ] AI: talep tahmini / fiyat önerisi
 - [ ] 3D oda turu (isteğe bağlı, performans testinden sonra)
