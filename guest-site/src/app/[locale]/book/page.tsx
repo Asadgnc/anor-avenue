@@ -75,6 +75,37 @@ export default async function BookPage({ params, searchParams }: Props) {
           </div>
         </section>
 
+        {/* Trust strip */}
+        <div
+          style={{
+            backgroundColor: 'var(--color-white)',
+            borderBottom: '1px solid var(--color-cream-dark)',
+            padding: '0.875rem var(--spacing-container)',
+          }}
+        >
+          <div
+            style={{ maxWidth: '700px' }}
+            className="mx-auto flex flex-wrap items-center justify-center gap-x-8 gap-y-2"
+          >
+            {[
+              locale === 'uz' ? '🔒 Ma\'lumotlar xavfsiz' : locale === 'ru' ? '🔒 Данные защищены' : '🔒 Secure & private',
+              locale === 'uz' ? '📞 24/7 qo\'llab-quvvatlash' : locale === 'ru' ? '📞 Поддержка 24/7' : '📞 24/7 support',
+            ].map((item) => (
+              <span
+                key={item}
+                style={{
+                  fontSize: 'var(--text-xs)',
+                  color: 'var(--color-text-secondary)',
+                  fontWeight: '500',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {item}
+              </span>
+            ))}
+          </div>
+        </div>
+
         {/* Form section */}
         <section
           style={{

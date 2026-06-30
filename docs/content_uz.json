@@ -1,0 +1,90 @@
+{
+  "nav": {
+    "amenities": "Qulayliklar"
+  },
+  "location": {
+    "eyebrow": "Joylashuv",
+    "title": "Hamma joyga yaqin, shovqindan yiroq",
+    "intro": "Biz Toshkentning markaziy, sokin bir burchagida joylashganmiz — piyoda hamma yerga yetib borish uchun yetarlicha yaqin, chinakam dam olish uchun yetarlicha tinch.",
+    "items": {
+      "metro": "Metro bekatigacha piyoda 5 daqiqa",
+      "bazaar": "Yunusobod Dehqon bozorigacha piyoda 10 daqiqa",
+      "bus": "Avtobus bekati atigi 3 daqiqa narida",
+      "dining": "Atrofda 5 ta oshxona",
+      "markets": "Yaqin atrofda 4 ta market",
+      "atm": "Bankomat va naqd pul yechish joylari yaqin"
+    }
+  },
+  "kitchen": {
+    "eyebrow": "Oshxona va umumiy hudud",
+    "title": "Uyingizdagidek his qildiradigan keng oshxona",
+    "intro": "Har kuni ertalab nonushta — tanlagan paketingizga qarab, butunlay halol va har kuni yangi yetkazib beriladigan o'zbek mahsulotlaridan tayyorlanadi.",
+    "open247": {
+      "title": "Kechayu kunduz ochiq",
+      "desc": "Oshxonadan istalgan vaqtda foydalanishingiz mumkin. O'z mahsulotlaringizni umumiy muzlatgichda saqlang, choy yoki qahva tayyorlang — bu sizning ixtiyoringizda."
+    },
+    "equipped": {
+      "title": "To'liq jihozlangan",
+      "desc": "Mikroto'lqinli pech, choynak, idish-tovoq va asbob-uskunalarning to'liq to'plami. Yonimizdagi marketdan biror narsa olib keling yoki xonangizga yetkazib berishimizni so'rang."
+    },
+    "space": {
+      "title": "Yorug' va keng",
+      "desc": "Har tarafdan keng oynalar, ham mehmonxona ichidan, ham tashqaridan alohida kirish. Bepul ichimlik suvi doimo mavjud."
+    },
+    "vending": {
+      "title": "Avtomat apparat",
+      "desc": "Sovuq ichimliklar va gazaklar kun bo'yi mavjud."
+    }
+  },
+  "garden": {
+    "eyebrow": "Bog' va muhit",
+    "title": "Xuddi o'z villangizga dam olgani kelgandek",
+    "intro": "Keng bog', o'tirish joylari, daraxtlar soyasi va o'zimiz boqayotgan qushlar. Yashillik koridorlar va xonalar bo'ylab davom etadi — sokin, salqin, hech qachon olomon emas.",
+    "smokingArea": "Bog'da chekish uchun maxsus joy ajratilgan."
+  },
+  "security": {
+    "eyebrow": "Xavfsizlik",
+    "title": "Kechayu kunduz nazorat ostida",
+    "items": {
+      "cameras": "Butun hudud bo'ylab 24/7 ishlaydigan kuzatuv kameralari",
+      "fire": "Har bir hududda, shift va devorlarda yong'in o'chirgichlar mavjud",
+      "water": "Issiq va sovuq suv doimo mavjud"
+    }
+  },
+  "services": {
+    "eyebrow": "Xizmatlar",
+    "title": "Kerakli hamma narsa qo'l ostida",
+    "reception": {
+      "title": "Resepsiya — 24/7",
+      "desc": "Har qanday muammo, istalgan vaqtda — biz yordam berishga tayyormiz. Toshkent bo'ylab sayohat va yo'nalish bo'yicha bepul maslahat."
+    },
+    "housekeeping": {
+      "title": "Talab bo'yicha tozalash",
+      "desc": "Xonangizni istalgan vaqtda tozalatishingiz mumkin. Sochiq va choyshablar muntazam yangilanadi."
+    },
+    "laundry": {
+      "title": "Kir yuvish va bug'li dazmollash",
+      "desc": "Xodimlarimiz kiyimlaringizni yuvadi, koridordagi zamonaviy bug'li dazmol ham mavjud."
+    },
+    "dining": {
+      "title": "Chegirmali ovqatlanish",
+      "desc": "Mehmonxona yonidagi oshxonalardan chegirmali buyurtma berishga yordam beramiz."
+    },
+    "rentACar": {
+      "title": "Bizning tavsiyamiz bilan avtomobil ijarasi",
+      "desc": "Avtomobil ijarasi xizmati yonimizda joylashgan — biz orqali bron qiling, chegirmaga ega bo'ling."
+    },
+    "staff": {
+      "title": "Muammoni hal qiluvchi jamoa",
+      "desc": "Do'stona va e'tiborli xodimlar sizning qulayligingizni o'z mas'uliyati deb biladi."
+    }
+  },
+  "roomFeatures": {
+    "jacuzzi": "Jakuzi",
+    "bathtub": "Hammom vannasi",
+    "isolated": "Alohida, izolyatsiyalangan kirish",
+    "premiumShower": "Premium dush imkoniyatlari",
+    "viewPremium": "Eng yaxshi manzara",
+    "connecting": "Talab bo'yicha qo'shni xona bilan birlashtiriladi — oilalar uchun qulay"
+  }
+}

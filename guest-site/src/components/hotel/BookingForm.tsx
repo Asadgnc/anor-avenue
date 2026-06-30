@@ -26,6 +26,9 @@ const labels = {
       luxury: 'Lyuks xona',
       mansard: 'Mansard lyuks',
     },
+    step1: 'Xona va muddat',
+    step2: 'Sizning ma\'lumotlaringiz',
+    step3: 'Maxsus so\'rov',
   },
   ru: {
     firstName: 'Имя',
@@ -46,6 +49,9 @@ const labels = {
       luxury: 'Люкс',
       mansard: 'Мансардный люкс',
     },
+    step1: 'Номер и даты',
+    step2: 'Ваши данные',
+    step3: 'Особые пожелания',
   },
   en: {
     firstName: 'First Name',
@@ -66,6 +72,9 @@ const labels = {
       luxury: 'Luxury Room',
       mansard: 'Mansard Luxury',
     },
+    step1: 'Room & Dates',
+    step2: 'Your Details',
+    step3: 'Special Requests',
   },
 }
 
@@ -78,6 +87,55 @@ type Props = {
   defaultCheckIn?: string
   defaultCheckOut?: string
   defaultAdults?: string
+}
+
+function StepDivider({ number, label }: { number: number; label: string }) {
+  return (
+    <div
+      style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.75rem',
+        paddingTop: '0.5rem',
+      }}
+    >
+      <span
+        style={{
+          width: '1.75rem',
+          height: '1.75rem',
+          borderRadius: '50%',
+          backgroundColor: 'var(--color-gold)',
+          color: 'var(--color-white)',
+          fontSize: '0.7rem',
+          fontWeight: '700',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+        }}
+      >
+        {number}
+      </span>
+      <span
+        style={{
+          fontSize: 'var(--text-xs)',
+          fontWeight: '700',
+          color: 'var(--color-text-primary)',
+          textTransform: 'uppercase',
+          letterSpacing: '0.1em',
+        }}
+      >
+        {label}
+      </span>
+      <div
+        style={{
+          flex: 1,
+          height: '1px',
+          backgroundColor: 'var(--color-cream-dark)',
+        }}
+      />
+    </div>
+  )
 }
 
 export default function BookingForm({
@@ -189,14 +247,15 @@ export default function BookingForm({
   }
 
   const inputStyle = {
-    border: '1px solid var(--color-cream-dark)',
+    border: '1.5px solid var(--color-cream-dark)',
     borderRadius: 'var(--radius-md)',
-    padding: '0.625rem 0.875rem',
+    padding: '0.75rem 1rem',
     fontSize: 'var(--text-sm)',
     color: 'var(--color-text-primary)',
     backgroundColor: 'var(--color-white)',
     width: '100%',
     outline: 'none',
+    transition: 'border-color 0.15s',
   }
 
   const labelStyle = {
@@ -206,7 +265,7 @@ export default function BookingForm({
     color: 'var(--color-text-secondary)',
     textTransform: 'uppercase' as const,
     letterSpacing: '0.05em',
-    marginBottom: '0.375rem',
+    marginBottom: '0.4rem',
   }
 
   return (
@@ -218,9 +277,81 @@ export default function BookingForm({
         padding: '2rem',
         boxShadow: 'var(--shadow-card)',
         border: '1px solid var(--color-cream-dark)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1.25rem',
       }}
-      className="flex flex-col gap-5"
     >
+      {/* ── Step 1: Room & Dates ── */}
+      <StepDivider number={1} label={l.step1} />
+
+      {/* Room type */}
+      <div>
+        <label style={labelStyle}>{l.roomType} *</label>
+        <select
+          name="roomType"
+          required
+          disabled={isPending}
+          defaultValue={validRoomType}
+          style={{ ...inputStyle, cursor: 'pointer' }}
+        >
+          {(['standard', 'luxury', 'mansard'] as const).map((key) => (
+            <option key={key} value={key}>
+              {l.roomNames[key]} — {fmt(roomPrices[key])} UZS{l.perNight}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* Dates */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label style={labelStyle}>{l.checkIn} *</label>
+          <input
+            name="checkIn"
+            type="date"
+            min={today}
+            defaultValue={checkIn}
+            required
+            disabled={isPending}
+            style={inputStyle}
+          />
+        </div>
+        <div>
+          <label style={labelStyle}>{l.checkOut} *</label>
+          <input
+            name="checkOut"
+            type="date"
+            min={tomorrow}
+            defaultValue={checkOut}
+            required
+            disabled={isPending}
+            style={inputStyle}
+          />
+        </div>
+      </div>
+
+      {/* Adults */}
+      <div style={{ maxWidth: '8rem' }}>
+        <label style={labelStyle}>{l.adults} *</label>
+        <select
+          name="adults"
+          defaultValue={adults}
+          required
+          disabled={isPending}
+          style={{ ...inputStyle, cursor: 'pointer' }}
+        >
+          {[1, 2, 3, 4].map((n) => (
+            <option key={n} value={n}>
+              {n}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {/* ── Step 2: Personal Info ── */}
+      <StepDivider number={2} label={l.step2} />
+
       {/* Name row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
@@ -237,7 +368,14 @@ export default function BookingForm({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label style={labelStyle}>{l.phone} *</label>
-          <input name="phone" type="tel" required disabled={isPending} placeholder="+998 XX XXX XX XX" style={inputStyle} />
+          <input
+            name="phone"
+            type="tel"
+            required
+            disabled={isPending}
+            placeholder="+998 XX XXX XX XX"
+            style={inputStyle}
+          />
         </div>
         <div>
           <label style={labelStyle}>{l.email}</label>
@@ -245,46 +383,22 @@ export default function BookingForm({
         </div>
       </div>
 
-      {/* Room type */}
+      {/* ── Step 3: Special Requests ── */}
+      <StepDivider number={3} label={l.step3} />
+
       <div>
-        <label style={labelStyle}>{l.roomType} *</label>
-        <select name="roomType" required disabled={isPending} defaultValue={validRoomType} style={inputStyle}>
-          {(['standard', 'luxury', 'mansard'] as const).map((key) => (
-            <option key={key} value={key}>
-              {l.roomNames[key]} — {fmt(roomPrices[key])} UZS{l.perNight}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      {/* Dates */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-          <label style={labelStyle}>{l.checkIn} *</label>
-          <input name="checkIn" type="date" min={today} defaultValue={checkIn} required disabled={isPending} style={inputStyle} />
-        </div>
-        <div>
-          <label style={labelStyle}>{l.checkOut} *</label>
-          <input name="checkOut" type="date" min={tomorrow} defaultValue={checkOut} required disabled={isPending} style={inputStyle} />
-        </div>
-      </div>
-
-      {/* Adults */}
-      <div className="w-32">
-        <label style={labelStyle}>{l.adults} *</label>
-        <select name="adults" defaultValue={adults} required disabled={isPending} style={inputStyle}>
-          {[1, 2, 3, 4].map((n) => <option key={n} value={n}>{n}</option>)}
-        </select>
-      </div>
-
-      {/* Special requests */}
-      <div>
-        <label style={labelStyle}>{l.requests}</label>
         <textarea
           name="specialRequests"
           disabled={isPending}
           rows={3}
           style={{ ...inputStyle, resize: 'vertical' }}
+          placeholder={
+            locale === 'uz'
+              ? 'Ixtiyoriy…'
+              : locale === 'ru'
+              ? 'Необязательно…'
+              : 'Optional…'
+          }
         />
       </div>
 
@@ -312,12 +426,15 @@ export default function BookingForm({
           backgroundColor: isPending ? 'var(--color-stone)' : 'var(--color-gold)',
           color: 'var(--color-white)',
           borderRadius: 'var(--radius-md)',
-          padding: '0.875rem',
+          padding: '1rem',
           fontWeight: '700',
           fontSize: 'var(--text-base)',
           transition: 'var(--transition-fast)',
           cursor: isPending ? 'not-allowed' : 'pointer',
           boxShadow: isPending ? 'none' : 'var(--shadow-gold)',
+          marginTop: '0.5rem',
+          border: 'none',
+          width: '100%',
         }}
         className="hover:opacity-90"
       >

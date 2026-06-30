@@ -1,5 +1,12 @@
 # CLAUDE.md — Anor Avenue Hotel System
 
+## Temel Çalışma Kuralları
+
+- **Görsel değişikliklerde ekran görüntüsüyle göster** — "tamamlandı" yazısı yetmez, tarayıcıda aç ve screenshot al.
+- **Eksik veri varsa uydurma, kullanıcıya sor** — adres, fiyat, politika, koordinat gibi gerçek bilgiler bilinmiyorsa placeholder/tahmin yazma; "bu bilgiyi sağlar mısın?" diye sor.
+
+---
+
 ## Proje Genel Bakış
 İki ayrı Next.js uygulaması:
 1. **`/guest-site`** — Misafirler için tanıtım + direkt rezervasyon (hızlı, SEO, çok dilli: UZ/RU/EN)

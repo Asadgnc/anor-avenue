@@ -6,7 +6,7 @@ export default function GardenSection() {
   return (
     <section
       style={{
-        backgroundColor: 'var(--color-charcoal)',
+        backgroundColor: 'var(--color-cream)',
         padding: 'var(--spacing-section) var(--spacing-container)',
       }}
     >
@@ -15,9 +15,9 @@ export default function GardenSection() {
           {/* Left: large decorative icon block */}
           <div
             style={{
-              backgroundColor: 'var(--color-charcoal-soft)',
+              backgroundColor: 'var(--color-white)',
               borderRadius: 'var(--radius-lg)',
-              border: '1px solid rgba(201,169,110,0.15)',
+              border: '1px solid var(--color-cream-dark)',
               height: '340px',
               display: 'flex',
               flexDirection: 'column',
@@ -33,7 +33,7 @@ export default function GardenSection() {
             </div>
             <p
               style={{
-                color: 'rgba(255,255,255,0.35)',
+                color: 'var(--color-text-muted)',
                 fontSize: 'var(--text-sm)',
                 textAlign: 'center',
                 maxWidth: '200px',
@@ -62,7 +62,7 @@ export default function GardenSection() {
               style={{
                 fontFamily: 'var(--font-display)',
                 fontSize: 'clamp(1.75rem, 4vw, 2.5rem)',
-                color: 'var(--color-white)',
+                color: 'var(--color-text-primary)',
                 fontWeight: '700',
                 marginBottom: '1.25rem',
               }}
@@ -71,7 +71,7 @@ export default function GardenSection() {
             </h2>
             <p
               style={{
-                color: 'rgba(255,255,255,0.65)',
+                color: 'var(--color-text-secondary)',
                 fontSize: 'var(--text-base)',
                 lineHeight: '1.8',
               }}

@@ -1,0 +1,90 @@
+{
+  "nav": {
+    "amenities": "Amenities"
+  },
+  "location": {
+    "eyebrow": "Location",
+    "title": "Steps from everything, hidden from the noise",
+    "intro": "We sit in a quiet pocket of central Tashkent — close enough to walk everywhere, far enough to actually rest.",
+    "items": {
+      "metro": "5-minute walk to the metro station",
+      "bazaar": "10-minute walk to Yunusabad Dehqon Bazaar",
+      "bus": "Bus stop just 3 minutes away",
+      "dining": "5 local eateries within a short walk",
+      "markets": "4 grocery markets nearby",
+      "atm": "ATMs and cash withdrawal points close by"
+    }
+  },
+  "kitchen": {
+    "eyebrow": "Kitchen & Common Areas",
+    "title": "A kitchen big enough to feel like home",
+    "intro": "Breakfast every morning, made fresh and halal from local Uzbek ingredients delivered daily — the exact spread depends on your chosen package.",
+    "open247": {
+      "title": "Open 24/7",
+      "desc": "Use the kitchen any time. Keep your own food in the shared fridge, brew tea or coffee, heat something up — it's yours to use."
+    },
+    "equipped": {
+      "title": "Fully equipped",
+      "desc": "Microwave, kettle, full set of plates, cups and cutlery. Bring something from the market next door, or ask us to bring it to your room."
+    },
+    "space": {
+      "title": "Bright and spacious",
+      "desc": "Wide glass walls all around, with both an indoor and an outdoor entrance. Free drinking water always available."
+    },
+    "vending": {
+      "title": "Vending machine",
+      "desc": "Cold drinks and snacks available any hour, paid or unpaid as you prefer."
+    }
+  },
+  "garden": {
+    "eyebrow": "Garden & Atmosphere",
+    "title": "Like stepping into your own villa",
+    "intro": "A wide garden with seating, shade from the trees, and birds we feed ourselves. Greenery follows you through the corridors and into the rooms — quiet, breezy, never crowded.",
+    "smokingArea": "A designated smoking area is available in the garden."
+  },
+  "security": {
+    "eyebrow": "Security",
+    "title": "Looked after, day and night",
+    "items": {
+      "cameras": "24/7 monitored security cameras throughout the property",
+      "fire": "Fire extinguishers installed in every area, ceiling and wall",
+      "water": "Hot and cold water available at all times"
+    }
+  },
+  "services": {
+    "eyebrow": "Services",
+    "title": "Everything you need, close at hand",
+    "reception": {
+      "title": "Reception, 24/7",
+      "desc": "Any issue, any hour — we're here to solve it. Free guidance on Tashkent tours, sightseeing, and getting around."
+    },
+    "housekeeping": {
+      "title": "Cleaning on request",
+      "desc": "Ask for room cleaning whenever you'd like. Towels and linens are changed and refreshed regularly."
+    },
+    "laundry": {
+      "title": "Laundry & steam ironing",
+      "desc": "Our staff handles your laundry, with a modern steam iron available in the hallway."
+    },
+    "dining": {
+      "title": "Discounted local dining",
+      "desc": "We can arrange discounted meal orders from the eateries right next to the hotel."
+    },
+    "rentACar": {
+      "title": "Car rental, with our referral",
+      "desc": "A car rental service is right next door — book through us for a discount."
+    },
+    "staff": {
+      "title": "A team that solves problems",
+      "desc": "Friendly, attentive staff who treat your stay as their own responsibility."
+    }
+  },
+  "roomFeatures": {
+    "jacuzzi": "Jacuzzi",
+    "bathtub": "Bathtub",
+    "isolated": "Private, isolated entrance",
+    "premiumShower": "Premium shower options",
+    "viewPremium": "Best views in the house",
+    "connecting": "Connects to neighboring room on request — ideal for families"
+  }
+}
