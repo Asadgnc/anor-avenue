@@ -65,26 +65,16 @@ export async function submitBookingInquiry(
 
   const service = createServiceClient()
 
-  // Oda tipini bul
   const typeName = ROOM_TYPE_NAMES[d.roomType]
-  const { data: roomTypeData, error: typeErr } = await service
-    .from('room_types')
-    .select('id, base_price')
-    .eq('name', typeName)
-    .single()
 
-  if (typeErr || !roomTypeData) {
-    return { error: locale === 'uz' ? 'Xona turi topilmadi.' : locale === 'ru' ? 'Тип номера не найден.' : 'Room type not found.' }
-  }
-
-  // Bu tipteki tüm aktif odaları getir
-  const { data: rooms } = await service
-    .from('rooms')
-    .select('id')
-    .eq('room_type_id', roomTypeData.id)
+  // Bu tipteki tüm aktif odaları effective_price ile getir (rooms_with_effective_price view'i)
+  const { data: rooms, error: roomsErr } = await service
+    .from('rooms_with_effective_price')
+    .select('id, effective_price')
+    .eq('room_type_name', typeName)
     .eq('is_active', true)
 
-  if (!rooms || rooms.length === 0) {
+  if (roomsErr || !rooms || rooms.length === 0) {
     const msg = locale === 'uz' ? 'Bu turdagi xona mavjud emas.' : locale === 'ru' ? 'Нет номеров данного типа.' : 'No rooms of this type available.'
     return { error: msg }
   }
@@ -116,7 +106,7 @@ export async function submitBookingInquiry(
   const nights = Math.round(
     (new Date(d.checkOut).getTime() - new Date(d.checkIn).getTime()) / 86400000
   )
-  const totalAmount = Number(roomTypeData.base_price) * nights
+  const totalAmount = Number(availableRoom.effective_price) * nights
 
   // Misafir oluştur
   const { data: guest, error: guestErr } = await service
@@ -144,7 +134,7 @@ export async function submitBookingInquiry(
       check_out: d.checkOut,
       adults: d.adults,
       children: 0,
-      room_rate: Number(roomTypeData.base_price),
+      room_rate: Number(availableRoom.effective_price),
       total_amount: totalAmount,
       discount: 0,
       currency: 'UZS',

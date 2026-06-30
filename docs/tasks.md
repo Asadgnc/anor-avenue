@@ -88,13 +88,14 @@ Her oturum başında bu dosyayı oku, devam etmeden önce nerede kaldığını a
 - [x] Doğrulama sorgusu çalıştırıldı — tüm 12 oda doğru ✓
 
 ### Guest-site kod değişiklikleri
-- [ ] `roomMeta`/`roomData` sabit yapılarını (`page.tsx`, `rooms/page.tsx`)
+- [x] `roomMeta`/`roomData` sabit yapılarını (`page.tsx`, `rooms/page.tsx`)
       `rooms_with_effective_price` view'inden dinamik veri çekecek şekilde değiştir
-- [ ] Oda fotoğraf path'lerini `room_number` bazlı dinamik yapıya geçir
-      (bkz. `docs/rooms-data.md` — fotoğraf henüz yok, placeholder mantığı kullan)
-- [ ] Oda listesi sayfasına sıralama ekle: fiyat (artan/azalan), manzara kalitesi
-- [ ] Oda listesi sayfasına filtre ekle: jakuzili/küvetli, kat
-- [ ] Her oda tipi kartı yerine gerçek 12 odanın ayrı ayrı gösterildiği görünüm
+- [x] Oda fotoğraf path'lerini `room_number` bazlı dinamik yapıya geçir
+      (fotoğraf henüz yok → tip+özellik bazlı fallback; gerçek çekim gelince /hotel-photos/rooms/NNN/cover.jpg ile değiştirilecek)
+- [x] Oda listesi sayfasına sıralama ekle: fiyat (artan/azalan), manzara kalitesi
+- [x] Oda listesi sayfasına filtre ekle: jakuzili/küvetli, kat
+- [x] Her oda tipi kartı yerine gerçek 12 odanın ayrı ayrı gösterildiği görünüm
+      (RoomsFilter client component + Suspense — rooms/page.tsx tamamen yeniden yazıldı)
 
 ### İçerik (uz/ru/en — messages/*.json)
 - [x] Konum bölümü metni (metro, pazar, market, ATM mesafeleri)

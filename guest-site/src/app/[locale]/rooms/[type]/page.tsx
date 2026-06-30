@@ -22,7 +22,7 @@ const ROOM_DATA = {
     floor: -1,
     maxOccupancy: 2,
     area: 22,
-    count: 4,
+    count: 3,
     gradient: 'linear-gradient(160deg, #2c2c2e 0%, #1c1c1e 100%)',
     amenities: [
       { icon: '📶', uz: 'WiFi', ru: 'WiFi', en: 'WiFi' },
@@ -45,7 +45,7 @@ const ROOM_DATA = {
     floor: 2,
     maxOccupancy: 2,
     area: 35,
-    count: 4,
+    count: 6,
     gradient: 'linear-gradient(160deg, #3a2e1e 0%, #2a2018 100%)',
     amenities: [
       { icon: '📶', uz: 'WiFi', ru: 'WiFi', en: 'WiFi' },
@@ -173,16 +173,11 @@ export default async function RoomDetailPage({
   const roomStatic = ROOM_DATA[type as RoomType]
 
   const dbName = TYPE_TO_DB_NAME[type]
-  const { data: priceRow } = await supabase
-    .from('room_types')
-    .select('base_price')
-    .eq('name', dbName)
-    .single()
-
   const { data: roomFeatureRows } = await supabase
     .from('rooms_with_effective_price')
-    .select('has_jacuzzi, has_bathtub, is_isolated, view_quality, connecting_room_id')
+    .select('has_jacuzzi, has_bathtub, is_isolated, view_quality, connecting_room_id, effective_price')
     .eq('room_type_name', dbName)
+    .eq('is_active', true)
 
   const roomFeatures = {
     jacuzzi: roomFeatureRows?.some((r) => r.has_jacuzzi) ?? false,
@@ -193,9 +188,15 @@ export default async function RoomDetailPage({
     connecting: roomFeatureRows?.some((r) => r.connecting_room_id != null) ?? false,
   }
 
+  const minEffectivePrice =
+    roomFeatureRows && roomFeatureRows.length > 0
+      ? Math.min(...roomFeatureRows.map((r) => Number(r.effective_price)))
+      : roomStatic.price
+
   const room = {
     ...roomStatic,
-    price: priceRow ? Number(priceRow.base_price) : roomStatic.price,
+    price: minEffectivePrice,
+    count: roomFeatureRows?.length ?? roomStatic.count,
   }
 
   const roomPhotos = ROOM_PHOTOS[type as RoomType]

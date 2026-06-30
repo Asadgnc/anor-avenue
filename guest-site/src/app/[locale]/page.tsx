@@ -14,17 +14,21 @@ export default async function HomePage({ params }: Props) {
   const { locale } = await params
   setRequestLocale(locale)
 
-  const { data: roomTypeData } = await supabase
-    .from('room_types')
-    .select('name, base_price')
+  const { data: roomPriceData } = await supabase
+    .from('rooms_with_effective_price')
+    .select('room_type_name, effective_price')
+    .eq('is_active', true)
 
-  const byName = (name: string, fallback: number) =>
-    Number(roomTypeData?.find((rt) => rt.name === name)?.base_price ?? fallback)
+  const minPrice = (dbName: string, fallback: number): number => {
+    const rows = roomPriceData?.filter((r) => r.room_type_name === dbName) ?? []
+    if (rows.length === 0) return fallback
+    return Math.min(...rows.map((r) => Number(r.effective_price)))
+  }
 
   const prices = {
-    standard: byName('Standart', 350000),
-    luxury: byName('Lüks', 600000),
-    mansard: byName('Delüks', 850000),
+    standard: minPrice('Standart', 350000),
+    luxury: minPrice('Lüks', 600000),
+    mansard: minPrice('Delüks', 850000),
   }
 
   return (
