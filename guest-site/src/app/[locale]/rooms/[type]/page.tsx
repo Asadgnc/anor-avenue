@@ -1,4 +1,5 @@
 import { setRequestLocale } from 'next-intl/server'
+import { useTranslations } from 'next-intl'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -177,6 +178,20 @@ export default async function RoomDetailPage({
     .select('base_price')
     .eq('name', dbName)
     .single()
+
+  const { data: roomFeatureRows } = await supabase
+    .from('rooms_with_effective_price')
+    .select('has_jacuzzi, has_bathtub, is_isolated, view_quality, connecting_room_id')
+    .eq('room_type_name', dbName)
+
+  const roomFeatures = {
+    jacuzzi: roomFeatureRows?.some((r) => r.has_jacuzzi) ?? false,
+    bathtub: roomFeatureRows?.some((r) => r.has_bathtub) ?? false,
+    isolated: roomFeatureRows?.some((r) => r.is_isolated) ?? false,
+    premiumShower: roomFeatureRows?.some((r) => r.has_jacuzzi) ?? false,
+    viewPremium: roomFeatureRows?.some((r) => r.view_quality === 'premium') ?? false,
+    connecting: roomFeatureRows?.some((r) => r.connecting_room_id != null) ?? false,
+  }
 
   const room = {
     ...roomStatic,
@@ -369,6 +384,9 @@ export default async function RoomDetailPage({
                 </p>
               </div>
 
+              {/* Oda özellik etiketleri */}
+              <RoomFeatureTags features={roomFeatures} />
+
               {/* Galeri */}
               <div>
                 <h2
@@ -556,3 +574,55 @@ export default async function RoomDetailPage({
   )
 }
 
+// ─── Oda Özellik Etiketleri ──────────────────────────────────────────────────
+
+type RoomFeaturesMap = {
+  jacuzzi: boolean
+  bathtub: boolean
+  isolated: boolean
+  premiumShower: boolean
+  viewPremium: boolean
+  connecting: boolean
+}
+
+function RoomFeatureTags({ features }: { features: RoomFeaturesMap }) {
+  const t = useTranslations('roomFeatures')
+
+  const allTags: { key: keyof RoomFeaturesMap; icon: string }[] = [
+    { key: 'jacuzzi', icon: '🛁' },
+    { key: 'bathtub', icon: '🛁' },
+    { key: 'isolated', icon: '🔑' },
+    { key: 'premiumShower', icon: '🚿' },
+    { key: 'viewPremium', icon: '🏙' },
+    { key: 'connecting', icon: '🚪' },
+  ]
+  const activeTags = allTags.filter(({ key }) => features[key])
+
+  if (activeTags.length === 0) return null
+
+  return (
+    <div>
+      <div className="flex flex-wrap gap-2">
+        {activeTags.map(({ key, icon }) => (
+          <span
+            key={key}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              backgroundColor: 'rgba(201,169,110,0.10)',
+              border: '1px solid rgba(201,169,110,0.35)',
+              color: 'var(--color-gold-dark)',
+              fontSize: 'var(--text-xs)',
+              fontWeight: '600',
+              padding: '0.35rem 0.85rem',
+              borderRadius: 'var(--radius-full)',
+            }}
+          >
+            {icon} {t(key)}
+          </span>
+        ))}
+      </div>
+    </div>
+  )
+}

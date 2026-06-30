@@ -5,6 +5,7 @@ import Image from 'next/image'
 import Navbar from '@/components/hotel/Navbar'
 import Footer from '@/components/hotel/Footer'
 import BookingWidget from '@/components/hotel/BookingWidget'
+import LocationSection from '@/components/hotel/LocationSection'
 import { supabase } from '@/lib/supabase'
 
 type Props = { params: Promise<{ locale: string }> }
@@ -34,6 +35,7 @@ export default async function HomePage({ params }: Props) {
         <RoomsPreviewSection locale={locale} prices={prices} />
         <ExperienceSection locale={locale} />
         <AboutSection locale={locale} />
+        <LocationSection />
         <ContactSection locale={locale} />
       </main>
       <Footer />

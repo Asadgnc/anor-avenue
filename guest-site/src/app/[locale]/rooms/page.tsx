@@ -7,6 +7,14 @@ import Footer from '@/components/hotel/Footer'
 import BookingWidget from '@/components/hotel/BookingWidget'
 import { supabase } from '@/lib/supabase'
 
+type RoomTypeFeaturesMap = Record<string, {
+  jacuzzi: boolean
+  bathtub: boolean
+  isolated: boolean
+  viewPremium: boolean
+  connecting: boolean
+}>
+
 type Props = {
   params: Promise<{ locale: string }>
   searchParams: Promise<{ checkIn?: string; checkOut?: string; adults?: string }>
@@ -83,6 +91,22 @@ export default async function RoomsPage({ params, searchParams }: Props) {
     standard: byName('Standart', 350000),
     luxury: byName('Lüks', 600000),
     mansard: byName('Delüks', 850000),
+  }
+
+  const { data: featureRows } = await supabase
+    .from('rooms_with_effective_price')
+    .select('room_type_name, has_jacuzzi, has_bathtub, is_isolated, view_quality, connecting_room_id')
+
+  const typeFeatures: RoomTypeFeaturesMap = {}
+  for (const [key, dbName] of Object.entries(ROOM_TYPE_NAMES)) {
+    const rows = featureRows?.filter((r) => r.room_type_name === dbName) ?? []
+    typeFeatures[key] = {
+      jacuzzi: rows.some((r) => r.has_jacuzzi),
+      bathtub: rows.some((r) => r.has_bathtub),
+      isolated: rows.some((r) => r.is_isolated),
+      viewPremium: rows.some((r) => r.view_quality === 'premium'),
+      connecting: rows.some((r) => r.connecting_room_id != null),
+    }
   }
 
   const today = new Date().toISOString().split('T')[0]
@@ -162,6 +186,7 @@ export default async function RoomsPage({ params, searchParams }: Props) {
               checkIn={checkIn}
               checkOut={checkOut}
               adults={adults}
+              typeFeatures={typeFeatures}
             />
           </div>
         </section>
@@ -252,6 +277,54 @@ const roomMeta = [
   },
 ]
 
+const FEATURE_LABELS: Record<string, Record<string, string>> = {
+  jacuzzi:      { uz: 'Jakuzi',                 ru: 'Джакузи',               en: 'Jacuzzi' },
+  bathtub:      { uz: 'Hammom vannasi',          ru: 'Ванна',                 en: 'Bathtub' },
+  isolated:     { uz: 'Alohida kirish',          ru: 'Отдельный вход',        en: 'Private entrance' },
+  viewPremium:  { uz: 'Eng yaxshi manzara',      ru: 'Лучший вид',            en: 'Best views' },
+  connecting:   { uz: 'Qo\'shni xona',          ru: 'Смежный номер',         en: 'Connecting room' },
+}
+const FEATURE_ICONS: Record<string, string> = {
+  jacuzzi: '🛁', bathtub: '🛁', isolated: '🔑', viewPremium: '🏙', connecting: '🚪',
+}
+
+function RoomFeatureTagsInline({
+  features,
+  locale,
+}: {
+  features: RoomTypeFeaturesMap[string] | undefined
+  locale: string
+}) {
+  if (!features) return null
+  const active = (Object.keys(FEATURE_LABELS) as (keyof typeof features)[]).filter(
+    (k) => features[k as keyof RoomTypeFeaturesMap[string]]
+  )
+  if (active.length === 0) return null
+  return (
+    <div className="flex flex-wrap gap-1.5 mt-2">
+      {active.map((key) => (
+        <span
+          key={key}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.35rem',
+            backgroundColor: 'rgba(201,169,110,0.08)',
+            border: '1px solid rgba(201,169,110,0.30)',
+            color: 'var(--color-gold-dark)',
+            fontSize: 'var(--text-xs)',
+            fontWeight: '600',
+            padding: '0.25rem 0.65rem',
+            borderRadius: 'var(--radius-full)',
+          }}
+        >
+          {FEATURE_ICONS[key]} {FEATURE_LABELS[key]?.[locale] ?? FEATURE_LABELS[key]?.en}
+        </span>
+      ))}
+    </div>
+  )
+}
+
 function AvailabilityBadge({
   avail,
   locale,
@@ -329,6 +402,7 @@ function RoomsList({
   checkIn,
   checkOut,
   adults,
+  typeFeatures,
 }: {
   locale: string
   prices: Record<string, number>
@@ -336,6 +410,7 @@ function RoomsList({
   checkIn?: string
   checkOut?: string
   adults?: string
+  typeFeatures: RoomTypeFeaturesMap
 }) {
   const t = useTranslations('rooms')
 
@@ -484,6 +559,9 @@ function RoomsList({
                     </span>
                   ))}
                 </div>
+
+                {/* Oda özellik etiketleri — DB'den */}
+                <RoomFeatureTagsInline features={typeFeatures[room.key]} locale={locale} />
               </div>
 
               {/* CTA butonlar */}

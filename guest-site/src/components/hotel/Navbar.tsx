@@ -28,6 +28,7 @@ export default function Navbar() {
   const links = [
     { href: `/${locale}`, label: t('home') },
     { href: `/${locale}/rooms`, label: t('rooms') },
+    { href: `/${locale}/amenities`, label: t('amenities') },
     { href: `/${locale}#about`, label: t('about') },
     { href: `/${locale}#contact`, label: t('contact') },
   ]
