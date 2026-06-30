@@ -97,13 +97,14 @@ Her oturum başında bu dosyayı oku, devam etmeden önce nerede kaldığını a
 - [ ] Her oda tipi kartı yerine gerçek 12 odanın ayrı ayrı gösterildiği görünüm
 
 ### İçerik (uz/ru/en — messages/*.json)
-- [ ] Konum bölümü metni (metro, pazar, market, ATM mesafeleri)
-- [ ] Mutfak/ortak alan bölümü metni
-- [ ] Bahçe & atmosfer bölümü metni
-- [ ] Güvenlik bölümü metni
-- [ ] Hizmetler bölümü metni (resepsiyon, tur, temizlik, çamaşırhane, rent-a-car)
-- [ ] Yukarıdaki bölümler için yeni section component'leri (anasayfa + varsa ayrı
-      "Hizmetler" ve "Konum" sayfaları)
+- [x] Konum bölümü metni (metro, pazar, market, ATM mesafeleri)
+- [x] Mutfak/ortak alan bölümü metni
+- [x] Bahçe & atmosfer bölümü metni
+- [x] Güvenlik bölümü metni
+- [x] Hizmetler bölümü metni (resepsiyon, tur, temizlik, çamaşırhane, rent-a-car)
+- [x] Yukarıdaki bölümler için yeni section component'leri (anasayfa + "Qulayliklar"
+      sayfası — KitchenSection, GardenSection, SecuritySection, ServicesSection,
+      LocationSection; navbar linki eklendi)
 
 ### Beklemede (Mert onayı gerekiyor, henüz başlama)
 - [ ] Hero "nar" animasyonu — konsept netleşmedi, claude.ai'da görüşülüyor
