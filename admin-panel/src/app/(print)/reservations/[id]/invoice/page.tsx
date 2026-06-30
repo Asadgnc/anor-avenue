@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase-server'
+import { createServiceClient } from '@/lib/supabase'
 import { redirect, notFound } from 'next/navigation'
 import type { Metadata } from 'next'
 import PrintButton from './PrintButton'
@@ -69,7 +70,9 @@ export default async function InvoicePage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [resResult, paymentsResult] = await Promise.all([
+  const service = createServiceClient()
+
+  const [resResult, paymentsResult, hotelResult] = await Promise.all([
     supabase
       .from('reservations')
       .select(`
@@ -85,12 +88,20 @@ export default async function InvoicePage({
       .select('amount, method, status, paid_at')
       .eq('reservation_id', id)
       .order('paid_at', { ascending: true }),
+    service.from('hotel_settings').select('hotel_name, address, phone, email, website').eq('id', 1).single(),
   ])
 
   if (resResult.error || !resResult.data) notFound()
 
   const res = resResult.data as unknown as InvoiceData
   const payments = (paymentsResult.data ?? []) as PaymentRow[]
+  const hotel = hotelResult.data ?? {
+    hotel_name: 'Anor Avenue Hotel',
+    address: 'Toshkent, O\'zbekiston',
+    phone: '',
+    email: '',
+    website: '',
+  }
   const completedPayments = payments.filter((p) => p.status === 'completed')
   const totalPaid = completedPayments.reduce((s, p) => s + p.amount, 0)
   const remaining = res.total_amount - totalPaid
@@ -126,12 +137,12 @@ export default async function InvoicePage({
         <div className="flex items-start justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold" style={{ color: '#1A1A2E', letterSpacing: '-0.5px' }}>
-              ANOR AVENUE
+              {hotel.hotel_name.toUpperCase()}
             </h1>
             <p className="text-xs mt-1" style={{ color: '#6B7280' }}>
-              4-uy, Chilonzor ko'chasi, 3-mavze<br />
-              Toshkent, O'zbekiston<br />
-              Tel: +998 71 000 00 00
+              {hotel.address && <>{hotel.address}<br /></>}
+              {hotel.phone && <>Tel: {hotel.phone}<br /></>}
+              {hotel.email && <>{hotel.email}</>}
             </p>
           </div>
           <div className="text-right">
@@ -327,8 +338,8 @@ export default async function InvoicePage({
         {/* ── Alt Bilgi ────────────────────────────────────────────────── */}
         <div className="mt-8" style={{ borderTop: '1px solid #E5E7EB', paddingTop: '16px' }}>
           <p className="text-xs text-center" style={{ color: '#9CA3AF' }}>
-            Bu belge Anor Avenue Hotel tarafından {todayStr} tarihinde düzenlenmiştir.<br />
-            4-uy, Chilonzor ko'chasi, 3-mavze, Toshkent · Tel: +998 71 000 00 00
+            Bu belge {hotel.hotel_name} tarafından {todayStr} tarihinde düzenlenmiştir.<br />
+            {[hotel.address, hotel.phone ? `Tel: ${hotel.phone}` : null].filter(Boolean).join(' · ')}
           </p>
         </div>
       </div>

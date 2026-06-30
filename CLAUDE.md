@@ -124,6 +124,60 @@ async function fetchFromClient() {
 
 ---
 
+## Oda Bazlı Veri Modeli — KRİTİK (30 Haziran 2026 kararı)
+
+Otelin 12 gerçek odası birbirinden farklı fiziksel özelliklere sahip
+(pencere sayısı, manzara kalitesi, jakuzi/küvet, izolasyon, fiyat farkı).
+Bu bilgi `room_types` tablosunda DEĞİL, `rooms` tablosunda tutulur.
+
+**Detaylı oda verisi:** `docs/rooms-data.md` dosyasına bak — her odanın
+tam özellik tablosu, fiyatı ve fotoğraf klasör planı orada.
+
+### Fiyat kuralı
+- Fiyatın tek doğru kaynağı: `rooms_with_effective_price` view'i
+  (`COALESCE(rooms.price_override, room_types.base_price)`)
+- Hiçbir yerde `room_types.base_price`'ı doğrudan "bu odanın fiyatı" diye kullanma
+- Frontend ve admin panel sorguları bu view'den okumalı, ham `rooms` tablosundan değil
+
+### Bağlantılı oda kuralı (303 ↔ 304)
+Bu sadece bilgi amaçlı bir DB ilişkisi (`connecting_room_id`). Otomatik kapı
+kontrolü, ortak rezervasyon paketi YOK — personel istek üzerine fiziksel kapıyı
+açar, sistemde hâlâ 2 ayrı rezervasyon olarak işlenir.
+
+---
+
+## Guest-Site İçerik Genişletme — Öncelik Sırası (30 Haziran 2026)
+
+Mevcut `guest-site/src/messages/*.json` dosyaları çok yetersiz (43 satır,
+sadece nav/hero/footer). Otel hakkında gerçek bilgi (konum, mutfak, güvenlik,
+hizmetler) hiç yok. Bu Faz 4'ün eksik kısmı.
+
+**Önerilen yeni içerik bölümleri** (öncelik sırasıyla, animasyon/3D'den ÖNCE):
+
+1. Konum bölümü — metro 5dk, Yunusabad Dehqon Bazaar 10dk, otobüs durağı 3dk,
+   çevrede 5 yemekhane + 4 market + ATM
+2. Mutfak/ortak alan bölümü — 7/24 açık mutfak, kahvaltı (paket bazlı, helal/
+   taze/günlük), buzdolabı kullanım hakkı, çay/kahve/mikrodalga, vending machine
+3. Bahçe & atmosfer — kuşlar, oturma alanı, sigara alanı, "villa hissi"
+4. Güvenlik — 7/24 kamera, yangın söndürücü
+5. Hizmetler — 24/7 resepsiyon, ücretsiz tur/yönlendirme, indirimli yemek
+   siparişi, günlük temizlik, çamaşırhane + buharlı ütü, indirimli rent-a-car
+
+**Sıralama kuralı:** Bu içerik genişlemesi, hero animasyonundan ve booking/ödeme
+entegrasyonundan ÖNCE yapılmalı.
+
+**Yasak:** Yeni içerik eklerken stok fotoğraf kullanma. Gerçek görsel yoksa
+metin-öncelikli bölüm tasarla (ikon + kısa açıklama).
+
+---
+
+## Hero Animasyon Notu (henüz onaylanmadı)
+
+Mert "nar çarpışması" konsepti önerdi. Konsept henüz karara bağlanmadı —
+**Claude Code bu animasyonu UYGULAMAYA BAŞLAMASIN**, önce Mert ile netleştirilecek.
+
+---
+
 ## Supabase Kuralları
 
 - RLS (Row Level Security) her tabloda zorunlu — istisnasız
@@ -174,7 +228,7 @@ async function fetchFromClient() {
 
 ## OTA Senkronu
 
-- Deneme döneminde: iCal senkronu (Nobeds veya benzeri ücretsiz channel manager)
+- iCal entegrasyonu şimdilik devre dışı bırakıldı (kullanıcı kararı)
 - Kendi kodumuzda gerçek zamanlı OTA push YOK — overbooking riski
 - Booking.com API: ileride eklenebilir, deneme döneminde değil
 
@@ -280,14 +334,13 @@ async function fetchFromClient() {
 - [x] Ödeme sayfası UI: /[locale]/pay/[code] — Payme + Click (yakında, "soon" badge'li), Nakit (hemen çalışıyor)
   - BookingForm başarı ekranına "Hozir to'lash / Оплатить сейчас / Pay Now" butonu eklendi
   - Rezervasyon özeti + toplam tutar gösteriliyor
-- [x] iCal export: /api/ical/[roomId] — RFC 5545 formatı, ICAL_SECRET token auth
-  - Admin Settings sayfasında her oda için URL listesi + tek tıkla kopyala butonu
-  - Nobeds veya benzeri channel manager'a yapıştırılmaya hazır
+- [x] iCal export kaldırıldı — kullanıcı kararıyla devre dışı
+- [x] Admin panel: Otel Profili — /settings'e eklendi (otel adı, adres, telefon, e-posta, web, giriş/çıkış saati)
+  - `hotel_settings` tablosu Supabase'e eklendi (tek satır, RLS korumalı)
+  - Fatura ve onay e-postalarında kullanılacak
 
 ## Sonraki Adımlar (Kalan — sadece merchant hesabı sonrası)
-1. Payme/Click gerçek entegrasyon — UI + endpoint hazır, sadece merchant credentials bekleniyor
-2. Vercel'e ekle: `GUEST_SITE_URL` (misafir sitesi URL'si) + `ICAL_SECRET` (rastgele şifre)
-3. Nobeds'e iCal URL'lerini tanımla (admin Settings → iCal bölümünden kopyala)
+1. Payme/Click/Uzum gerçek entegrasyon — UI + endpoint hazır, sadece merchant credentials bekleniyor
 
 ## Deploy Bilgisi
 - Vercel: her iki uygulama canlıda ✅

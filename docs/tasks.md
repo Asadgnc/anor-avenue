@@ -78,9 +78,50 @@ Her oturum başında bu dosyayı oku, devam etmeden önce nerede kaldığını a
 
 ---
 
+## Faz 4c — Gerçek Oda Verisi & İçerik Genişletme (Yeni — 30 Haziran 2026)
+
+### Veritabanı
+- [x] `SELECT room_number FROM rooms ORDER BY room_number;` ile mevcut oda
+      numaralarını doğrula — beklenen: 101,102,103,201,202,301,302,303,304,401,402,403
+- [x] `docs/migrations/005_room_attributes.sql` uygula (Supabase MCP ile)
+- [x] `docs/migrations/006_seed_room_attributes.sql` uygula (oda numaraları eşleşti)
+- [x] Doğrulama sorgusu çalıştırıldı — tüm 12 oda doğru ✓
+
+### Guest-site kod değişiklikleri
+- [ ] `roomMeta`/`roomData` sabit yapılarını (`page.tsx`, `rooms/page.tsx`)
+      `rooms_with_effective_price` view'inden dinamik veri çekecek şekilde değiştir
+- [ ] Oda fotoğraf path'lerini `room_number` bazlı dinamik yapıya geçir
+      (bkz. `docs/rooms-data.md` — fotoğraf henüz yok, placeholder mantığı kullan)
+- [ ] Oda listesi sayfasına sıralama ekle: fiyat (artan/azalan), manzara kalitesi
+- [ ] Oda listesi sayfasına filtre ekle: jakuzili/küvetli, kat
+- [ ] Her oda tipi kartı yerine gerçek 12 odanın ayrı ayrı gösterildiği görünüm
+
+### İçerik (uz/ru/en — messages/*.json)
+- [ ] Konum bölümü metni (metro, pazar, market, ATM mesafeleri)
+- [ ] Mutfak/ortak alan bölümü metni
+- [ ] Bahçe & atmosfer bölümü metni
+- [ ] Güvenlik bölümü metni
+- [ ] Hizmetler bölümü metni (resepsiyon, tur, temizlik, çamaşırhane, rent-a-car)
+- [ ] Yukarıdaki bölümler için yeni section component'leri (anasayfa + varsa ayrı
+      "Hizmetler" ve "Konum" sayfaları)
+
+### Beklemede (Mert onayı gerekiyor, henüz başlama)
+- [ ] Hero "nar" animasyonu — konsept netleşmedi, claude.ai'da görüşülüyor
+- [ ] Gerçek oda fotoğrafı çekimi sonrası `/hotel-photos/rooms/` klasörlerinin
+      doldurulması ve stok fotoğrafların kaldırılması
+
+### Sona bırakılanlar (Mert kararı — teslim öncesi)
+- [ ] Booking sisteminde gerçek oda seçimi (şu an sadece tip seçiliyor,
+      sistem otomatik müsait odayı atıyor) — UX iyileştirmesi sonra
+- [ ] Payme/Click/Uzum canlı merchant entegrasyonu — zaten beklemede
+
+---
+
 ## Faz 5 — İyileştirmeler (Deneme Sonrası)
 
-- [x] iCal export endpoint — /api/ical/[roomId] — channel manager (Nobeds) ile bağlanmaya hazır; admin Settings'de URL'ler görünüyor
+- [x] iCal export — kullanıcı kararıyla kaldırıldı (channel manager entegrasyonu şimdilik yok)
+- [x] Otel Profili — /settings sayfasında düzenlenebilir form; fatura + email'de kullanılıyor (hotel_settings tablosu)
+- [x] Uzum Bank ödeme seçeneği — guest-site /pay sayfasına eklendi ("soon" badge, merchant gelince bağlanır)
 - [ ] AI: yorum özetleme
 - [ ] AI: talep tahmini / fiyat önerisi
 - [ ] 3D oda turu (isteğe bağlı, performans testinden sonra)

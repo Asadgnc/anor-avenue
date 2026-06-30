@@ -1,7 +1,8 @@
 import { createClient } from '@/lib/supabase-server'
+import { createServiceClient } from '@/lib/supabase'
 import { redirect } from 'next/navigation'
 import RoomTypePriceForm from './RoomTypePriceForm'
-import IcalUrlList from './IcalUrlList'
+import HotelProfileForm from './HotelProfileForm'
 
 interface RoomType {
   id: string
@@ -11,30 +12,72 @@ interface RoomType {
   max_occupancy: number
 }
 
+interface HotelSettings {
+  hotel_name: string
+  address: string | null
+  phone: string | null
+  email: string | null
+  website: string | null
+  checkin_time: string
+  checkout_time: string
+}
+
 export default async function SettingsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [{ data: roomTypes }, { data: rooms }] = await Promise.all([
+  const service = createServiceClient()
+
+  const [{ data: roomTypes }, { data: hotelRow }] = await Promise.all([
     supabase.from('room_types').select('id, name, base_price, description, max_occupancy').order('base_price'),
-    supabase.from('rooms').select('id, room_number').eq('is_active', true).order('room_number'),
+    service.from('hotel_settings').select('*').eq('id', 1).single(),
   ])
 
   const types = (roomTypes ?? []) as RoomType[]
-  const roomList = (rooms ?? []) as { id: string; room_number: string }[]
+  const hotel = (hotelRow ?? {
+    hotel_name: 'Anor Avenue Hotel',
+    address: 'Toshkent, O\'zbekiston',
+    phone: '',
+    email: '',
+    website: '',
+    checkin_time: '14:00',
+    checkout_time: '12:00',
+  }) as HotelSettings
 
   const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL ?? '—'
-  const GUEST_SITE_URL = process.env.GUEST_SITE_URL ?? 'https://anor-avenue.vercel.app'
-  const ICAL_SECRET = process.env.ICAL_SECRET ?? null
 
   return (
     <div className="space-y-8 max-w-2xl">
       <div>
         <h1 className="text-2xl font-semibold text-[#E8E8F0]">Ayarlar</h1>
         <p className="text-sm mt-1" style={{ color: 'var(--color-admin-muted)' }}>
-          Oda fiyatları ve otel konfigürasyonu
+          Otel profili, oda fiyatları ve bildirim konfigürasyonu
         </p>
+      </div>
+
+      {/* Otel Profili */}
+      <div
+        className="rounded-xl border"
+        style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}
+      >
+        <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
+          <h2 className="text-sm font-semibold text-[#E8E8F0]">Otel Profili</h2>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--color-admin-muted)' }}>
+            Fatura ve onay e-postalarında kullanılır
+          </p>
+        </div>
+        <div className="px-5 py-4">
+          <HotelProfileForm
+            hotelName={hotel.hotel_name}
+            address={hotel.address ?? ''}
+            phone={hotel.phone ?? ''}
+            email={hotel.email ?? ''}
+            website={hotel.website ?? ''}
+            checkinTime={hotel.checkin_time}
+            checkoutTime={hotel.checkout_time}
+          />
+        </div>
       </div>
 
       {/* Oda Tipi Fiyatları */}
@@ -94,45 +137,6 @@ export default async function SettingsPage() {
             <p className="font-mono">ADMIN_NOTIFICATION_EMAIL=a.kenja3683@gmail.com</p>
             <p className="font-mono">EMAIL_FROM=Anor Avenue Hotel &lt;noreply@seninadresi.com&gt;</p>
           </div>
-        </div>
-      </div>
-
-      {/* iCal Senkronu — OTA / Channel Manager */}
-      <div
-        className="rounded-xl border"
-        style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}
-      >
-        <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
-          <h2 className="text-sm font-semibold text-[#E8E8F0]">iCal Takvim URL&apos;leri</h2>
-          <p className="text-xs mt-0.5" style={{ color: 'var(--color-admin-muted)' }}>
-            Nobeds veya başka bir channel manager&apos;a bağlamak için oda URL&apos;lerini kopyala
-          </p>
-        </div>
-        <div className="px-5 py-4">
-          <IcalUrlList rooms={roomList} guestSiteUrl={GUEST_SITE_URL} icalSecret={ICAL_SECRET} />
-        </div>
-      </div>
-
-      {/* Otel Bilgileri (Bilgi amaçlı) */}
-      <div
-        className="rounded-xl border"
-        style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}
-      >
-        <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
-          <h2 className="text-sm font-semibold text-[#E8E8F0]">Otel Bilgileri</h2>
-        </div>
-        <div className="px-5 py-4 space-y-3 text-sm">
-          {[
-            ['Otel Adı', 'Anor Avenue Hotel'],
-            ['Şehir', 'Taşkent, Özbekistan'],
-            ['Oda Sayısı', '10-12 oda, 4 kat'],
-            ['Para Birimi', 'UZS (Özbek Somu)'],
-          ].map(([k, v]) => (
-            <div key={k} className="flex justify-between">
-              <span style={{ color: 'var(--color-admin-muted)' }}>{k}</span>
-              <span className="text-[#E8E8F0]">{v}</span>
-            </div>
-          ))}
         </div>
       </div>
     </div>

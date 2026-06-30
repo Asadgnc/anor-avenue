@@ -14,6 +14,7 @@ const labels = {
     choose: 'To\'lov usulini tanlang',
     payme: 'Payme orqali to\'lash',
     click: 'Click orqali to\'lash',
+    uzum: 'Uzum Bank orqali to\'lash',
     cash: 'Naqd pul (mehmonxonada)',
     comingSoon: 'Tez orada — merchant hisob raqami tasdiqlanmoqda',
     cashTitle: 'Naqd pul',
@@ -27,6 +28,7 @@ const labels = {
     choose: 'Выберите способ оплаты',
     payme: 'Оплатить через Payme',
     click: 'Оплатить через Click',
+    uzum: 'Оплатить через Uzum Bank',
     cash: 'Наличными (в отеле)',
     comingSoon: 'Скоро — идёт подключение платёжного шлюза',
     cashTitle: 'Наличные',
@@ -40,6 +42,7 @@ const labels = {
     choose: 'Choose payment method',
     payme: 'Pay with Payme',
     click: 'Pay with Click',
+    uzum: 'Pay with Uzum Bank',
     cash: 'Cash (at hotel)',
     comingSoon: 'Coming soon — payment gateway is being set up',
     cashTitle: 'Cash',
@@ -53,7 +56,7 @@ const labels = {
 
 export default function PaymentOptions({ locale, isPaid }: Props) {
   const l = labels[locale as keyof typeof labels] ?? labels.uz
-  const [selected, setSelected] = useState<'payme' | 'click' | 'cash' | null>(null)
+  const [selected, setSelected] = useState<'payme' | 'click' | 'uzum' | 'cash' | null>(null)
   const [cashConfirmed, setCashConfirmed] = useState(false)
 
   if (isPaid) {
@@ -152,6 +155,18 @@ export default function PaymentOptions({ locale, isPaid }: Props) {
         comingSoon
         comingSoonText={l.comingSoon}
         accentColor="#22c55e"
+      />
+
+      {/* Uzum */}
+      <PaymentCard
+        selected={selected === 'uzum'}
+        onSelect={() => setSelected(selected === 'uzum' ? null : 'uzum')}
+        logo="🟣"
+        name="Uzum Bank"
+        label={l.uzum}
+        comingSoon
+        comingSoonText={l.comingSoon}
+        accentColor="#7c3aed"
       />
 
       {/* Cash */}
