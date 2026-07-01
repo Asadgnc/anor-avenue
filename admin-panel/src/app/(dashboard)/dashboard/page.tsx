@@ -2,248 +2,235 @@ import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import {
-  BedDouble,
   TrendingUp,
-  BarChart3,
   LogIn,
   LogOut,
-  CreditCard,
-  Sparkles,
+  CalendarPlus,
+  AlertCircle,
+  CheckCircle2,
   Wind,
   Clock,
-  CheckCircle2,
-  AlertCircle,
+  Sparkles,
+  LayoutGrid,
+  BedDouble,
+  Wallet,
 } from 'lucide-react'
-import MetricCharts from '@/components/admin/MetricCharts'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import DashboardTopbar from '@/components/admin/DashboardTopbar'
+import StatCard from '@/components/admin/StatCard'
+import RoomStatusGrid, { type RoomStatusRow } from '@/components/admin/RoomStatusGrid'
+import RevenueAreaChart from '@/components/admin/RevenueAreaChart'
+import RecentBookingsList, { type RecentBooking } from '@/components/admin/RecentBookingsList'
+import MonthSummaryCard from '@/components/admin/MonthSummaryCard'
 
-// ─── Tipler ───────────────────────────────────────────────────────────────────
+// ─── Sabitler ───────────────────────────────────────────────────────────────
 
-interface ArrivalRow {
-  id: string
-  reservation_code: string
-  status: string
-  check_in: string
-  adults: number
-  room_rate: number
-  guests: { first_name: string; last_name: string } | null
-  rooms: { room_number: string; room_types: { name: string } | null } | null
+const ROLE_LABELS: Record<string, string> = {
+  admin: 'Admin',
+  manager: 'Müdür',
+  receptionist: 'Resepsiyon',
+  housekeeper: 'Temizlik',
+  accountant: 'Muhasebeci',
 }
 
-interface DepartureRow {
-  id: string
-  reservation_code: string
-  check_out: string
-  total_amount: number
-  guests: { first_name: string; last_name: string } | null
-  rooms: { room_number: string } | null
+function toDateStr(d: Date): string {
+  return d.toISOString().split('T')[0]
+}
+
+function delta(curr: number, prev: number): number {
+  if (prev === 0) return curr > 0 ? 100 : 0
+  return ((curr - prev) / prev) * 100
+}
+
+// ─── Veri çekme ───────────────────────────────────────────────────────────────
+
+async function fetchUserName(userId: string, fallback: string): Promise<string> {
+  const supabase = await createClient()
+  const { data } = await supabase.from('profiles').select('full_name').eq('id', userId).single()
+  return data?.full_name || fallback
+}
+
+async function fetchPendingPaymentsCount(): Promise<number> {
+  const supabase = await createClient()
+  const { count } = await supabase.from('payments').select('id', { count: 'exact', head: true }).eq('status', 'pending')
+  return count ?? 0
+}
+
+async function fetchStatCardsData() {
+  const supabase = await createClient()
+  const today = new Date()
+  const todayStr = toDateStr(today)
+  const yesterday = new Date(today)
+  yesterday.setDate(today.getDate() - 1)
+  const yesterdayStr = toDateStr(yesterday)
+  const tomorrow = new Date(today)
+  tomorrow.setDate(today.getDate() + 1)
+  const tomorrowStr = toDateStr(tomorrow)
+
+  const [
+    newTodayResult,
+    newYesterdayResult,
+    scheduledTomorrowResult,
+    scheduledTodayResult,
+    checkinTodayResult,
+    checkinYesterdayResult,
+    checkoutTodayResult,
+    checkoutYesterdayResult,
+  ] = await Promise.all([
+    supabase.from('reservations').select('id', { count: 'exact', head: true }).gte('created_at', todayStr).lt('created_at', tomorrowStr),
+    supabase.from('reservations').select('id', { count: 'exact', head: true }).gte('created_at', yesterdayStr).lt('created_at', todayStr),
+    supabase.from('reservations').select('id', { count: 'exact', head: true }).eq('check_in', tomorrowStr).not('status', 'in', '(cancelled,no_show)'),
+    supabase.from('reservations').select('id', { count: 'exact', head: true }).eq('check_in', todayStr).not('status', 'in', '(cancelled,no_show)'),
+    supabase.from('reservations').select('id', { count: 'exact', head: true }).eq('check_in', todayStr).eq('status', 'checked_in'),
+    supabase.from('reservations').select('id', { count: 'exact', head: true }).eq('check_in', yesterdayStr).in('status', ['checked_in', 'checked_out']),
+    supabase.from('reservations').select('id', { count: 'exact', head: true }).eq('check_out', todayStr).eq('status', 'checked_out'),
+    supabase.from('reservations').select('id', { count: 'exact', head: true }).eq('check_out', yesterdayStr).eq('status', 'checked_out'),
+  ])
+
+  return {
+    todayStr,
+    tomorrowStr,
+    newToday: newTodayResult.count ?? 0,
+    newYesterday: newYesterdayResult.count ?? 0,
+    scheduledTomorrow: scheduledTomorrowResult.count ?? 0,
+    scheduledToday: scheduledTodayResult.count ?? 0,
+    checkinToday: checkinTodayResult.count ?? 0,
+    checkinYesterday: checkinYesterdayResult.count ?? 0,
+    checkoutToday: checkoutTodayResult.count ?? 0,
+    checkoutYesterday: checkoutYesterdayResult.count ?? 0,
+  }
+}
+
+async function fetchRoomStatusList(): Promise<RoomStatusRow[]> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('rooms')
+    .select('room_number, floor, status')
+    .eq('is_active', true)
+    .order('floor')
+    .order('room_number')
+  return (data ?? []) as RoomStatusRow[]
+}
+
+async function fetchCleaningStatus() {
+  const supabase = await createClient()
+  const [cleanResult, dirtyResult, inProgressResult, inspectedResult] = await Promise.all([
+    supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('cleaning_status', 'clean').eq('is_active', true),
+    supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('cleaning_status', 'dirty').eq('is_active', true),
+    supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('cleaning_status', 'in_progress').eq('is_active', true),
+    supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('cleaning_status', 'inspected').eq('is_active', true),
+  ])
+  return {
+    clean: cleanResult.count ?? 0,
+    dirty: dirtyResult.count ?? 0,
+    in_progress: inProgressResult.count ?? 0,
+    inspected: inspectedResult.count ?? 0,
+  }
+}
+
+async function fetchRevenueTrend() {
+  const supabase = await createClient()
+  const today = new Date()
+  const start = new Date(today)
+  start.setDate(today.getDate() - 29)
+  const startStr = toDateStr(start)
+
+  const { data } = await supabase
+    .from('payments')
+    .select('amount, paid_at')
+    .eq('status', 'completed')
+    .gte('paid_at', startStr)
+
+  const rows = (data ?? []) as Array<{ amount: number; paid_at: string }>
+  const byDay = new Map<string, number>()
+  for (const r of rows) {
+    const day = r.paid_at.split('T')[0]
+    byDay.set(day, (byDay.get(day) ?? 0) + Number(r.amount))
+  }
+
+  const days = []
+  for (let i = 0; i < 30; i++) {
+    const d = new Date(start)
+    d.setDate(start.getDate() + i)
+    const dateStr = toDateStr(d)
+    days.push({ date: dateStr, amount: byDay.get(dateStr) ?? 0 })
+  }
+  return days
+}
+
+async function fetchRecentBookings(): Promise<RecentBooking[]> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('reservations')
+    .select('id, reservation_code, check_in, adults, guests(first_name, last_name), rooms(room_number)')
+    .order('created_at', { ascending: false })
+    .limit(5)
+
+  type Row = {
+    id: string
+    reservation_code: string
+    check_in: string
+    adults: number
+    guests: { first_name: string; last_name: string } | null
+    rooms: { room_number: string } | null
+  }
+
+  return ((data ?? []) as unknown as Row[]).map((r) => ({
+    id: r.id,
+    reservation_code: r.reservation_code,
+    guest_name: r.guests ? `${r.guests.first_name} ${r.guests.last_name}` : 'Misafir',
+    check_in: r.check_in,
+    adults: r.adults,
+    room_number: r.rooms?.room_number ?? null,
+  }))
+}
+
+async function fetchMonthSummary() {
+  const supabase = await createClient()
+  const now = new Date()
+  const monthStart = toDateStr(new Date(now.getFullYear(), now.getMonth(), 1))
+  const todayStr = toDateStr(now)
+
+  const [resResult, payResult, totalRoomsResult] = await Promise.all([
+    supabase.from('reservations').select('status, nights').gte('check_in', monthStart).lte('check_in', todayStr),
+    supabase.from('payments').select('status').gte('created_at', monthStart),
+    supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('is_active', true),
+  ])
+
+  const reservations = (resResult.data ?? []) as Array<{ status: string; nights: number }>
+  const nonCancelled = reservations.filter((r) => r.status !== 'cancelled')
+  const cancellationRate = reservations.length > 0 ? (reservations.filter((r) => r.status === 'cancelled').length / reservations.length) * 100 : 0
+  const avgNights = nonCancelled.length > 0 ? nonCancelled.reduce((s, r) => s + Number(r.nights), 0) / nonCancelled.length : 0
+
+  const payments = (payResult.data ?? []) as Array<{ status: string }>
+  const collectionRate = payments.length > 0 ? (payments.filter((p) => p.status === 'completed').length / payments.length) * 100 : 0
+
+  const totalRooms = Math.max(totalRoomsResult.count ?? 1, 1)
+  const daysElapsed = now.getDate()
+  const roomNightsThisMonth = nonCancelled.reduce((s, r) => s + Number(r.nights), 0)
+  const occupancyRate = Math.min(100, (roomNightsThisMonth / (totalRooms * daysElapsed)) * 100)
+
+  const monthLabel = now.toLocaleDateString('uz-UZ', { month: 'long', year: 'numeric' })
+
+  return { occupancyRate, collectionRate, cancellationRate, avgNights, monthLabel }
 }
 
 interface PendingRow {
   id: string
   reservation_code: string
   check_in: string
-  created_at: string
   guests: { first_name: string; last_name: string } | null
 }
 
-// ─── Veri çekme ───────────────────────────────────────────────────────────────
-
-async function fetch30DayMetrics() {
+async function fetchPendingReservations(): Promise<PendingRow[]> {
   const supabase = await createClient()
-  const today = new Date()
-  const thirtyDaysAgo = new Date(today)
-  thirtyDaysAgo.setDate(today.getDate() - 29)
-
-  const startDate = thirtyDaysAgo.toISOString().split('T')[0]
-  const endDate = today.toISOString().split('T')[0]
-
-  const [reservationsResult, totalRoomsResult] = await Promise.all([
-    supabase
-      .from('reservations')
-      .select('check_in, check_out, room_rate')
-      .neq('status', 'cancelled')
-      .neq('status', 'no_show')
-      .lte('check_in', endDate)
-      .gte('check_out', startDate),
-    supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('is_active', true),
-  ])
-
-  const reservations = (reservationsResult.data ?? []) as Array<{ check_in: string; check_out: string; room_rate: number }>
-  const totalRooms = Math.max(totalRoomsResult.count ?? 1, 1)
-
-  const days = []
-  for (let i = 0; i < 30; i++) {
-    const d = new Date(thirtyDaysAgo)
-    d.setDate(thirtyDaysAgo.getDate() + i)
-    const dateStr = d.toISOString().split('T')[0]
-
-    const dayRes = reservations.filter((r) => r.check_in <= dateStr && r.check_out > dateStr)
-    const rates = dayRes.map((r) => Number(r.room_rate))
-    const adr = rates.length > 0 ? rates.reduce((a, b) => a + b, 0) / rates.length : 0
-    const occupancy = (dayRes.length / totalRooms) * 100
-    const revpar = (adr * occupancy) / 100
-
-    days.push({ date: dateStr, occupancy, adr, revpar })
-  }
-
-  return days
-}
-
-async function fetchDashboardData() {
-  const supabase = await createClient()
-  const today = new Date().toISOString().split('T')[0]
-
-  const [
-    totalRoomsResult,
-    occupiedRoomsResult,
-    adrResult,
-    checkinsResult,
-    checkoutsResult,
-    pendingPaymentsResult,
-    cleanResult,
-    dirtyResult,
-    inProgressResult,
-    inspectedResult,
-    arrivalsResult,
-    departuresResult,
-    pendingReservationsResult,
-  ] = await Promise.all([
-    supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('is_active', true),
-    supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('status', 'occupied').eq('is_active', true),
-    supabase.from('reservations').select('room_rate').eq('check_in', today).in('status', ['checked_in', 'confirmed']),
-    supabase.from('reservations').select('id', { count: 'exact', head: true }).eq('check_in', today).in('status', ['confirmed', 'pending']),
-    supabase.from('reservations').select('id', { count: 'exact', head: true }).eq('check_out', today).eq('status', 'checked_in'),
-    supabase.from('payments').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-    supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('cleaning_status', 'clean').eq('is_active', true),
-    supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('cleaning_status', 'dirty').eq('is_active', true),
-    supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('cleaning_status', 'in_progress').eq('is_active', true),
-    supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('cleaning_status', 'inspected').eq('is_active', true),
-    // Bugünkü check-in listesi
-    supabase
-      .from('reservations')
-      .select('id, reservation_code, status, check_in, adults, room_rate, guests(first_name, last_name), rooms(room_number, room_types(name))')
-      .eq('check_in', today)
-      .in('status', ['confirmed', 'pending', 'checked_in'])
-      .order('created_at'),
-    // Bugünkü check-out listesi
-    supabase
-      .from('reservations')
-      .select('id, reservation_code, check_out, total_amount, guests(first_name, last_name), rooms(room_number)')
-      .eq('check_out', today)
-      .eq('status', 'checked_in')
-      .order('created_at'),
-    // Onay bekleyen rezervasyonlar (pending — misafir sitesinden gelenler)
-    supabase
-      .from('reservations')
-      .select('id, reservation_code, check_in, created_at, guests(first_name, last_name)')
-      .eq('status', 'pending')
-      .order('created_at', { ascending: false })
-      .limit(10),
-  ])
-
-  const totalRooms = totalRoomsResult.count ?? 0
-  const occupiedRooms = occupiedRoomsResult.count ?? 0
-  const occupancyRate = totalRooms > 0 ? (occupiedRooms / totalRooms) * 100 : 0
-
-  const rates = adrResult.data?.map((r) => Number(r.room_rate)) ?? []
-  const adr = rates.length > 0 ? rates.reduce((a, b) => a + b, 0) / rates.length : 0
-  const revpar = (adr * occupancyRate) / 100
-
-  return {
-    totalRooms,
-    occupiedRooms,
-    occupancyRate,
-    adr,
-    revpar,
-    checkins: checkinsResult.count ?? 0,
-    checkouts: checkoutsResult.count ?? 0,
-    pendingPayments: pendingPaymentsResult.count ?? 0,
-    cleaning: {
-      clean: cleanResult.count ?? 0,
-      dirty: dirtyResult.count ?? 0,
-      in_progress: inProgressResult.count ?? 0,
-      inspected: inspectedResult.count ?? 0,
-    },
-    arrivals: (arrivalsResult.data ?? []) as unknown as ArrivalRow[],
-    departures: (departuresResult.data ?? []) as unknown as DepartureRow[],
-    pendingReservations: (pendingReservationsResult.data ?? []) as unknown as PendingRow[],
-  }
-}
-
-// ─── Yardımcı ─────────────────────────────────────────────────────────────────
-
-function formatUZS(amount: number): string {
-  if (amount === 0) return '—'
-  return new Intl.NumberFormat('uz-UZ', { maximumFractionDigits: 0 }).format(amount) + ' UZS'
-}
-
-function formatPercent(value: number): string {
-  return value.toFixed(1) + '%'
-}
-
-// ─── Alt bileşenler ────────────────────────────────────────────────────────────
-
-interface MetricCardProps {
-  icon: React.ReactNode
-  label: string
-  value: string
-  description: string
-  accent?: boolean
-}
-
-function MetricCard({ icon, label, value, description, accent = false }: MetricCardProps) {
-  return (
-    <div
-      style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}
-      className="rounded-xl border p-5 flex flex-col gap-3"
-    >
-      <div className="flex items-center gap-2">
-        <span style={{ color: 'var(--color-admin-muted)' }} className="w-4 h-4">
-          {icon}
-        </span>
-        <span style={{ color: 'var(--color-admin-muted)' }} className="text-xs font-medium uppercase tracking-wide">
-          {label}
-        </span>
-      </div>
-      <p
-        style={{ color: accent ? 'var(--color-accent)' : '#E8E8F0' }}
-        className="text-3xl font-bold tabular-nums leading-none"
-      >
-        {value}
-      </p>
-      <p style={{ color: 'var(--color-admin-muted)' }} className="text-xs">
-        {description}
-      </p>
-    </div>
-  )
-}
-
-interface CleaningBadgeProps {
-  label: string
-  count: number
-  color: string
-  icon: React.ReactNode
-}
-
-function CleaningBadge({ label, count, color, icon }: CleaningBadgeProps) {
-  return (
-    <div
-      style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}
-      className="flex items-center gap-3 rounded-lg border px-4 py-3"
-    >
-      <span style={{ color }} className="w-4 h-4 shrink-0">
-        {icon}
-      </span>
-      <div className="flex-1 min-w-0">
-        <p style={{ color: 'var(--color-admin-muted)' }} className="text-xs">
-          {label}
-        </p>
-      </div>
-      <span style={{ color }} className="text-xl font-bold tabular-nums">
-        {count}
-      </span>
-    </div>
-  )
+  const { data } = await supabase
+    .from('reservations')
+    .select('id, reservation_code, check_in, guests(first_name, last_name)')
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false })
+    .limit(10)
+  return (data ?? []) as unknown as PendingRow[]
 }
 
 // ─── Sayfa ─────────────────────────────────────────────────────────────────────
@@ -261,312 +248,173 @@ export default async function DashboardPage({
   if (!user) redirect('/login')
 
   const { blocked } = await searchParams
+  const role = (user.user_metadata?.role as string | undefined) ?? 'receptionist'
 
-  const [data, chartData] = await Promise.all([
-    fetchDashboardData().catch((err: unknown) => {
-      console.error('[Dashboard] fetchDashboardData hatası:', err)
-      return null
-    }),
-    fetch30DayMetrics().catch((): Array<{ date: string; occupancy: number; adr: number; revpar: number }> => []),
+  const [stats, roomStatusList, cleaning, revenueTrend, recentBookings, pendingReservations, pendingPaymentsCount, userName] = await Promise.all([
+    fetchStatCardsData(),
+    fetchRoomStatusList(),
+    fetchCleaningStatus(),
+    fetchRevenueTrend(),
+    fetchRecentBookings(),
+    fetchPendingReservations(),
+    fetchPendingPaymentsCount(),
+    fetchUserName(user.id, user.email ?? 'Kullanıcı'),
   ])
+  const monthSummary = await fetchMonthSummary()
 
-  const metrics = data ?? {
-    totalRooms: 0,
-    occupiedRooms: 0,
-    occupancyRate: 0,
-    adr: 0,
-    revpar: 0,
-    checkins: 0,
-    checkouts: 0,
-    pendingPayments: 0,
-    cleaning: { clean: 0, dirty: 0, in_progress: 0, inspected: 0 },
-    arrivals: [],
-    departures: [],
-    pendingReservations: [],
-  }
-
-  const today = new Date().toLocaleDateString('uz-UZ', {
+  const todayLabel = new Date().toLocaleDateString('uz-UZ', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
     day: 'numeric',
   })
 
-  const STATUS_LABELS: Record<string, string> = {
-    pending: 'Bekliyor',
-    confirmed: 'Onaylı',
-    checked_in: 'Girişte',
-  }
-  const STATUS_COLORS: Record<string, string> = {
-    pending: '#FCD34D',
-    confirmed: '#93C5FD',
-    checked_in: '#86EFAC',
-  }
-
   return (
-    <div className="space-y-8">
-      {/* Başlık */}
-      <div>
-        <h1 className="text-2xl font-semibold text-[#E8E8F0]">Dashboard</h1>
-        <p style={{ color: 'var(--color-admin-muted)' }} className="mt-1 text-sm capitalize">
-          {today}
-        </p>
-      </div>
+    <div className="space-y-6">
+      <DashboardTopbar
+        title="Dashboard"
+        subtitle={todayLabel}
+        userName={userName}
+        roleLabel={ROLE_LABELS[role] ?? role}
+        pendingReservations={pendingReservations.length}
+        pendingPayments={pendingPaymentsCount}
+      />
 
-      {/* Erişim engellendi bildirimi */}
       {blocked === '1' && (
-        <div
-          className="rounded-xl border p-4 flex items-center gap-3"
-          style={{ backgroundColor: '#1A0A0A', borderColor: '#C62828' }}
-        >
-          <AlertCircle size={18} style={{ color: '#FCA5A5', flexShrink: 0 }} />
-          <p className="text-sm" style={{ color: '#FCA5A5' }}>
+        <div className="rounded-lg p-4 flex items-center gap-3 bg-destructive/10">
+          <AlertCircle size={18} className="text-destructive shrink-0" />
+          <p className="text-sm text-destructive">
             Bu sayfaya erişim yetkiniz yok. Rolünüze uygun sayfaları sol menüden seçebilirsiniz.
           </p>
         </div>
       )}
 
-      {/* Pending rezervasyon uyarısı */}
-      {metrics.pendingReservations.length > 0 && (
-        <section>
-          <div
-            className="rounded-xl border p-4"
-            style={{ backgroundColor: '#1C1505', borderColor: '#D97706' }}
-          >
-            <div className="flex items-start gap-3">
-              <AlertCircle size={18} style={{ color: '#FCD34D', flexShrink: 0, marginTop: '1px' }} />
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold" style={{ color: '#FCD34D' }}>
-                  {metrics.pendingReservations.length} onay bekleyen rezervasyon var
-                </p>
-                <p className="text-xs mt-1" style={{ color: '#D4A017' }}>
-                  Misafir sitesinden gelen rezervasyonlar — onaylamak veya iptal etmek için tıklayın
-                </p>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {metrics.pendingReservations.slice(0, 5).map((r) => (
-                    <Link
-                      key={r.id}
-                      href={`/reservations/${r.id}`}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-opacity hover:opacity-80"
-                      style={{ backgroundColor: '#2D1A00', color: '#FCD34D', border: '1px solid #D97706' }}
-                    >
-                      <span className="font-mono">{r.reservation_code}</span>
-                      {r.guests && (
-                        <span style={{ color: '#D4A017' }}>
-                          · {r.guests.first_name} {r.guests.last_name}
-                        </span>
-                      )}
-                      <span style={{ color: '#92681A' }}>· {r.check_in}</span>
-                    </Link>
-                  ))}
-                  {metrics.pendingReservations.length > 5 && (
-                    <Link
-                      href="/reservations/list?status=pending"
-                      className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium transition-opacity hover:opacity-80"
-                      style={{ backgroundColor: '#2D1A00', color: '#D4A017', border: '1px solid #D97706' }}
-                    >
-                      +{metrics.pendingReservations.length - 5} daha →
-                    </Link>
-                  )}
-                </div>
+      {pendingReservations.length > 0 && (
+        <div className="rounded-lg p-4 bg-amber-500/10">
+          <div className="flex items-start gap-3">
+            <AlertCircle size={18} className="text-amber-700 dark:text-amber-400 shrink-0 mt-px" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground">
+                {pendingReservations.length} onay bekleyen rezervasyon var
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {pendingReservations.slice(0, 5).map((r) => (
+                  <Link
+                    key={r.id}
+                    href={`/reservations/${r.id}`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-card ring-1 ring-foreground/10 hover:opacity-80 text-foreground"
+                  >
+                    <span className="font-mono">{r.reservation_code}</span>
+                    {r.guests && (
+                      <span className="text-muted-foreground">
+                        · {r.guests.first_name} {r.guests.last_name}
+                      </span>
+                    )}
+                  </Link>
+                ))}
+                {pendingReservations.length > 5 && (
+                  <Link
+                    href="/reservations/list?status=pending"
+                    className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium text-amber-700 dark:text-amber-400"
+                  >
+                    +{pendingReservations.length - 5} daha →
+                  </Link>
+                )}
               </div>
             </div>
           </div>
-        </section>
+        </div>
       )}
 
-      {/* 6 Metrik Kartı */}
-      <section>
-        <h2 style={{ color: 'var(--color-admin-muted)' }} className="text-xs font-medium uppercase tracking-widest mb-4">
-          Bugünün Durumu
+      {/* Genel Bakış */}
+      <section className="space-y-3">
+        <h2 className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          <LayoutGrid size={14} /> Genel Bakış
         </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <MetricCard
-            icon={<BedDouble size={16} />}
-            label="Doluluk"
-            value={formatPercent(metrics.occupancyRate)}
-            description={`${metrics.occupiedRooms} / ${metrics.totalRooms} oda dolu`}
-            accent
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard
+            icon={<CalendarPlus size={16} />}
+            label="Yeni Rezervasyon (bugün)"
+            value={String(stats.newToday)}
+            deltaPercent={delta(stats.newToday, stats.newYesterday)}
+            href={`/reservations/list?createdOn=${stats.todayStr}`}
           />
-          <MetricCard
+          <StatCard
             icon={<TrendingUp size={16} />}
-            label="ADR"
-            value={formatUZS(metrics.adr)}
-            description="Ortalama günlük oda fiyatı"
-            accent
+            label="Yarın Planlanan Giriş"
+            value={String(stats.scheduledTomorrow)}
+            deltaPercent={delta(stats.scheduledTomorrow, stats.scheduledToday)}
+            href={`/reservations/list?checkIn=${stats.tomorrowStr}`}
           />
-          <MetricCard
-            icon={<BarChart3 size={16} />}
-            label="RevPAR"
-            value={formatUZS(metrics.revpar)}
-            description="Mevcut oda başına gelir"
-            accent
-          />
-          <MetricCard
+          <StatCard
             icon={<LogIn size={16} />}
-            label="Bugün Giriş"
-            value={String(metrics.checkins)}
-            description="Bekleyen check-in rezervasyonları"
+            label="Bugün Check-in"
+            value={String(stats.checkinToday)}
+            deltaPercent={delta(stats.checkinToday, stats.checkinYesterday)}
+            href={`/reservations/list?checkIn=${stats.todayStr}&status=checked_in`}
           />
-          <MetricCard
+          <StatCard
             icon={<LogOut size={16} />}
-            label="Bugün Çıkış"
-            value={String(metrics.checkouts)}
-            description="Bugün check-out yapacak misafirler"
-          />
-          <MetricCard
-            icon={<CreditCard size={16} />}
-            label="Bekleyen Ödeme"
-            value={String(metrics.pendingPayments)}
-            description="İşlem bekleyen ödeme kaydı"
+            label="Bugün Check-out"
+            value={String(stats.checkoutToday)}
+            deltaPercent={delta(stats.checkoutToday, stats.checkoutYesterday)}
+            href={`/reservations/list?checkOut=${stats.todayStr}&status=checked_out`}
           />
         </div>
       </section>
 
-      {/* Bugünkü Giriş / Çıkış Listeleri */}
-      <section>
-        <h2 style={{ color: 'var(--color-admin-muted)' }} className="text-xs font-medium uppercase tracking-widest mb-4">
-          Bugünkü Operasyon
+      {/* Operasyon */}
+      <section className="space-y-3">
+        <h2 className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          <BedDouble size={14} /> Operasyon
         </h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          {/* Arrivals */}
-          <div
-            className="rounded-xl border overflow-hidden"
-            style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}
-          >
-            <div
-              className="px-5 py-3 flex items-center gap-2"
-              style={{ borderBottom: '1px solid var(--color-admin-border)', backgroundColor: '#0D1F14' }}
-            >
-              <LogIn size={14} style={{ color: '#86EFAC' }} />
-              <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#86EFAC' }}>
-                Bugün Giriş ({metrics.arrivals.length})
-              </p>
-            </div>
-            {metrics.arrivals.length === 0 ? (
-              <p className="px-5 py-6 text-sm text-center" style={{ color: 'var(--color-admin-muted)' }}>
-                Bugün için beklenen giriş yok
-              </p>
-            ) : (
-              <div className="divide-y" style={{ borderColor: 'var(--color-admin-border)' }}>
-                {metrics.arrivals.map((r) => (
-                  <Link
-                    key={r.id}
-                    href={`/reservations/${r.id}`}
-                    className="flex items-center justify-between px-5 py-3 hover:bg-white/5 transition-colors"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-[#E8E8F0] truncate">
-                        {r.guests?.first_name} {r.guests?.last_name}
-                      </p>
-                      <p className="text-xs mt-0.5" style={{ color: 'var(--color-admin-muted)' }}>
-                        {r.rooms?.room_number ?? '—'} · {r.rooms?.room_types?.name ?? '—'} · {r.adults} kişi
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0 ml-3">
-                      <span
-                        className="text-xs font-bold px-2 py-0.5 rounded-full"
-                        style={{
-                          color: STATUS_COLORS[r.status] ?? '#9CA3AF',
-                          backgroundColor: `${STATUS_COLORS[r.status] ?? '#9CA3AF'}20`,
-                        }}
-                      >
-                        {STATUS_LABELS[r.status] ?? r.status}
-                      </span>
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Departures */}
-          <div
-            className="rounded-xl border overflow-hidden"
-            style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}
-          >
-            <div
-              className="px-5 py-3 flex items-center gap-2"
-              style={{ borderBottom: '1px solid var(--color-admin-border)', backgroundColor: '#1A1405' }}
-            >
-              <LogOut size={14} style={{ color: '#FCD34D' }} />
-              <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#FCD34D' }}>
-                Bugün Çıkış ({metrics.departures.length})
-              </p>
-            </div>
-            {metrics.departures.length === 0 ? (
-              <p className="px-5 py-6 text-sm text-center" style={{ color: 'var(--color-admin-muted)' }}>
-                Bugün için beklenen çıkış yok
-              </p>
-            ) : (
-              <div className="divide-y" style={{ borderColor: 'var(--color-admin-border)' }}>
-                {metrics.departures.map((r) => (
-                  <Link
-                    key={r.id}
-                    href={`/reservations/${r.id}`}
-                    className="flex items-center justify-between px-5 py-3 hover:bg-white/5 transition-colors"
-                  >
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-[#E8E8F0] truncate">
-                        {r.guests?.first_name} {r.guests?.last_name}
-                      </p>
-                      <p className="text-xs mt-0.5" style={{ color: 'var(--color-admin-muted)' }}>
-                        {r.rooms?.room_number ?? '—'}
-                      </p>
-                    </div>
-                    <span className="text-sm font-semibold shrink-0 ml-3" style={{ color: 'var(--color-accent)' }}>
-                      {formatUZS(r.total_amount)}
-                    </span>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
+          <RoomStatusGrid rooms={roomStatusList} />
+          <Card>
+            <CardHeader>
+              <CardTitle>Oda Temizlik Durumu</CardTitle>
+            </CardHeader>
+            <CardContent className="grid grid-cols-2 gap-3">
+              {[
+                { label: 'Temiz', count: cleaning.clean, color: 'text-green-600', icon: <CheckCircle2 size={16} /> },
+                { label: 'Kirli', count: cleaning.dirty, color: 'text-red-600', icon: <Wind size={16} /> },
+                { label: 'Temizleniyor', count: cleaning.in_progress, color: 'text-amber-600', icon: <Clock size={16} /> },
+                { label: 'Denetlendi', count: cleaning.inspected, color: 'text-primary', icon: <Sparkles size={16} /> },
+              ].map((c) => (
+                <div key={c.label} className="rounded-lg border border-border p-3 flex items-center gap-2.5">
+                  <span className={c.color}>{c.icon}</span>
+                  <div>
+                    <p className="text-lg font-semibold leading-none text-foreground">{c.count}</p>
+                    <p className="text-[11px] mt-0.5 text-muted-foreground">{c.label}</p>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
         </div>
       </section>
 
-      {/* Son 30 Gün Grafikleri */}
-      {chartData.length > 0 && (
-        <section>
-          <h2 style={{ color: 'var(--color-admin-muted)' }} className="text-xs font-medium uppercase tracking-widest mb-4">
-            Son 30 Günlük Trend
-          </h2>
-          <MetricCharts data={chartData} />
-        </section>
-      )}
-
-      {/* Oda Temizlik Durumu */}
-      <section>
-        <h2 style={{ color: 'var(--color-admin-muted)' }} className="text-xs font-medium uppercase tracking-widest mb-4">
-          Oda Temizlik Durumu
+      {/* Finans */}
+      <section className="space-y-3">
+        <h2 className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          <Wallet size={14} /> Finans
         </h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          <CleaningBadge
-            label="Temiz"
-            count={metrics.cleaning.clean}
-            color="#2D6A4F"
-            icon={<CheckCircle2 size={16} />}
-          />
-          <CleaningBadge
-            label="Kirli"
-            count={metrics.cleaning.dirty}
-            color="#C62828"
-            icon={<Wind size={16} />}
-          />
-          <CleaningBadge
-            label="Temizleniyor"
-            count={metrics.cleaning.in_progress}
-            color="#D4A017"
-            icon={<Clock size={16} />}
-          />
-          <CleaningBadge
-            label="Denetlendi"
-            count={metrics.cleaning.inspected}
-            color="#C9A96E"
-            icon={<Sparkles size={16} />}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <Link href="/reports" className="block transition-opacity hover:opacity-80">
+            <RevenueAreaChart data={revenueTrend} />
+          </Link>
+          <MonthSummaryCard
+            occupancyRate={monthSummary.occupancyRate}
+            collectionRate={monthSummary.collectionRate}
+            cancellationRate={monthSummary.cancellationRate}
+            avgNights={monthSummary.avgNights}
+            monthLabel={monthSummary.monthLabel}
           />
         </div>
       </section>
+
+      {/* Son rezervasyonlar */}
+      <RecentBookingsList bookings={recentBookings} />
     </div>
   )
 }

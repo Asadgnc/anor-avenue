@@ -3,6 +3,7 @@
 import { useActionState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { addPaymentAction, type AddPaymentState } from './actions'
+import { dash } from '@/lib/dashboardTheme'
 
 const METHODS = [
   { value: 'cash', label: 'Nakit' },
@@ -24,7 +25,7 @@ export default function AddPaymentFormClient({ reservationId }: { reservationId:
     }
   }, [state.success, router])
 
-  const inputClass = "w-full px-3 py-2 rounded-lg text-sm text-[#E8E8F0] focus:outline-none focus:ring-1"
+  const inputClass = "w-full px-3 py-2 rounded-lg text-sm text-[#15112B] focus:outline-none focus:ring-1"
   const inputStyle = {
     backgroundColor: 'var(--color-admin-bg)',
     border: '1px solid var(--color-admin-border)',
@@ -32,7 +33,7 @@ export default function AddPaymentFormClient({ reservationId }: { reservationId:
 
   if (state.success) {
     return (
-      <p className="text-sm font-medium" style={{ color: '#86EFAC' }}>
+      <p className="text-sm font-medium" style={{ color: dash.green }}>
         ✓ Ödeme kaydedildi, liste güncelleniyor…
       </p>
     )
@@ -55,7 +56,7 @@ export default function AddPaymentFormClient({ reservationId }: { reservationId:
           style={inputStyle}
         />
         {state.fieldErrors?.amount && (
-          <p className="text-xs mt-0.5" style={{ color: '#FCA5A5' }}>{state.fieldErrors.amount}</p>
+          <p className="text-xs mt-0.5" style={{ color: dash.red }}>{state.fieldErrors.amount}</p>
         )}
       </div>
 
@@ -92,13 +93,13 @@ export default function AddPaymentFormClient({ reservationId }: { reservationId:
         type="submit"
         disabled={isPending}
         className="px-4 py-2 rounded-lg text-sm font-semibold transition-opacity hover:opacity-80 disabled:opacity-50 shrink-0"
-        style={{ backgroundColor: 'var(--color-accent)', color: '#0F0F1A' }}
+        style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
       >
         {isPending ? '…' : 'Kaydet'}
       </button>
 
       {state.error && (
-        <p className="w-full text-xs mt-1" style={{ color: '#FCA5A5' }}>{state.error}</p>
+        <p className="w-full text-xs mt-1" style={{ color: dash.red }}>{state.error}</p>
       )}
     </form>
   )

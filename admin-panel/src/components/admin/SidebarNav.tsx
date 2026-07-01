@@ -16,31 +16,36 @@ import {
   LogOut,
   ClipboardList,
   Menu,
-  X,
   Settings,
   UserCog,
+  Hotel,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { cn } from '@/lib/utils'
+import { Sheet, SheetContent } from '@/components/ui/sheet'
 
 type UserRole = 'admin' | 'manager' | 'receptionist' | 'housekeeper' | 'accountant'
+
+type BadgeKey = 'reservations' | 'payments'
 
 type NavLink = {
   href: string
   label: string
   icon: React.ComponentType<{ size?: number }>
   roles: UserRole[]
+  badgeKey?: BadgeKey
 }
 
 const NAV_LINKS: NavLink[] = [
   { href: '/dashboard',          label: 'Dashboard',            icon: LayoutDashboard, roles: ['admin', 'manager', 'receptionist', 'housekeeper', 'accountant'] },
   { href: '/reservations',       label: 'Takvim',               icon: CalendarDays,    roles: ['admin', 'manager', 'receptionist'] },
-  { href: '/reservations/list',  label: 'Rezervasyon Listesi',  icon: List,            roles: ['admin', 'manager', 'receptionist'] },
+  { href: '/reservations/list',  label: 'Rezervasyon Listesi',  icon: List,            roles: ['admin', 'manager', 'receptionist'], badgeKey: 'reservations' },
   { href: '/reservations/new',   label: 'Yeni Rezervasyon',     icon: Plus,            roles: ['admin', 'manager', 'receptionist'] },
   { href: '/rooms',              label: 'Odalar',               icon: BedDouble,       roles: ['admin', 'manager', 'receptionist'] },
   { href: '/guests',             label: 'Misafirler',           icon: Users,           roles: ['admin', 'manager', 'receptionist'] },
   { href: '/registrations',      label: 'Kayıt (Reg.)',         icon: ClipboardList,   roles: ['admin', 'manager', 'receptionist'] },
   { href: '/housekeeping',       label: 'Temizlik',             icon: Sparkles,        roles: ['admin', 'manager', 'receptionist', 'housekeeper'] },
-  { href: '/payments',           label: 'Ödemeler',             icon: CreditCard,      roles: ['admin', 'manager', 'receptionist', 'accountant'] },
+  { href: '/payments',           label: 'Ödemeler',             icon: CreditCard,      roles: ['admin', 'manager', 'receptionist', 'accountant'], badgeKey: 'payments' },
   { href: '/reports',            label: 'Raporlar',             icon: BarChart3,       roles: ['admin', 'manager', 'accountant'] },
   { href: '/staff',              label: 'Personel',             icon: UserCog,         roles: ['admin'] },
   { href: '/settings',           label: 'Ayarlar',              icon: Settings,        roles: ['admin'] },
@@ -54,20 +59,13 @@ const ROLE_LABELS: Record<UserRole, string> = {
   accountant:   'Muhasebeci',
 }
 
-const ROLE_COLORS: Record<UserRole, string> = {
-  admin:        '#C9A96E',
-  manager:      '#93C5FD',
-  receptionist: '#86EFAC',
-  housekeeper:  '#C4B5FD',
-  accountant:   '#FCD34D',
-}
-
 type Props = {
   role: string
   userEmail: string
+  badges?: Partial<Record<BadgeKey, number>>
 }
 
-export default function SidebarNav({ role, userEmail }: Props) {
+export default function SidebarNav({ role, userEmail, badges = {} }: Props) {
   const userRole = (role as UserRole) ?? 'receptionist'
   const pathname = usePathname()
   const router = useRouter()
@@ -83,60 +81,62 @@ export default function SidebarNav({ role, userEmail }: Props) {
   const navContent = (
     <>
       {/* Logo */}
-      <div className="px-5 py-6 border-b" style={{ borderColor: 'var(--color-admin-border)' }}>
-        <p className="font-bold text-sm tracking-wider" style={{ color: 'var(--color-accent)' }}>
-          ANOR AVENUE
-        </p>
-        <p className="text-xs mt-0.5" style={{ color: 'var(--color-admin-muted)' }}>
-          Yönetim Paneli
-        </p>
+      <div className="px-5 py-6 flex items-center gap-2.5">
+        <span className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0 bg-sidebar-primary">
+          <Hotel size={18} className="text-sidebar-primary-foreground" />
+        </span>
+        <div>
+          <p className="font-semibold text-sm tracking-wide text-sidebar-foreground leading-tight">Anor Avenue</p>
+          <p className="text-[11px] leading-tight text-sidebar-foreground/55">
+            Yönetim Paneli
+          </p>
+        </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-        {visibleLinks.map(({ href, label, icon: Icon }) => {
+      <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
+        {visibleLinks.map(({ href, label, icon: Icon, badgeKey }) => {
           const exactOnly = ['/dashboard', '/reservations', '/reservations/list', '/reservations/new']
           const active = exactOnly.includes(href)
             ? pathname === href
             : pathname === href || pathname.startsWith(href + '/')
+          const badgeValue = badgeKey ? badges[badgeKey] : undefined
           return (
             <Link
               key={href}
               href={href}
               onClick={() => setMobileOpen(false)}
-              className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors"
-              style={{
-                backgroundColor: active ? '#1E1E3A' : 'transparent',
-                color: active ? '#E8E8F0' : 'var(--color-admin-muted)',
-              }}
+              className={cn(
+                'flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                active
+                  ? 'bg-sidebar-primary text-sidebar-primary-foreground'
+                  : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'
+              )}
             >
               <Icon size={16} />
-              {label}
+              <span className="flex-1">{label}</span>
+              {!!badgeValue && (
+                <span className="text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center bg-destructive text-white">
+                  {badgeValue > 99 ? '99+' : badgeValue}
+                </span>
+              )}
             </Link>
           )
         })}
       </nav>
 
       {/* Footer — kullanıcı bilgisi + çıkış */}
-      <div className="px-3 py-4 border-t space-y-2" style={{ borderColor: 'var(--color-admin-border)' }}>
-        {/* Kullanıcı bilgisi */}
-        <div
-          className="px-3 py-2.5 rounded-lg space-y-0.5"
-          style={{ backgroundColor: 'var(--color-admin-bg)' }}
-        >
-          <p className="text-xs text-[#E8E8F0] truncate leading-tight">{userEmail}</p>
-          <span
-            className="text-xs font-semibold"
-            style={{ color: ROLE_COLORS[userRole] ?? '#9CA3AF' }}
-          >
+      <div className="px-3 py-4 space-y-2">
+        <div className="px-3.5 py-3 rounded-lg space-y-0.5 bg-sidebar-accent">
+          <p className="text-xs text-sidebar-foreground truncate leading-tight">{userEmail}</p>
+          <span className="text-[11px] font-semibold text-sidebar-foreground/60">
             {ROLE_LABELS[userRole] ?? role}
           </span>
         </div>
 
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm w-full transition-colors hover:bg-red-900/20"
-          style={{ color: 'var(--color-admin-muted)' }}
+          className="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm w-full transition-colors text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
         >
           <LogOut size={16} />
           Çıkış Yap
@@ -148,49 +148,26 @@ export default function SidebarNav({ role, userEmail }: Props) {
   return (
     <>
       {/* ── Mobil üst bar ── */}
-      <div
-        className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 h-14 border-b"
-        style={{ backgroundColor: 'var(--color-admin-sidebar)', borderColor: 'var(--color-admin-border)' }}
-      >
-        <p className="font-bold text-sm tracking-wider" style={{ color: 'var(--color-accent)' }}>
-          ANOR AVENUE
-        </p>
+      <div className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center justify-between px-4 h-14 bg-sidebar text-sidebar-foreground">
+        <p className="font-semibold text-sm tracking-wide">Anor Avenue</p>
         <button
           onClick={() => setMobileOpen(true)}
           className="p-2 rounded-lg"
-          style={{ color: 'var(--color-admin-muted)' }}
           aria-label="Menü aç"
         >
           <Menu size={20} />
         </button>
       </div>
 
-      {/* ── Mobil overlay ── */}
-      {mobileOpen && (
-        <div
-          className="md:hidden fixed inset-0 z-40 bg-black/60"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
+      {/* ── Mobil drawer ── */}
+      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+        <SheetContent side="left" className="bg-sidebar text-sidebar-foreground border-sidebar-border p-0 w-64 flex flex-col gap-0 [&_[data-slot=sheet-close]]:text-sidebar-foreground [&_[data-slot=sheet-close]]:hover:bg-sidebar-accent [&_[data-slot=sheet-close]]:hover:text-sidebar-foreground">
+          {navContent}
+        </SheetContent>
+      </Sheet>
 
-      {/* ── Mobil drawer / Desktop sidebar ── */}
-      <aside
-        className={`fixed md:relative inset-y-0 left-0 z-50 md:z-auto w-64 md:w-56 flex flex-col border-r min-h-screen shrink-0 transition-transform duration-200 ${mobileOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}
-        style={{
-          backgroundColor: 'var(--color-admin-sidebar)',
-          borderColor: 'var(--color-admin-border)',
-        }}
-      >
-        {/* Mobilde kapat butonu */}
-        <button
-          onClick={() => setMobileOpen(false)}
-          className="md:hidden absolute top-3 right-3 p-2 rounded-lg"
-          style={{ color: 'var(--color-admin-muted)' }}
-          aria-label="Menü kapat"
-        >
-          <X size={18} />
-        </button>
-
+      {/* ── Desktop sidebar ── */}
+      <aside className="hidden md:flex md:sticky md:top-4 w-64 flex-col shrink-0 self-start md:m-4 md:rounded-2xl md:h-[calc(100vh-2rem)] bg-sidebar text-sidebar-foreground">
         {navContent}
       </aside>
     </>

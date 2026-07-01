@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { deletePaymentAction } from './actions'
+import { dash } from '@/lib/dashboardTheme'
 
 export default function DeletePaymentButton({
   paymentId,
@@ -27,7 +28,7 @@ export default function DeletePaymentButton({
       onClick={handleDelete}
       disabled={pending}
       className="text-xs px-2 py-1 rounded-lg border transition-opacity hover:opacity-80 disabled:opacity-40"
-      style={{ color: '#FCA5A5', borderColor: '#450A0A' }}
+      style={{ color: dash.red, borderColor: dash.redLight }}
     >
       {pending ? '…' : 'Sil'}
     </button>

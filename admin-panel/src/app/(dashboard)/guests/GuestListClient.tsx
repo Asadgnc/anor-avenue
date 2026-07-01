@@ -38,7 +38,7 @@ export default function GuestListClient({ guests }: Props) {
         style={{
           backgroundColor: 'var(--color-admin-card)',
           border: '1px solid var(--color-admin-border)',
-          color: '#E8E8F0',
+          color: '#15112B',
         }}
       />
 
@@ -53,7 +53,7 @@ export default function GuestListClient({ guests }: Props) {
         style={{
           backgroundColor: 'var(--color-admin-card)',
           borderRadius: '0.75rem',
-          border: '1px solid var(--color-admin-border)',
+          boxShadow: 'var(--shadow-card)',
           overflow: 'hidden',
         }}
       >
@@ -86,9 +86,9 @@ export default function GuestListClient({ guests }: Props) {
                   <tr
                     key={g.id}
                     style={{ borderBottom: '1px solid var(--color-admin-border)' }}
-                    className="hover:bg-white/5 transition-colors"
+                    className="hover:bg-black/[0.03] transition-colors"
                   >
-                    <td className="px-5 py-3 font-medium text-[#E8E8F0]">
+                    <td className="px-5 py-3 font-medium text-[#15112B]">
                       {g.first_name} {g.last_name}
                     </td>
                     <td className="px-5 py-3" style={{ color: 'var(--color-admin-muted)' }}>

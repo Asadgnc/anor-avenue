@@ -1,5 +1,7 @@
 // Saf SVG bar chart bileşeni — harici kütüphane yok, Server Component uyumlu
 
+import { dash } from '@/lib/dashboardTheme'
+
 interface DayMetric {
   date: string
   occupancy: number
@@ -119,7 +121,7 @@ export default function MetricCharts({ data }: MetricChartsProps) {
       <ChartCard
         title="Doluluk"
         subtitle={`Ort. ${avgOccupancy.toFixed(1)}% / Bugün ${last.occupancy.toFixed(1)}%`}
-        color="#93C5FD"
+        color={dash.blue}
         data={data}
         getValue={(d) => d.occupancy}
         maxValue={maxOccupancy}
@@ -139,7 +141,7 @@ export default function MetricCharts({ data }: MetricChartsProps) {
       <ChartCard
         title="RevPAR"
         subtitle={`Ort. ${formatUZS(avgRevpar)} K UZS`}
-        color="#86EFAC"
+        color={dash.green}
         data={data}
         getValue={(d) => d.revpar}
         maxValue={maxRevpar}

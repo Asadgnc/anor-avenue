@@ -4,6 +4,7 @@ import { useTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateReservationStatusAction } from './actions'
 import type { ReservationStatus } from '@/types/hotel'
+import { dash } from '@/lib/dashboardTheme'
 
 interface Props {
   reservationId: string
@@ -25,19 +26,19 @@ function getButtons(status: ReservationStatus, checkIn: string): ActionButton[] 
   switch (status) {
     case 'pending':
       return [
-        { label: 'Onayla', newStatus: 'confirmed', color: '#2563EB', confirm: 'Rezervasyon onaylanacak. Devam edilsin mi?' },
-        ...(isPastCheckIn ? [{ label: 'Gelmedi (No-show)', newStatus: 'no_show' as ReservationStatus, color: '#7C3AED', confirm: 'Misafir gelmedi olarak işaretlenecek. Devam edilsin mi?' }] : []),
-        { label: 'İptal Et', newStatus: 'cancelled', color: '#C62828', confirm: 'Rezervasyon iptal edilecek. Bu işlem geri alınamaz. Devam edilsin mi?' },
+        { label: 'Onayla', newStatus: 'confirmed', color: dash.blue, confirm: 'Rezervasyon onaylanacak. Devam edilsin mi?' },
+        ...(isPastCheckIn ? [{ label: 'Gelmedi (No-show)', newStatus: 'no_show' as ReservationStatus, color: dash.primary, confirm: 'Misafir gelmedi olarak işaretlenecek. Devam edilsin mi?' }] : []),
+        { label: 'İptal Et', newStatus: 'cancelled', color: dash.red, confirm: 'Rezervasyon iptal edilecek. Bu işlem geri alınamaz. Devam edilsin mi?' },
       ]
     case 'confirmed':
       return [
-        { label: 'Check-in Yap', newStatus: 'checked_in', color: '#16A34A', confirm: 'Check-in yapılacak. Devam edilsin mi?' },
-        ...(isPastCheckIn ? [{ label: 'Gelmedi (No-show)', newStatus: 'no_show' as ReservationStatus, color: '#7C3AED', confirm: 'Misafir gelmedi olarak işaretlenecek. Devam edilsin mi?' }] : []),
-        { label: 'İptal Et', newStatus: 'cancelled', color: '#C62828', confirm: 'Rezervasyon iptal edilecek. Bu işlem geri alınamaz. Devam edilsin mi?' },
+        { label: 'Check-in Yap', newStatus: 'checked_in', color: dash.green, confirm: 'Check-in yapılacak. Devam edilsin mi?' },
+        ...(isPastCheckIn ? [{ label: 'Gelmedi (No-show)', newStatus: 'no_show' as ReservationStatus, color: dash.primary, confirm: 'Misafir gelmedi olarak işaretlenecek. Devam edilsin mi?' }] : []),
+        { label: 'İptal Et', newStatus: 'cancelled', color: dash.red, confirm: 'Rezervasyon iptal edilecek. Bu işlem geri alınamaz. Devam edilsin mi?' },
       ]
     case 'checked_in':
       return [
-        { label: 'Check-out Yap', newStatus: 'checked_out', color: '#D97706', confirm: 'Check-out yapılacak. Devam edilsin mi?' },
+        { label: 'Check-out Yap', newStatus: 'checked_out', color: dash.orange, confirm: 'Check-out yapılacak. Devam edilsin mi?' },
       ]
     default:
       return []
@@ -65,8 +66,8 @@ export default function ReservationActions({ reservationId, status, checkIn }: P
 
   return (
     <div
-      className="rounded-xl border p-4 flex flex-wrap gap-3"
-      style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}
+      className="rounded-2xl p-4 flex flex-wrap gap-3"
+      style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
     >
       <p className="w-full text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: 'var(--color-admin-muted)' }}>
         İşlemler

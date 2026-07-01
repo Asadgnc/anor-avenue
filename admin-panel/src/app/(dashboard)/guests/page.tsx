@@ -22,7 +22,7 @@ export default async function GuestsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-[#E8E8F0]">Misafirler</h1>
+          <h1 className="text-2xl font-semibold text-[#15112B]">Misafirler</h1>
           <p className="mt-1 text-sm" style={{ color: 'var(--color-admin-muted)' }}>
             {rows.length} kayıt
           </p>
@@ -30,7 +30,7 @@ export default async function GuestsPage() {
         <Link
           href="/guests/new"
           className="px-4 py-2 rounded-lg text-sm font-semibold transition-opacity hover:opacity-90"
-          style={{ backgroundColor: 'var(--color-accent)', color: '#0F0F1A' }}
+          style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
         >
           + Yeni Misafir
         </Link>

@@ -4,6 +4,7 @@ import { useActionState, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createReservationAction, type ReservationFormState } from '@/app/(dashboard)/reservations/new/actions'
 import type { Room } from '@/types/hotel'
+import { dash } from '@/lib/dashboardTheme'
 
 // ─── Sabitler ─────────────────────────────────────────────────────────────────
 
@@ -71,7 +72,7 @@ function Input(props: React.InputHTMLAttributes<HTMLInputElement> & { hasError?:
       className="w-full px-3 py-2 rounded-lg text-sm border outline-none transition-colors focus:ring-1"
       style={{
         backgroundColor: 'var(--color-admin-bg)',
-        color: '#E8E8F0',
+        color: dash.text,
         borderColor: hasError ? '#EF4444' : 'var(--color-admin-border)',
       }}
     />
@@ -86,7 +87,7 @@ function Select(props: React.SelectHTMLAttributes<HTMLSelectElement> & { hasErro
       className="w-full px-3 py-2 rounded-lg text-sm border outline-none appearance-none"
       style={{
         backgroundColor: 'var(--color-admin-bg)',
-        color: '#E8E8F0',
+        color: dash.text,
         borderColor: hasError ? '#EF4444' : 'var(--color-admin-border)',
       }}
     >
@@ -150,7 +151,7 @@ export default function NewReservationForm({ rooms }: Props) {
       {state.error && (
         <div
           className="px-4 py-3 rounded-lg text-sm border"
-          style={{ backgroundColor: '#450A0A', borderColor: '#991B1B', color: '#FCA5A5' }}
+          style={{ backgroundColor: dash.redLight, borderColor: dash.red, color: dash.red }}
         >
           {state.error}
         </div>
@@ -158,8 +159,8 @@ export default function NewReservationForm({ rooms }: Props) {
 
       {/* ── Misafir Bilgileri ────────────────────────────────────────────── */}
       <div
-        className="rounded-xl border p-5 space-y-4"
-        style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}
+        className="rounded-2xl p-5 space-y-4"
+        style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
       >
         <SectionTitle>Misafir Bilgileri</SectionTitle>
 
@@ -193,8 +194,8 @@ export default function NewReservationForm({ rooms }: Props) {
 
       {/* ── Rezervasyon Detayları ─────────────────────────────────────────── */}
       <div
-        className="rounded-xl border p-5 space-y-4"
-        style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}
+        className="rounded-2xl p-5 space-y-4"
+        style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
       >
         <SectionTitle>Rezervasyon Detayları</SectionTitle>
 
@@ -268,7 +269,7 @@ export default function NewReservationForm({ rooms }: Props) {
             className="w-full px-3 py-2 rounded-lg text-sm border outline-none resize-none"
             style={{
               backgroundColor: 'var(--color-admin-bg)',
-              color: '#E8E8F0',
+              color: dash.text,
               borderColor: 'var(--color-admin-border)',
             }}
           />
@@ -278,13 +279,13 @@ export default function NewReservationForm({ rooms }: Props) {
         {nights > 0 && pricePerNight > 0 && (
           <div
             className="rounded-lg p-3 border text-sm space-y-1"
-            style={{ backgroundColor: '#1E1E3A', borderColor: 'var(--color-admin-border)' }}
+            style={{ backgroundColor: dash.primaryLight, borderColor: 'var(--color-admin-border)' }}
           >
             <div className="flex justify-between">
               <span style={{ color: 'var(--color-admin-muted)' }}>
                 {formatUZS(pricePerNight)} × {nights} gece
               </span>
-              <span className="text-[#E8E8F0]">{formatUZS(totalAmount)} UZS</span>
+              <span style={{ color: dash.text }}>{formatUZS(totalAmount)} UZS</span>
             </div>
           </div>
         )}
@@ -292,8 +293,8 @@ export default function NewReservationForm({ rooms }: Props) {
 
       {/* ── Ön Ödeme (opsiyonel) ─────────────────────────────────────────── */}
       <div
-        className="rounded-xl border p-5 space-y-4"
-        style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}
+        className="rounded-2xl p-5 space-y-4"
+        style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
       >
         <div className="flex items-center justify-between">
           <SectionTitle>Ön Ödeme</SectionTitle>
@@ -345,7 +346,7 @@ export default function NewReservationForm({ rooms }: Props) {
           type="submit"
           disabled={pending || !!state.reservationId}
           className="px-6 py-2.5 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-50"
-          style={{ backgroundColor: 'var(--color-accent)', color: '#0F0F1A' }}
+          style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
         >
           {pending ? 'Kaydediliyor…' : state.reservationId ? 'Yönlendiriliyor…' : 'Rezervasyon Oluştur'}
         </button>

@@ -10,22 +10,23 @@ import {
   type RoomFormState,
 } from '@/app/(dashboard)/rooms/actions'
 import type { Room, RoomType } from '@/types/hotel'
+import { dash } from '@/lib/dashboardTheme'
 
 // ─── Sabitler ─────────────────────────────────────────────────────────────────
 
 const ROOM_STATUSES = [
-  { value: 'available',   label: 'Müsait',      color: '#86EFAC' },
-  { value: 'occupied',    label: 'Dolu',         color: '#FCA5A5' },
-  { value: 'cleaning',    label: 'Temizlikte',   color: '#FCD34D' },
-  { value: 'maintenance', label: 'Bakımda',      color: '#C4B5FD' },
-  { value: 'blocked',     label: 'Bloke',        color: '#9CA3AF' },
+  { value: 'available',   label: 'Müsait',      color: dash.green,  bg: dash.greenLight },
+  { value: 'occupied',    label: 'Dolu',         color: dash.red,    bg: dash.redLight },
+  { value: 'cleaning',    label: 'Temizlikte',   color: dash.orange, bg: dash.orangeLight },
+  { value: 'maintenance', label: 'Bakımda',      color: dash.blue,   bg: dash.blueLight },
+  { value: 'blocked',     label: 'Bloke',        color: dash.muted,  bg: dash.border },
 ] as const
 
 const CLEANING_STATUSES = [
-  { value: 'clean',       label: 'Temiz',        color: '#86EFAC' },
-  { value: 'dirty',       label: 'Kirli',        color: '#FCA5A5' },
-  { value: 'in_progress', label: 'Temizleniyor', color: '#FCD34D' },
-  { value: 'inspected',   label: 'Denetlendi',   color: '#C9A96E' },
+  { value: 'clean',       label: 'Temiz',        color: dash.green,   bg: dash.greenLight },
+  { value: 'dirty',       label: 'Kirli',        color: dash.red,     bg: dash.redLight },
+  { value: 'in_progress', label: 'Temizleniyor', color: dash.orange,  bg: dash.orangeLight },
+  { value: 'inspected',   label: 'Denetlendi',   color: dash.primary, bg: dash.primaryLight },
 ] as const
 
 const FLOOR_LABEL: Record<number, string> = {
@@ -45,7 +46,7 @@ const FLOOR_OPTIONS = [
 const inputCls = 'px-2 py-1.5 rounded-lg text-xs border outline-none w-full'
 const inputStyle = {
   backgroundColor: 'var(--color-admin-bg)',
-  color: '#E8E8F0',
+  color: dash.text,
   borderColor: 'var(--color-admin-border)',
 }
 
@@ -57,7 +58,7 @@ function StatusPill({
   onSelect,
 }: {
   value: string
-  options: readonly { value: string; label: string; color: string }[]
+  options: readonly { value: string; label: string; color: string; bg: string }[]
   onSelect: (v: string) => void
 }) {
   const [open, setOpen] = useState(false)
@@ -69,7 +70,7 @@ function StatusPill({
         type="button"
         onClick={() => setOpen((v) => !v)}
         className="px-2 py-0.5 rounded text-xs font-medium"
-        style={{ color: current?.color ?? '#9CA3AF', backgroundColor: '#1E1E3A' }}
+        style={{ color: current?.color ?? dash.muted, backgroundColor: current?.bg ?? dash.border }}
       >
         {current?.label ?? value} ▾
       </button>
@@ -120,20 +121,20 @@ function AddRoomForm({ roomTypes }: { roomTypes: RoomType[] }) {
     <form
       ref={formRef}
       action={action}
-      className="rounded-xl border p-5 space-y-4"
-      style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}
+      className="rounded-2xl p-5 space-y-4"
+      style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
     >
       <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-accent)' }}>
         Yeni Oda Ekle
       </h2>
 
       {state.error && (
-        <p className="text-xs px-3 py-2 rounded-lg" style={{ backgroundColor: '#450A0A', color: '#FCA5A5' }}>
+        <p className="text-xs px-3 py-2 rounded-lg" style={{ backgroundColor: dash.redLight, color: dash.red }}>
           {state.error}
         </p>
       )}
       {added && !state.error && (
-        <p className="text-xs px-3 py-2 rounded-lg" style={{ backgroundColor: '#14532D', color: '#86EFAC' }}>
+        <p className="text-xs px-3 py-2 rounded-lg" style={{ backgroundColor: dash.greenLight, color: dash.green }}>
           Oda eklendi ✓
         </p>
       )}
@@ -141,25 +142,25 @@ function AddRoomForm({ roomTypes }: { roomTypes: RoomType[] }) {
       <div className="grid grid-cols-3 gap-3">
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-medium" style={{ color: 'var(--color-admin-muted)' }}>
-            Oda No <span style={{ color: '#C62828' }}>*</span>
+            Oda No <span style={{ color: dash.red }}>*</span>
           </label>
           <input
             name="roomNumber"
             placeholder="101"
             className="px-3 py-2 rounded-lg text-sm border outline-none"
-            style={{ backgroundColor: 'var(--color-admin-bg)', color: '#E8E8F0', borderColor: 'var(--color-admin-border)' }}
+            style={{ backgroundColor: 'var(--color-admin-bg)', color: dash.text, borderColor: 'var(--color-admin-border)' }}
           />
         </div>
 
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-medium" style={{ color: 'var(--color-admin-muted)' }}>
-            Kat <span style={{ color: '#C62828' }}>*</span>
+            Kat <span style={{ color: dash.red }}>*</span>
           </label>
           <select
             name="floor"
             defaultValue={2}
             className="px-3 py-2 rounded-lg text-sm border outline-none appearance-none"
-            style={{ backgroundColor: 'var(--color-admin-bg)', color: '#E8E8F0', borderColor: 'var(--color-admin-border)' }}
+            style={{ backgroundColor: 'var(--color-admin-bg)', color: dash.text, borderColor: 'var(--color-admin-border)' }}
           >
             {FLOOR_OPTIONS.map(({ value, label }) => (
               <option key={value} value={value}>{label}</option>
@@ -169,12 +170,12 @@ function AddRoomForm({ roomTypes }: { roomTypes: RoomType[] }) {
 
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-medium" style={{ color: 'var(--color-admin-muted)' }}>
-            Oda Tipi <span style={{ color: '#C62828' }}>*</span>
+            Oda Tipi <span style={{ color: dash.red }}>*</span>
           </label>
           <select
             name="roomTypeId"
             className="px-3 py-2 rounded-lg text-sm border outline-none appearance-none"
-            style={{ backgroundColor: 'var(--color-admin-bg)', color: '#E8E8F0', borderColor: 'var(--color-admin-border)' }}
+            style={{ backgroundColor: 'var(--color-admin-bg)', color: dash.text, borderColor: 'var(--color-admin-border)' }}
           >
             <option value="">— Seçin —</option>
             {roomTypes.map((rt) => (
@@ -188,7 +189,7 @@ function AddRoomForm({ roomTypes }: { roomTypes: RoomType[] }) {
         type="submit"
         disabled={pending}
         className="px-4 py-2 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-50"
-        style={{ backgroundColor: 'var(--color-accent)', color: '#0F0F1A' }}
+        style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
       >
         {pending ? 'Ekleniyor…' : '+ Oda Ekle'}
       </button>
@@ -227,11 +228,11 @@ function EditRoomRow({
   }
 
   return (
-    <tr style={{ backgroundColor: '#16213E', borderBottom: '1px solid var(--color-admin-border)' }}>
+    <tr style={{ backgroundColor: dash.bg, borderBottom: '1px solid var(--color-admin-border)' }}>
       <td colSpan={6} className="px-4 py-3">
         <form onSubmit={handleSubmit}>
           {error && (
-            <p className="mb-2 text-xs px-2 py-1 rounded" style={{ backgroundColor: '#450A0A', color: '#FCA5A5' }}>
+            <p className="mb-2 text-xs px-2 py-1 rounded" style={{ backgroundColor: dash.redLight, color: dash.red }}>
               {error}
             </p>
           )}
@@ -273,7 +274,7 @@ function EditRoomRow({
               type="submit"
               disabled={saving}
               className="px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50"
-              style={{ backgroundColor: 'var(--color-accent)', color: '#0F0F1A' }}
+              style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
             >
               {saving ? 'Kaydediliyor…' : 'Kaydet'}
             </button>
@@ -330,10 +331,10 @@ export default function RoomsManager({ rooms, roomTypes }: Props) {
 
       {rooms.length === 0 ? (
         <div
-          className="rounded-xl border p-12 text-center"
-          style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}
+          className="rounded-2xl p-12 text-center"
+          style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
         >
-          <p className="text-[#E8E8F0]">Henüz oda yok.</p>
+          <p className="text-[#15112B]">Henüz oda yok.</p>
           <p className="text-sm mt-1" style={{ color: 'var(--color-admin-muted)' }}>Yukarıdan oda ekleyin.</p>
         </div>
       ) : (
@@ -348,13 +349,13 @@ export default function RoomsManager({ rooms, roomTypes }: Props) {
                 {FLOOR_LABEL[Number(floor)] ?? `${floor}. Kat`}
               </p>
               <div
-                className="rounded-xl border overflow-hidden"
-                style={{ borderColor: 'var(--color-admin-border)' }}
+                className="rounded-2xl overflow-hidden"
+                style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
               >
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm border-collapse" style={{ minWidth: '600px' }}>
                     <thead>
-                      <tr style={{ backgroundColor: '#16213E' }}>
+                      <tr style={{ backgroundColor: dash.bg }}>
                         {['Oda No', 'Tip', 'Oda Durumu', 'Temizlik', 'Fiyat/Gece', ''].map((h) => (
                           <th
                             key={h}
@@ -372,7 +373,7 @@ export default function RoomsManager({ rooms, roomTypes }: Props) {
                           <tr
                             style={{ backgroundColor: 'var(--color-admin-card)', borderBottom: '1px solid var(--color-admin-border)' }}
                           >
-                            <td className="px-4 py-3 font-semibold text-[#E8E8F0]">{room.room_number}</td>
+                            <td className="px-4 py-3 font-semibold text-[#15112B]">{room.room_number}</td>
                             <td className="px-4 py-3" style={{ color: 'var(--color-admin-muted)' }}>
                               {room.room_types?.name ?? '—'}
                             </td>

@@ -22,7 +22,7 @@ interface GuestDetail {
 const inputCls = 'w-full px-3 py-2 rounded-lg text-sm border outline-none'
 const inputStyle = {
   backgroundColor: 'var(--color-admin-bg)',
-  color: '#E8E8F0',
+  color: '#15112B',
   borderColor: 'var(--color-admin-border)',
 }
 
@@ -49,7 +49,7 @@ function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between gap-4 py-2.5 text-sm" style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
       <span style={{ color: 'var(--color-admin-muted)' }}>{label}</span>
-      <span className="text-[#E8E8F0] text-right">{value || '—'}</span>
+      <span className="text-[#15112B] text-right">{value || '—'}</span>
     </div>
   )
 }
@@ -75,7 +75,7 @@ export default function EditGuestFormClient({ guest }: { guest: GuestDetail }) {
   }
 
   return (
-    <div className="rounded-xl border" style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}>
+    <div className="rounded-2xl" style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}>
       {/* Başlık */}
       <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
         <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-admin-muted)' }}>
@@ -112,7 +112,7 @@ export default function EditGuestFormClient({ guest }: { guest: GuestDetail }) {
       {editing && (
         <form onSubmit={handleSubmit} className="px-5 py-4">
           {error && (
-            <p className="mb-4 text-xs px-3 py-2 rounded-lg" style={{ backgroundColor: '#450A0A', color: '#FCA5A5' }}>
+            <p className="mb-4 text-xs px-3 py-2 rounded-lg" style={{ backgroundColor: '#FDEAEA', color: '#EF4444' }}>
               {error}
             </p>
           )}
@@ -135,7 +135,7 @@ export default function EditGuestFormClient({ guest }: { guest: GuestDetail }) {
               type="submit"
               disabled={saving}
               className="px-4 py-2 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-50"
-              style={{ backgroundColor: 'var(--color-accent)', color: '#0F0F1A' }}
+              style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
             >
               {saving ? 'Kaydediliyor…' : 'Kaydet'}
             </button>

@@ -15,7 +15,7 @@ export default function NewGuestFormClient() {
     }
   }, [state.guestId, router])
 
-  const inputClass = 'w-full px-3 py-2 rounded-lg text-sm text-[#E8E8F0] focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]'
+  const inputClass = 'w-full px-3 py-2 rounded-lg text-sm text-[#15112B] focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]'
   const inputStyle = { backgroundColor: 'var(--color-admin-bg)', border: '1px solid var(--color-admin-border)' }
   const labelStyle: React.CSSProperties = {
     color: 'var(--color-admin-muted)',
@@ -44,7 +44,7 @@ export default function NewGuestFormClient() {
           style={{ ...inputStyle, borderColor: hasError ? '#EF4444' : 'var(--color-admin-border)' }}
         />
         {hasError && (
-          <p className="text-xs mt-0.5" style={{ color: '#FCA5A5' }}>
+          <p className="text-xs mt-0.5" style={{ color: '#EF4444' }}>
             {state.fieldErrors![name]}
           </p>
         )}
@@ -98,7 +98,7 @@ export default function NewGuestFormClient() {
       {state.error && (
         <div
           className="text-sm px-3 py-2.5 rounded-lg"
-          style={{ backgroundColor: '#450A0A', color: '#FCA5A5', border: '1px solid #991B1B' }}
+          style={{ backgroundColor: '#FDEAEA', color: '#EF4444', border: '1px solid #EF4444' }}
         >
           ⚠ {state.error}
         </div>
@@ -108,7 +108,7 @@ export default function NewGuestFormClient() {
         type="submit"
         disabled={isPending || !!state.guestId}
         className="py-2.5 rounded-lg text-sm font-semibold transition-opacity hover:opacity-80 disabled:opacity-50"
-        style={{ backgroundColor: 'var(--color-accent)', color: '#0F0F1A' }}
+        style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
       >
         {isPending ? 'Kaydediliyor…' : state.guestId ? 'Yönlendiriliyor…' : 'Misafiri Kaydet'}
       </button>

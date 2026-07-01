@@ -3,6 +3,7 @@
 import { useTransition } from 'react'
 import { updateCleaningStatus } from '@/app/(dashboard)/housekeeping/actions'
 import type { Room, CleaningStatus } from '@/types/hotel'
+import { dash } from '@/lib/dashboardTheme'
 
 interface Task {
   id: string
@@ -20,10 +21,10 @@ interface Props {
 }
 
 const STATUS_CONFIG: Record<CleaningStatus, { label: string; color: string; bg: string }> = {
-  clean:       { label: 'Temiz',        color: '#2D6A4F', bg: 'rgba(45,106,79,0.12)'  },
-  dirty:       { label: 'Kirli',        color: '#C62828', bg: 'rgba(198,40,40,0.12)'  },
-  in_progress: { label: 'Temizleniyor', color: '#D4A017', bg: 'rgba(212,160,23,0.12)' },
-  inspected:   { label: 'Denetlendi',   color: '#C9A96E', bg: 'rgba(201,169,110,0.12)'},
+  clean:       { label: 'Temiz',        color: dash.green,  bg: dash.greenLight  },
+  dirty:       { label: 'Kirli',        color: dash.red,    bg: dash.redLight    },
+  in_progress: { label: 'Temizleniyor', color: dash.orange, bg: dash.orangeLight },
+  inspected:   { label: 'Denetlendi',   color: dash.primary, bg: dash.primaryLight },
 }
 
 const NEXT_STATUS: Record<CleaningStatus, CleaningStatus> = {
@@ -84,14 +85,14 @@ export default function HousekeepingBoard({ rooms, tasks }: Props) {
                     key={room.id}
                     style={{
                       backgroundColor: 'var(--color-admin-card)',
-                      border: `1px solid var(--color-admin-border)`,
+                      boxShadow: 'var(--shadow-card)',
                       borderRadius: '0.75rem',
                       padding: '1rem',
                     }}
                   >
                     {/* Room header */}
                     <div className="flex items-center justify-between mb-3">
-                      <span className="font-bold text-[#E8E8F0] text-lg">#{room.room_number}</span>
+                      <span className="font-bold text-lg" style={{ color: dash.text }}>#{room.room_number}</span>
                       <span
                         style={{
                           backgroundColor: cfg.bg,

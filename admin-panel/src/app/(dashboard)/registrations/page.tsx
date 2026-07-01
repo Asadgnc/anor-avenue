@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import RegistrationStatusButtons from './RegistrationStatusButtons'
+import { dash } from '@/lib/dashboardTheme'
 
 interface RegistrationRow {
   id: string
@@ -26,9 +27,9 @@ interface RegistrationRow {
 }
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  pending:   { label: 'Bekliyor',  color: '#D4A017', bg: '#451A03' },
-  submitted: { label: 'Gönderildi', color: '#93C5FD', bg: '#1E3A5F' },
-  confirmed: { label: 'Onaylandı', color: '#86EFAC', bg: '#14532D' },
+  pending:   { label: 'Bekliyor',   color: dash.orange, bg: dash.orangeLight },
+  submitted: { label: 'Gönderildi', color: dash.blue,   bg: dash.blueLight },
+  confirmed: { label: 'Onaylandı',  color: dash.green,  bg: dash.greenLight },
 }
 
 function formatDate(d: string) {
@@ -73,7 +74,7 @@ export default async function RegistrationsPage({
       {/* Başlık */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-[#E8E8F0]">Misafir Kayıt (Registratsiya)</h1>
+          <h1 className="text-2xl font-semibold text-[#15112B]">Misafir Kayıt (Registratsiya)</h1>
           <p className="mt-1 text-sm" style={{ color: 'var(--color-admin-muted)' }}>
             Yabancı misafir bildirimi — Özbekistan yasal zorunluluğu
           </p>
@@ -92,7 +93,7 @@ export default async function RegistrationsPage({
               className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
               style={{
                 backgroundColor: active ? 'var(--color-accent)' : 'var(--color-admin-card)',
-                color: active ? '#0F0F1A' : 'var(--color-admin-muted)',
+                color: active ? '#FFFFFF' : 'var(--color-admin-muted)',
                 border: '1px solid var(--color-admin-border)',
               }}
             >
@@ -110,11 +111,11 @@ export default async function RegistrationsPage({
 
       {/* Tablo */}
       <div
-        className="rounded-xl border overflow-hidden"
-        style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}
+        className="rounded-2xl overflow-hidden"
+        style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
       >
         {error ? (
-          <p className="px-5 py-4 text-sm" style={{ color: '#FCA5A5' }}>
+          <p className="px-5 py-4 text-sm" style={{ color: dash.red }}>
             Kayıtlar yüklenemedi: {error.message}
           </p>
         ) : rows.length === 0 ? (
@@ -151,7 +152,7 @@ export default async function RegistrationsPage({
                         <Link
                           href={`/guests/${row.guests?.id}`}
                           className="font-medium hover:opacity-80 transition-opacity"
-                          style={{ color: '#E8E8F0' }}
+                          style={{ color: dash.text }}
                         >
                           {row.guests?.first_name} {row.guests?.last_name}
                         </Link>
@@ -212,12 +213,12 @@ export default async function RegistrationsPage({
 
       {/* Bilgi notu */}
       <div
-        className="rounded-lg px-4 py-3 text-xs"
-        style={{ backgroundColor: 'var(--color-admin-card)', border: '1px solid var(--color-admin-border)', color: 'var(--color-admin-muted)' }}
+        className="rounded-2xl px-4 py-3 text-xs"
+        style={{ backgroundColor: dash.zoneBlue, color: 'var(--color-admin-muted)' }}
       >
-        <strong style={{ color: '#E8E8F0' }}>Registratsiya nedir?</strong>{' '}
+        <strong style={{ color: dash.text }}>Registratsiya nedir?</strong>{' '}
         Özbekistan'da yabancı uyruklu misafirlerin otel girişinden itibaren 3 gün içinde Göç İdaresi (OVIR) sistemine bildirilmesi yasal zorunluluktur.
-        Kayıt durumunu <strong style={{ color: '#E8E8F0' }}>Bekliyor → Gönderildi → Onaylandı</strong> olarak takip edin.
+        Kayıt durumunu <strong style={{ color: dash.text }}>Bekliyor → Gönderildi → Onaylandı</strong> olarak takip edin.
       </div>
     </div>
   )

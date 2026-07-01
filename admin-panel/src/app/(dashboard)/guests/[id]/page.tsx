@@ -39,13 +39,13 @@ const STATUS_LABELS: Record<ReservationStatus, string> = {
   no_show: 'Gelmedi',
 }
 
-const STATUS_COLORS: Record<ReservationStatus, string> = {
-  pending: '#D4A017',
-  confirmed: '#93C5FD',
-  checked_in: '#86EFAC',
-  checked_out: '#9CA3AF',
-  cancelled: '#6B7280',
-  no_show: '#FCA5A5',
+const STATUS_COLORS: Record<ReservationStatus, { color: string; bg: string }> = {
+  pending: { color: '#F59E0B', bg: '#FEF3E2' },
+  confirmed: { color: '#3B82F6', bg: '#E8EFFE' },
+  checked_in: { color: '#22C55E', bg: '#E7F9EE' },
+  checked_out: { color: '#8A8AA3', bg: '#ECEEF5' },
+  cancelled: { color: '#8A8AA3', bg: '#ECEEF5' },
+  no_show: { color: '#EF4444', bg: '#FDEAEA' },
 }
 
 function formatUZS(n: number) {
@@ -87,12 +87,12 @@ export default async function GuestDetailPage({ params }: { params: Promise<{ id
         <Link
           href="/guests"
           className="text-sm px-3 py-1.5 rounded-lg transition-opacity hover:opacity-70"
-          style={{ color: 'var(--color-admin-muted)', backgroundColor: 'var(--color-admin-card)', border: '1px solid var(--color-admin-border)' }}
+          style={{ color: 'var(--color-admin-muted)', backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
         >
           ← Misafirler
         </Link>
         <div>
-          <h1 className="text-2xl font-semibold text-[#E8E8F0]">
+          <h1 className="text-2xl font-semibold text-[#15112B]">
             {guest.first_name} {guest.last_name}
           </h1>
           <p className="text-xs mt-0.5" style={{ color: 'var(--color-admin-muted)' }}>
@@ -105,7 +105,7 @@ export default async function GuestDetailPage({ params }: { params: Promise<{ id
       <EditGuestFormClient guest={guest} />
 
       {/* Rezervasyonlar */}
-      <div className="rounded-xl border" style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}>
+      <div className="rounded-2xl" style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}>
         <p className="px-5 py-3 text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-admin-muted)', borderBottom: '1px solid var(--color-admin-border)' }}>
           Rezervasyonlar ({reservations.length})
         </p>
@@ -118,10 +118,10 @@ export default async function GuestDetailPage({ params }: { params: Promise<{ id
               <Link
                 key={r.id}
                 href={`/reservations/${r.id}`}
-                className="flex items-center justify-between px-5 py-3 hover:bg-white/5 transition-colors"
+                className="flex items-center justify-between px-5 py-3 hover:bg-black/[0.03] transition-colors"
               >
                 <div>
-                  <p className="text-sm font-mono text-[#E8E8F0]">{r.reservation_code}</p>
+                  <p className="text-sm font-mono text-[#15112B]">{r.reservation_code}</p>
                   <p className="text-xs mt-0.5" style={{ color: 'var(--color-admin-muted)' }}>
                     {r.check_in} → {r.check_out} · {r.rooms?.room_number ?? '—'} {r.rooms?.room_types?.name ?? ''}
                   </p>
@@ -129,7 +129,7 @@ export default async function GuestDetailPage({ params }: { params: Promise<{ id
                 <div className="text-right">
                   <span
                     className="text-xs font-bold px-2 py-0.5 rounded-full"
-                    style={{ color: STATUS_COLORS[r.status], backgroundColor: `${STATUS_COLORS[r.status]}20` }}
+                    style={{ color: STATUS_COLORS[r.status].color, backgroundColor: STATUS_COLORS[r.status].bg }}
                   >
                     {STATUS_LABELS[r.status]}
                   </span>

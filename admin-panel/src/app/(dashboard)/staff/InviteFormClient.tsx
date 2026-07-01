@@ -17,8 +17,8 @@ export default function InviteFormClient() {
   const [state, action, pending] = useActionState<StaffState, FormData>(inviteStaffAction, init)
 
   const inputStyle = {
-    backgroundColor: 'var(--color-admin-bg)',
-    color: '#E8E8F0',
+    backgroundColor: 'var(--color-admin-card)',
+    color: '#15112B',
     borderColor: 'var(--color-admin-border)',
   }
 
@@ -49,7 +49,7 @@ export default function InviteFormClient() {
           className="px-3 py-2 rounded-lg text-sm border outline-none w-56"
           style={{
             ...inputStyle,
-            borderColor: state.error ? '#C62828' : 'var(--color-admin-border)',
+            borderColor: state.error ? '#EF4444' : 'var(--color-admin-border)',
           }}
         />
       </div>
@@ -72,12 +72,12 @@ export default function InviteFormClient() {
         type="submit"
         disabled={pending}
         className="px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-50 transition-opacity hover:opacity-80"
-        style={{ backgroundColor: 'var(--color-accent)', color: '#0F0F1A' }}
+        style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
       >
         {pending ? 'Gönderiliyor…' : state.success ? 'Davet gönderildi ✓' : 'Davet Gönder'}
       </button>
       {state.error && (
-        <span className="text-xs" style={{ color: '#FCA5A5' }}>{state.error}</span>
+        <span className="text-xs" style={{ color: '#EF4444' }}>{state.error}</span>
       )}
     </form>
   )

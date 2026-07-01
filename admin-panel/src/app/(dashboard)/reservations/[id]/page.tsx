@@ -8,6 +8,7 @@ import CreateRegistrationForm from './CreateRegistrationForm'
 import EditReservationFormClient from './EditReservationFormClient'
 import DeletePaymentButton from './DeletePaymentButton'
 import type { ReservationStatus, PaymentMethod, PaymentStatus } from '@/types/hotel'
+import { dash } from '@/lib/dashboardTheme'
 
 // ─── Tipler ───────────────────────────────────────────────────────────────────
 
@@ -55,12 +56,12 @@ interface PaymentRow {
 // ─── Yardımcı ────────────────────────────────────────────────────────────────
 
 const STATUS_CONFIG: Record<ReservationStatus, { label: string; color: string; bg: string }> = {
-  pending:     { label: 'Bekliyor',   color: '#D4A017', bg: '#451A03' },
-  confirmed:   { label: 'Onaylı',     color: '#93C5FD', bg: '#1E3A5F' },
-  checked_in:  { label: 'Girişte',    color: '#86EFAC', bg: '#14532D' },
-  checked_out: { label: 'Çıktı',      color: '#9CA3AF', bg: '#1F2937' },
-  cancelled:   { label: 'İptal',      color: '#6B7280', bg: '#1F2937' },
-  no_show:     { label: 'Gelmedi',    color: '#FCA5A5', bg: '#450A0A' },
+  pending:     { label: 'Bekliyor',   color: dash.orange, bg: dash.orangeLight },
+  confirmed:   { label: 'Onaylı',     color: dash.blue,   bg: dash.blueLight },
+  checked_in:  { label: 'Girişte',    color: dash.green,  bg: dash.greenLight },
+  checked_out: { label: 'Çıktı',      color: dash.muted,  bg: dash.border },
+  cancelled:   { label: 'İptal',      color: dash.muted,  bg: dash.border },
+  no_show:     { label: 'Gelmedi',    color: dash.red,    bg: dash.redLight },
 }
 
 const METHOD_LABELS: Record<PaymentMethod, string> = {
@@ -75,7 +76,7 @@ function Row({ label, value }: { label: string; value: string | ReactNode }) {
   return (
     <div className="flex justify-between gap-4 py-2.5 text-sm" style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
       <span style={{ color: 'var(--color-admin-muted)' }}>{label}</span>
-      <span className="text-[#E8E8F0] text-right">{value}</span>
+      <span className="text-[#15112B] text-right">{value}</span>
     </div>
   )
 }
@@ -121,7 +122,7 @@ export default async function ReservationDetailPage({
         <Link
           href="/reservations"
           className="text-sm px-3 py-1.5 rounded-lg transition-opacity hover:opacity-70"
-          style={{ color: 'var(--color-admin-muted)', backgroundColor: 'var(--color-admin-card)', border: '1px solid var(--color-admin-border)' }}
+          style={{ color: 'var(--color-admin-muted)', backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
         >
           ← Takvim
         </Link>
@@ -130,13 +131,13 @@ export default async function ReservationDetailPage({
           target="_blank"
           rel="noopener noreferrer"
           className="text-sm px-3 py-1.5 rounded-lg font-medium transition-opacity hover:opacity-80"
-          style={{ backgroundColor: 'var(--color-accent)', color: '#0F0F1A' }}
+          style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
         >
           Fatura Yazdır
         </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl font-semibold text-[#E8E8F0]">
+            <h1 className="text-2xl font-semibold text-[#15112B]">
               {res.guests?.first_name} {res.guests?.last_name}
             </h1>
             <span
@@ -170,8 +171,8 @@ export default async function ReservationDetailPage({
 
       {/* Rezervasyon Bilgileri */}
       <div
-        className="rounded-xl border"
-        style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}
+        className="rounded-2xl"
+        style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
       >
         <p className="px-5 py-3 text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-admin-muted)', borderBottom: '1px solid var(--color-admin-border)' }}>
           Rezervasyon
@@ -189,7 +190,7 @@ export default async function ReservationDetailPage({
           <Row
             label="Kalan"
             value={
-              <span style={{ color: remaining > 0 ? '#FCD34D' : '#86EFAC', fontWeight: 700 }}>
+              <span style={{ color: remaining > 0 ? dash.orange : dash.green, fontWeight: 700 }}>
                 {formatUZS(remaining)}
               </span>
             }
@@ -211,8 +212,8 @@ export default async function ReservationDetailPage({
 
       {/* Misafir Bilgileri */}
       <div
-        className="rounded-xl border"
-        style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}
+        className="rounded-2xl"
+        style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
       >
         <p className="px-5 py-3 text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-admin-muted)', borderBottom: '1px solid var(--color-admin-border)' }}>
           Misafir
@@ -247,8 +248,8 @@ export default async function ReservationDetailPage({
 
       {/* Ödemeler */}
       <div
-        className="rounded-xl border"
-        style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}
+        className="rounded-2xl"
+        style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
       >
         <p className="px-5 py-3 text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-admin-muted)', borderBottom: '1px solid var(--color-admin-border)' }}>
           Ödemeler
@@ -263,7 +264,7 @@ export default async function ReservationDetailPage({
             {payments.map((p) => (
               <div key={p.id} className="px-5 py-3 flex items-center justify-between text-sm gap-3">
                 <div className="flex-1 min-w-0">
-                  <span className="text-[#E8E8F0] font-medium">{METHOD_LABELS[p.method]}</span>
+                  <span className="text-[#15112B] font-medium">{METHOD_LABELS[p.method]}</span>
                   {p.notes && (
                     <span className="ml-2 text-xs" style={{ color: 'var(--color-admin-muted)' }}>
                       {p.notes}

@@ -21,7 +21,7 @@ export default function CalendarNav({ prevStart, nextStart, isToday, today, star
       <Link
         href={`/reservations?start=${prevStart}`}
         className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
-        style={{ backgroundColor: 'var(--color-admin-card)', color: 'var(--color-admin-muted)', border: '1px solid var(--color-admin-border)' }}
+        style={{ backgroundColor: 'var(--color-admin-card)', color: 'var(--color-admin-muted)', boxShadow: 'var(--shadow-card)' }}
       >
         <ChevronLeft size={14} />
         Önceki
@@ -31,7 +31,7 @@ export default function CalendarNav({ prevStart, nextStart, isToday, today, star
         <Link
           href={`/reservations?start=${today}`}
           className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
-          style={{ backgroundColor: 'var(--color-admin-card)', color: 'var(--color-accent)', border: '1px solid var(--color-admin-border)' }}
+          style={{ backgroundColor: 'var(--color-admin-card)', color: 'var(--color-accent)', boxShadow: 'var(--shadow-card)' }}
         >
           <Calendar size={14} />
           Bugün
@@ -45,7 +45,7 @@ export default function CalendarNav({ prevStart, nextStart, isToday, today, star
       <Link
         href={`/reservations?start=${nextStart}`}
         className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
-        style={{ backgroundColor: 'var(--color-admin-card)', color: 'var(--color-admin-muted)', border: '1px solid var(--color-admin-border)' }}
+        style={{ backgroundColor: 'var(--color-admin-card)', color: 'var(--color-admin-muted)', boxShadow: 'var(--shadow-card)' }}
       >
         Sonraki
         <ChevronRight size={14} />

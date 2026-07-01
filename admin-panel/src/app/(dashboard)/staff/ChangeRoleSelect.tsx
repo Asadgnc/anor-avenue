@@ -30,9 +30,9 @@ export default function ChangeRoleSelect({ userId, currentRole }: Props) {
         disabled={pending}
         className="px-2 py-1 rounded text-xs border outline-none appearance-none"
         style={{
-          backgroundColor: 'var(--color-admin-bg)',
-          color: '#E8E8F0',
-          borderColor: state.error ? '#C62828' : 'var(--color-admin-border)',
+          backgroundColor: 'var(--color-admin-card)',
+          color: '#15112B',
+          borderColor: state.error ? '#EF4444' : 'var(--color-admin-border)',
         }}
       >
         {ROLES.map((r) => (
@@ -43,12 +43,12 @@ export default function ChangeRoleSelect({ userId, currentRole }: Props) {
         type="submit"
         disabled={pending}
         className="px-2 py-1 rounded text-xs font-semibold disabled:opacity-40 hover:opacity-80 transition-opacity"
-        style={{ backgroundColor: '#1E1E3A', color: 'var(--color-accent)', border: '1px solid var(--color-admin-border)' }}
+        style={{ backgroundColor: 'var(--color-admin-bg)', color: 'var(--color-accent)', border: '1px solid var(--color-admin-border)' }}
       >
         {pending ? '…' : state.success ? '✓' : 'Kaydet'}
       </button>
       {state.error && (
-        <span className="text-xs" style={{ color: '#FCA5A5' }}>{state.error}</span>
+        <span className="text-xs" style={{ color: '#EF4444' }}>{state.error}</span>
       )}
     </form>
   )

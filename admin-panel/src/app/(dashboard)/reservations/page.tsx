@@ -59,7 +59,7 @@ export default async function ReservationsPage({ searchParams }: Props) {
       {/* Başlık */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-[#E8E8F0]">Rezervasyon Takvimi</h1>
+          <h1 className="text-2xl font-semibold text-[#15112B]">Rezervasyon Takvimi</h1>
           <p className="mt-1 text-sm" style={{ color: 'var(--color-admin-muted)' }}>
             {startDate} — {endDate} · {rooms.length} oda
           </p>
@@ -69,14 +69,14 @@ export default async function ReservationsPage({ searchParams }: Props) {
           <Link
             href="/reservations/list"
             className="px-3 py-2 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
-            style={{ backgroundColor: 'var(--color-admin-card)', color: 'var(--color-admin-muted)', border: '1px solid var(--color-admin-border)' }}
+            style={{ backgroundColor: 'var(--color-admin-card)', color: 'var(--color-admin-muted)', boxShadow: 'var(--shadow-card)' }}
           >
             ☰ Liste
           </Link>
           <Link
             href="/reservations/new"
             className="px-4 py-2 rounded-lg text-sm font-semibold transition-opacity hover:opacity-90"
-            style={{ backgroundColor: 'var(--color-accent)', color: '#0F0F1A' }}
+            style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
           >
             + Yeni Rezervasyon
           </Link>

@@ -345,6 +345,13 @@ Mert "nar çarpışması" konsepti önerdi. Konsept henüz karara bağlanmadı �
 - [x] Admin panel: Otel Profili — /settings'e eklendi (otel adı, adres, telefon, e-posta, web, giriş/çıkış saati)
   - `hotel_settings` tablosu Supabase'e eklendi (tek satır, RLS korumalı)
   - Fatura ve onay e-postalarında kullanılacak
+- [x] Admin panel: tasarım yenileme — "Tonlu Bölgeler" (kullanıcı: sol menü çok koyu, sağ taraf tamamen beyaz/karışık)
+  - Renk token'ları güncellendi (`globals.css` + `dashboardTheme.ts`): sidebar `#171335`→`#2E2A52` (açık), zemin `#F6F5F9` (sıcak nötr)
+  - Yeni: kategori bazlı tonlu zemin renkleri (mor/yeşil/turuncu/mavi) + sıcak vurgu rengi `#D97757`
+  - Yeni paylaşılan bileşen `SectionZone.tsx` — kartları beyaz kenarlıklı kutular yerine renkli zeminlere gruplar
+  - Dashboard, Rezervasyon Listesi, Raporlar, Ödemeler sayfaları zone'lara bölündü (Genel Bakış/Operasyon/Finans/Filtrele)
+  - Tüm panelde beyaz kartlarda kenarlık yerine yumuşak gölge (`shadow-card`) kullanılıyor
+  - ⚠️ Ekran görüntüsüyle doğrulanamadı — bu ortamda giriş bilgisi ve headless tarayıcı aracı yoktu, kullanıcının tarayıcıda kontrol etmesi gerekiyor
 
 ## Sonraki Adımlar (Kalan — sadece merchant hesabı sonrası)
 1. Payme/Click/Uzum gerçek entegrasyon — UI + endpoint hazır, sadece merchant credentials bekleniyor

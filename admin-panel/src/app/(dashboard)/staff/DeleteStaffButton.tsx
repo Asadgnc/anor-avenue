@@ -25,7 +25,7 @@ export default function DeleteStaffButton({ userId, email }: { userId: string; e
       onClick={handle}
       disabled={pending}
       className="text-xs px-2 py-1 rounded-lg border transition-opacity hover:opacity-80 disabled:opacity-40"
-      style={{ color: '#FCA5A5', borderColor: '#450A0A' }}
+      style={{ color: '#EF4444', borderColor: '#FDEAEA' }}
     >
       {pending ? '…' : 'Sil'}
     </button>

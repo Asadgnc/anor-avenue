@@ -17,8 +17,8 @@ const initState: HotelProfileState = {}
 
 const inputClass = 'w-full px-3 py-2 rounded-lg text-sm border outline-none transition-colors'
 const inputStyle = {
-  backgroundColor: 'var(--color-admin-bg)',
-  color: '#E8E8F0',
+  backgroundColor: 'var(--color-admin-card)',
+  color: '#15112B',
   borderColor: 'var(--color-admin-border)',
 }
 
@@ -133,12 +133,12 @@ export default function HotelProfileForm(props: Props) {
           type="submit"
           disabled={pending}
           className="px-4 py-2 rounded-lg text-xs font-semibold disabled:opacity-50 transition-opacity hover:opacity-80"
-          style={{ backgroundColor: 'var(--color-accent)', color: '#0F0F1A' }}
+          style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
         >
           {pending ? 'Kaydediliyor…' : state.success ? 'Kaydedildi ✓' : 'Kaydet'}
         </button>
         {state.error && (
-          <span className="text-xs" style={{ color: '#FCA5A5' }}>{state.error}</span>
+          <span className="text-xs" style={{ color: '#EF4444' }}>{state.error}</span>
         )}
       </div>
     </form>

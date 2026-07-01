@@ -1,6 +1,9 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { BarChart3 } from 'lucide-react'
+import { dash } from '@/lib/dashboardTheme'
+import SectionZone from '@/components/admin/SectionZone'
 
 function formatUZS(n: number) {
   return new Intl.NumberFormat('uz-UZ', { maximumFractionDigits: 0 }).format(n) + ' UZS'
@@ -88,8 +91,8 @@ export default async function ReportsPage({
   if (!data) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-semibold text-[#E8E8F0]">Günlük Rapor</h1>
-        <p style={{ color: '#FCA5A5' }}>Rapor yüklenemedi.</p>
+        <h1 className="text-2xl font-semibold text-[#15112B]">Günlük Rapor</h1>
+        <p style={{ color: dash.red }}>Rapor yüklenemedi.</p>
       </div>
     )
   }
@@ -99,7 +102,7 @@ export default async function ReportsPage({
       {/* Başlık + Tarih Seçici */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-semibold text-[#E8E8F0]">Günlük Rapor</h1>
+          <h1 className="text-2xl font-semibold text-[#15112B]">Günlük Rapor</h1>
           <p className="mt-1 text-sm" style={{ color: 'var(--color-admin-muted)' }}>
             {new Date(date + 'T00:00:00').toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
@@ -111,13 +114,13 @@ export default async function ReportsPage({
               type="date"
               defaultValue={date}
               max={today}
-              className="px-3 py-2 rounded-lg text-sm text-[#E8E8F0] focus:outline-none"
-              style={{ backgroundColor: 'var(--color-admin-card)', border: '1px solid var(--color-admin-border)' }}
+              className="px-3 py-2 rounded-lg text-sm text-[#15112B] focus:outline-none"
+              style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
             />
             <button
               type="submit"
               className="px-4 py-2 rounded-lg text-sm font-semibold transition-opacity hover:opacity-80"
-              style={{ backgroundColor: 'var(--color-accent)', color: '#0F0F1A' }}
+              style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
             >
               Görüntüle
             </button>
@@ -125,20 +128,22 @@ export default async function ReportsPage({
           <a
             href={`/api/reports/export?date=${date}`}
             className="px-4 py-2 rounded-lg text-sm font-semibold transition-opacity hover:opacity-80 flex items-center gap-1.5"
-            style={{ backgroundColor: 'var(--color-admin-card)', border: '1px solid var(--color-admin-border)', color: '#E8E8F0' }}
+            style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)', color: dash.text }}
           >
             ↓ Excel İndir
           </a>
         </div>
       </div>
 
-      {/* Özet Kartlar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <SummaryCard label="Doluluk" value={`${data.occupancyRate.toFixed(0)}%`} sub={`${data.occupiedRooms}/${data.totalRooms} oda`} color="var(--color-accent)" />
-        <SummaryCard label="Günlük Gelir" value={formatUZS(data.totalRevenue)} sub={`${data.payments.length} işlem`} color="#86EFAC" />
-        <SummaryCard label="Check-in" value={String(data.checkins.length)} sub="misafir girişi" color="#93C5FD" />
-        <SummaryCard label="Check-out" value={String(data.checkouts.length)} sub="misafir çıkışı" color="#D4A017" />
-      </div>
+      {/* Özet Kartlar — mor tonlu bölge */}
+      <SectionZone tone="purple" title="Günün Özeti" icon={<BarChart3 size={16} />}>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <SummaryCard label="Doluluk" value={`${data.occupancyRate.toFixed(0)}%`} sub={`${data.occupiedRooms}/${data.totalRooms} oda`} color="var(--color-accent)" />
+          <SummaryCard label="Günlük Gelir" value={formatUZS(data.totalRevenue)} sub={`${data.payments.length} işlem`} color={dash.green} />
+          <SummaryCard label="Check-in" value={String(data.checkins.length)} sub="misafir girişi" color={dash.blue} />
+          <SummaryCard label="Check-out" value={String(data.checkouts.length)} sub="misafir çıkışı" color={dash.orange} />
+        </div>
+      </SectionZone>
 
       {/* Gelir Yöntem Dağılımı */}
       {Object.keys(data.revenueByMethod).length > 0 && (
@@ -183,7 +188,7 @@ export default async function ReportsPage({
                       {r.reservation_code}
                     </Link>
                   </td>
-                  <td className="py-2.5 px-3 text-[#E8E8F0]">{r.guests?.first_name} {r.guests?.last_name}</td>
+                  <td className="py-2.5 px-3" style={{ color: dash.text }}>{r.guests?.first_name} {r.guests?.last_name}</td>
                   <td className="py-2.5 px-3" style={{ color: 'var(--color-admin-muted)' }}>{r.rooms?.room_number ?? '—'}</td>
                   <td className="py-2.5 px-3 tabular-nums" style={{ color: 'var(--color-admin-muted)' }}>{formatUZS(r.room_rate)}</td>
                 </tr>
@@ -214,7 +219,7 @@ export default async function ReportsPage({
                       {r.reservation_code}
                     </Link>
                   </td>
-                  <td className="py-2.5 px-3 text-[#E8E8F0]">{r.guests?.first_name} {r.guests?.last_name}</td>
+                  <td className="py-2.5 px-3" style={{ color: dash.text }}>{r.guests?.first_name} {r.guests?.last_name}</td>
                   <td className="py-2.5 px-3" style={{ color: 'var(--color-admin-muted)' }}>{r.rooms?.room_number ?? '—'}</td>
                   <td className="py-2.5 px-3 font-semibold tabular-nums" style={{ color: 'var(--color-accent)' }}>{formatUZS(r.total_amount)}</td>
                 </tr>
@@ -232,8 +237,8 @@ export default async function ReportsPage({
 function SummaryCard({ label, value, sub, color }: { label: string; value: string; sub: string; color: string }) {
   return (
     <div
-      className="rounded-xl border p-4"
-      style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}
+      className="rounded-xl p-4"
+      style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
     >
       <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--color-admin-muted)' }}>{label}</p>
       <p className="text-2xl font-bold tabular-nums leading-none" style={{ color }}>{value}</p>
@@ -245,8 +250,8 @@ function SummaryCard({ label, value, sub, color }: { label: string; value: strin
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div
-      className="rounded-xl border overflow-hidden"
-      style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}
+      className="rounded-2xl overflow-hidden"
+      style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
     >
       <p className="px-5 py-3 text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-admin-muted)', borderBottom: '1px solid var(--color-admin-border)' }}>
         {title}

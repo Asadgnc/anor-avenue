@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { updateReservationAction } from './actions'
+import { dash } from '@/lib/dashboardTheme'
 
 interface ReservationEditProps {
   reservationId: string
@@ -17,7 +18,7 @@ interface ReservationEditProps {
 const inputCls = 'w-full px-3 py-2 rounded-lg text-sm border outline-none'
 const inputStyle = {
   backgroundColor: 'var(--color-admin-bg)',
-  color: '#E8E8F0',
+  color: dash.text,
   borderColor: 'var(--color-admin-border)',
 }
 
@@ -55,8 +56,8 @@ export default function EditReservationFormClient(props: ReservationEditProps) {
 
   return (
     <div
-      className="rounded-xl border p-5 space-y-4"
-      style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}
+      className="rounded-2xl p-5 space-y-4"
+      style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
     >
       <div className="flex items-center justify-between">
         <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-accent)' }}>
@@ -72,7 +73,7 @@ export default function EditReservationFormClient(props: ReservationEditProps) {
       </div>
 
       {error && (
-        <p className="text-xs px-3 py-2 rounded-lg" style={{ backgroundColor: '#450A0A', color: '#FCA5A5' }}>
+        <p className="text-xs px-3 py-2 rounded-lg" style={{ backgroundColor: dash.redLight, color: dash.red }}>
           {error}
         </p>
       )}
@@ -136,7 +137,7 @@ export default function EditReservationFormClient(props: ReservationEditProps) {
             type="submit"
             disabled={saving}
             className="px-4 py-2 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-50"
-            style={{ backgroundColor: 'var(--color-accent)', color: '#0F0F1A' }}
+            style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
           >
             {saving ? 'Kaydediliyor…' : 'Kaydet'}
           </button>

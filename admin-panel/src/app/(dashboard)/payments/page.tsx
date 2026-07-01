@@ -1,6 +1,9 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
+import { Wallet } from 'lucide-react'
 import type { Payment, PaymentMethod, PaymentStatus } from '@/types/hotel'
+import { dash } from '@/lib/dashboardTheme'
+import SectionZone from '@/components/admin/SectionZone'
 
 interface PaymentWithReservation extends Payment {
   reservations: {
@@ -17,11 +20,11 @@ const METHOD_LABELS: Record<PaymentMethod, string> = {
   transfer: 'Havale',
 }
 
-const STATUS_CONFIG: Record<PaymentStatus, { label: string; color: string }> = {
-  pending:   { label: 'Bekliyor',   color: '#D4A017' },
-  completed: { label: 'Tamamlandı', color: '#2D6A4F' },
-  failed:    { label: 'Başarısız',  color: '#C62828' },
-  refunded:  { label: 'İade',       color: '#8B8BAD' },
+const STATUS_CONFIG: Record<PaymentStatus, { label: string; color: string; bg: string }> = {
+  pending:   { label: 'Bekliyor',   color: dash.orange, bg: dash.orangeLight },
+  completed: { label: 'Tamamlandı', color: dash.green,  bg: dash.greenLight },
+  failed:    { label: 'Başarısız',  color: dash.red,     bg: dash.redLight },
+  refunded:  { label: 'İade',       color: dash.muted,   bg: dash.border },
 }
 
 function formatUZS(amount: number): string {
@@ -51,25 +54,27 @@ export default async function PaymentsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-semibold text-[#E8E8F0]">Ödemeler</h1>
+        <h1 className="text-2xl font-semibold text-[#15112B]">Ödemeler</h1>
         <p className="mt-1 text-sm" style={{ color: 'var(--color-admin-muted)' }}>
           {rows.length} kayıt
         </p>
       </div>
 
-      {/* Summary cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <SummaryCard label="Toplam Gelir" value={formatUZS(totalCompleted)} color="#2D6A4F" />
-        <SummaryCard label="Bekleyen Ödeme" value={String(pendingCount)} color="#D4A017" />
-        <SummaryCard label="Toplam Kayıt" value={String(rows.length)} color="var(--color-accent)" />
-      </div>
+      {/* Summary cards — yeşil tonlu bölge */}
+      <SectionZone tone="green" title="Ödeme Özeti" icon={<Wallet size={16} />}>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <SummaryCard label="Toplam Gelir" value={formatUZS(totalCompleted)} color={dash.green} />
+          <SummaryCard label="Bekleyen Ödeme" value={String(pendingCount)} color={dash.orange} />
+          <SummaryCard label="Toplam Kayıt" value={String(rows.length)} color="var(--color-accent)" />
+        </div>
+      </SectionZone>
 
       {/* Table */}
       <div
         style={{
           backgroundColor: 'var(--color-admin-card)',
           borderRadius: '0.75rem',
-          border: '1px solid var(--color-admin-border)',
+          boxShadow: 'var(--shadow-card)',
           overflow: 'hidden',
         }}
       >
@@ -102,12 +107,12 @@ export default async function PaymentsPage() {
                     <tr
                       key={p.id}
                       style={{ borderBottom: '1px solid var(--color-admin-border)' }}
-                      className="hover:bg-white/5 transition-colors"
+                      className="hover:bg-black/[0.03] transition-colors"
                     >
-                      <td className="px-5 py-3 font-mono text-xs text-[#E8E8F0]">
+                      <td className="px-5 py-3 font-mono text-xs text-[#15112B]">
                         {p.reservations?.reservation_code ?? '—'}
                       </td>
-                      <td className="px-5 py-3 text-[#E8E8F0]">
+                      <td className="px-5 py-3 text-[#15112B]">
                         {guest ? `${guest.first_name} ${guest.last_name}` : '—'}
                       </td>
                       <td className="px-5 py-3 font-semibold" style={{ color: 'var(--color-accent)' }}>
@@ -120,7 +125,7 @@ export default async function PaymentsPage() {
                         <span
                           style={{
                             color: sc.color,
-                            backgroundColor: `${sc.color}1A`,
+                            backgroundColor: sc.bg,
                             fontSize: '0.7rem',
                             fontWeight: '700',
                             padding: '0.2rem 0.6rem',
@@ -152,7 +157,7 @@ function SummaryCard({ label, value, color }: { label: string; value: string; co
     <div
       style={{
         backgroundColor: 'var(--color-admin-card)',
-        border: '1px solid var(--color-admin-border)',
+        boxShadow: 'var(--shadow-card)',
         borderRadius: '0.75rem',
         padding: '1.25rem',
       }}
