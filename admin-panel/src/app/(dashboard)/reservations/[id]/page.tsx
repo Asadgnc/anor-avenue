@@ -30,6 +30,8 @@ interface ReservationDetail {
   special_requests: string | null
   notes: string | null
   channel: string
+  breakfast_included: boolean
+  expected_check_in_time: string | null
   rooms: { room_number: string; floor: number; room_types: { name: string } | null } | null
   guests: {
     id: string
@@ -96,7 +98,7 @@ export default async function ReservationDetailPage({
   const [resResult, paymentsResult] = await Promise.all([
     supabase
       .from('reservations')
-      .select('id, reservation_code, status, check_in, check_out, actual_check_in, actual_check_out, adults, children, nights, room_rate, total_amount, discount, currency, special_requests, notes, channel, rooms(room_number, floor, room_types(name)), guests(id, first_name, last_name, email, phone, nationality, passport_number)')
+      .select('id, reservation_code, status, check_in, check_out, actual_check_in, actual_check_out, adults, children, nights, room_rate, total_amount, discount, currency, special_requests, notes, channel, breakfast_included, expected_check_in_time, rooms(room_number, floor, room_types(name)), guests(id, first_name, last_name, email, phone, nationality, passport_number)')
       .eq('id', id)
       .single(),
     supabase
@@ -166,6 +168,8 @@ export default async function ReservationDetailPage({
           roomRate={res.room_rate}
           specialRequests={res.special_requests}
           notes={res.notes}
+          breakfastIncluded={res.breakfast_included}
+          expectedCheckInTime={res.expected_check_in_time}
         />
       )}
 
@@ -201,6 +205,17 @@ export default async function ReservationDetailPage({
           {res.notes && (
             <Row label="Notlar" value={res.notes} />
           )}
+          {res.expected_check_in_time && (
+            <Row label="Beklenen Giriş Saati" value={res.expected_check_in_time.slice(0, 5)} />
+          )}
+          <Row
+            label="Kahvaltı"
+            value={
+              <span style={{ color: res.breakfast_included ? dash.green : dash.muted, fontWeight: res.breakfast_included ? 600 : 400 }}>
+                {res.breakfast_included ? 'Dahil ✓' : 'Dahil değil'}
+              </span>
+            }
+          />
           {res.actual_check_in && (
             <Row label="Gerçek Giriş" value={new Date(res.actual_check_in).toLocaleString('tr-TR')} />
           )}

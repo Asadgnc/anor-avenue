@@ -5,19 +5,21 @@ import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase'
 
 const schema = z.object({
-  firstName:      z.string().min(1, 'Ad zorunlu'),
-  lastName:       z.string().min(1, 'Soyad zorunlu'),
-  phone:          z.string().optional(),
-  email:          z.string().optional(),
-  nationality:    z.string().optional(),
-  passportNumber: z.string().optional(),
-  roomId:         z.string().uuid('Oda seçmelisiniz'),
-  checkIn:        z.string().min(1, 'Giriş tarihi zorunlu'),
-  checkOut:       z.string().min(1, 'Çıkış tarihi zorunlu'),
-  adults:         z.coerce.number().int().min(1, 'En az 1 yetişkin').max(8),
-  specialRequests: z.string().optional(),
-  advanceAmount:  z.coerce.number().min(0).optional(),
-  paymentMethod:  z.enum(['payme', 'click', 'uzum', 'cash', 'transfer']).optional(),
+  firstName:            z.string().min(1, 'Ad zorunlu'),
+  lastName:             z.string().min(1, 'Soyad zorunlu'),
+  phone:                z.string().optional(),
+  email:                z.string().optional(),
+  nationality:          z.string().optional(),
+  passportNumber:       z.string().optional(),
+  roomId:               z.string().uuid('Oda seçmelisiniz'),
+  checkIn:              z.string().min(1, 'Giriş tarihi zorunlu'),
+  checkOut:             z.string().min(1, 'Çıkış tarihi zorunlu'),
+  adults:               z.coerce.number().int().min(1, 'En az 1 yetişkin').max(8),
+  specialRequests:      z.string().optional(),
+  advanceAmount:        z.coerce.number().min(0).optional(),
+  paymentMethod:        z.enum(['payme', 'click', 'uzum', 'cash', 'transfer']).optional(),
+  breakfastIncluded:    z.string().optional().transform(v => v === 'on'),
+  expectedCheckInTime:  z.string().optional(),
 })
 
 export type ReservationFormState = {
@@ -109,19 +111,21 @@ export async function createReservationAction(
   const { data: reservation, error: resErr } = await service
     .from('reservations')
     .insert({
-      guest_id:         guest.id,
-      room_id:          d.roomId,
-      check_in:         d.checkIn,
-      check_out:        d.checkOut,
-      adults:           d.adults,
-      children:         0,
-      room_rate:        roomRate,
-      total_amount:     totalAmount,
-      discount:         0,
-      currency:         'UZS',
-      special_requests: d.specialRequests || null,
-      status:           'confirmed',
-      channel:          'direct',
+      guest_id:                guest.id,
+      room_id:                 d.roomId,
+      check_in:                d.checkIn,
+      check_out:               d.checkOut,
+      adults:                  d.adults,
+      children:                0,
+      room_rate:               roomRate,
+      total_amount:            totalAmount,
+      discount:                0,
+      currency:                'UZS',
+      special_requests:        d.specialRequests || null,
+      status:                  'confirmed',
+      channel:                 'direct',
+      breakfast_included:      d.breakfastIncluded ?? false,
+      expected_check_in_time:  d.expectedCheckInTime || null,
     })
     .select('id')
     .single()

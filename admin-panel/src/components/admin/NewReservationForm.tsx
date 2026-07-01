@@ -261,6 +261,22 @@ export default function NewReservationForm({ rooms }: Props) {
           </Select>
         </Field>
 
+        <div className="grid grid-cols-2 gap-4">
+          <Field label="Beklenen Giriş Saati (opsiyonel)">
+            <Input name="expectedCheckInTime" type="time" />
+          </Field>
+          <Field label="Kahvaltı">
+            <label className="flex items-center gap-2.5 cursor-pointer mt-1">
+              <input
+                type="checkbox"
+                name="breakfastIncluded"
+                className="w-4 h-4 rounded accent-[var(--color-accent)]"
+              />
+              <span className="text-sm" style={{ color: dash.text }}>Kahvaltı dahil</span>
+            </label>
+          </Field>
+        </div>
+
         <Field label="Özel İstek">
           <textarea
             name="specialRequests"

@@ -9,12 +9,14 @@ import type { ReservationStatus } from '@/types/hotel'
 // ─── Rezervasyon Düzenleme ────────────────────────────────────────────────────
 
 const updateResSchema = z.object({
-  checkIn:         z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Geçersiz tarih'),
-  checkOut:        z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Geçersiz tarih'),
-  adults:          z.coerce.number().int().min(1).max(10),
-  roomRate:        z.coerce.number().positive('Fiyat 0\'dan büyük olmalı'),
-  specialRequests: z.string().max(1000).optional(),
-  notes:           z.string().max(1000).optional(),
+  checkIn:              z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Geçersiz tarih'),
+  checkOut:             z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Geçersiz tarih'),
+  adults:               z.coerce.number().int().min(1).max(10),
+  roomRate:             z.coerce.number().positive('Fiyat 0\'dan büyük olmalı'),
+  specialRequests:      z.string().max(1000).optional(),
+  notes:                z.string().max(1000).optional(),
+  breakfastIncluded:    z.string().optional().transform(v => v === 'on'),
+  expectedCheckInTime:  z.string().optional(),
 })
 
 export type UpdateResState = { error?: string; success?: boolean }
@@ -42,14 +44,16 @@ export async function updateReservationAction(
   const { error } = await service
     .from('reservations')
     .update({
-      check_in:         d.checkIn,
-      check_out:        d.checkOut,
-      adults:           d.adults,
+      check_in:                d.checkIn,
+      check_out:               d.checkOut,
+      adults:                  d.adults,
       // nights: GENERATED ALWAYS AS (check_out - check_in) STORED — buraya yazılmaz
-      room_rate:        d.roomRate,
-      total_amount:     totalAmount,
-      special_requests: d.specialRequests || null,
-      notes:            d.notes || null,
+      room_rate:               d.roomRate,
+      total_amount:            totalAmount,
+      special_requests:        d.specialRequests || null,
+      notes:                   d.notes || null,
+      breakfast_included:      d.breakfastIncluded ?? false,
+      expected_check_in_time:  d.expectedCheckInTime || null,
     })
     .eq('id', reservationId)
 

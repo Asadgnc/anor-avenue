@@ -353,6 +353,17 @@ Mert "nar çarpışması" konsepti önerdi. Konsept henüz karara bağlanmadı �
   - Tüm panelde beyaz kartlarda kenarlık yerine yumuşak gölge (`shadow-card`) kullanılıyor
   - ⚠️ Ekran görüntüsüyle doğrulanamadı — bu ortamda giriş bilgisi ve headless tarayıcı aracı yoktu, kullanıcının tarayıcıda kontrol etmesi gerekiyor
 
+- [x] Admin panel: Temizlikçi "Günlük Özet" sayfası (/housekeeping/overview)
+  - Yeni sayfa: yarınki girişler, bugünkü çıkışlar, şu an dolu odalar
+  - Her satırda: oda no, misafir adı, kişi sayısı, Mahalliy/Xorijiy badge'i, kahvaltı durumu
+  - Yarınki girişlerde beklenen giriş saati gösterimi
+  - Üst bölümde hızlı istatistik (yarınki giriş sayısı, bugünkü çıkış sayısı, yarın sabah kahvaltı kişi sayısı)
+  - SidebarNav: "Günlük Özet" linki eklendi (admin/manager/receptionist/housekeeper görebilir)
+  - DB migration 006: `reservations` tablosuna `breakfast_included BOOLEAN DEFAULT false` + `expected_check_in_time TIME` eklendi
+  - Yeni rezervasyon formu: kahvaltı checkbox + beklenen giriş saati alanı eklendi
+  - Rezervasyon düzenleme formu: aynı alanlar eklendi
+  - Rezervasyon detay sayfası: kahvaltı + beklenen saat bilgisi gösterimi eklendi
+
 ## Sonraki Adımlar (Kalan — sadece merchant hesabı sonrası)
 1. Payme/Click/Uzum gerçek entegrasyon — UI + endpoint hazır, sadece merchant credentials bekleniyor
 

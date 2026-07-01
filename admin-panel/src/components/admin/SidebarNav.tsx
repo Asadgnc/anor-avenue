@@ -19,6 +19,7 @@ import {
   Settings,
   UserCog,
   Hotel,
+  CalendarCheck,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
@@ -45,6 +46,7 @@ const NAV_LINKS: NavLink[] = [
   { href: '/guests',             label: 'Misafirler',           icon: Users,           roles: ['admin', 'manager', 'receptionist'] },
   { href: '/registrations',      label: 'Kayıt (Reg.)',         icon: ClipboardList,   roles: ['admin', 'manager', 'receptionist'] },
   { href: '/housekeeping',       label: 'Temizlik',             icon: Sparkles,        roles: ['admin', 'manager', 'receptionist', 'housekeeper'] },
+  { href: '/housekeeping/overview', label: 'Günlük Özet',       icon: CalendarCheck,   roles: ['admin', 'manager', 'receptionist', 'housekeeper'] },
   { href: '/payments',           label: 'Ödemeler',             icon: CreditCard,      roles: ['admin', 'manager', 'receptionist', 'accountant'], badgeKey: 'payments' },
   { href: '/reports',            label: 'Raporlar',             icon: BarChart3,       roles: ['admin', 'manager', 'accountant'] },
   { href: '/staff',              label: 'Personel',             icon: UserCog,         roles: ['admin'] },
@@ -96,7 +98,7 @@ export default function SidebarNav({ role, userEmail, badges = {} }: Props) {
       {/* Navigation */}
       <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
         {visibleLinks.map(({ href, label, icon: Icon, badgeKey }) => {
-          const exactOnly = ['/dashboard', '/reservations', '/reservations/list', '/reservations/new']
+          const exactOnly = ['/dashboard', '/reservations', '/reservations/list', '/reservations/new', '/housekeeping']
           const active = exactOnly.includes(href)
             ? pathname === href
             : pathname === href || pathname.startsWith(href + '/')

@@ -13,6 +13,8 @@ interface ReservationEditProps {
   roomRate: number
   specialRequests: string | null
   notes: string | null
+  breakfastIncluded: boolean
+  expectedCheckInTime: string | null
 }
 
 const inputCls = 'w-full px-3 py-2 rounded-lg text-sm border outline-none'
@@ -104,6 +106,31 @@ export default function EditReservationFormClient(props: ReservationEditProps) {
             </label>
             <input name="roomRate" type="number" min={1} defaultValue={props.roomRate} required className={inputCls} style={inputStyle} />
           </div>
+        </div>
+
+        <div>
+          <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-admin-muted)' }}>
+            Beklenen Giriş Saati
+          </label>
+          <input
+            name="expectedCheckInTime"
+            type="time"
+            defaultValue={props.expectedCheckInTime ?? ''}
+            className={inputCls}
+            style={inputStyle}
+          />
+        </div>
+
+        <div>
+          <label className="flex items-center gap-2.5 cursor-pointer">
+            <input
+              type="checkbox"
+              name="breakfastIncluded"
+              defaultChecked={props.breakfastIncluded}
+              className="w-4 h-4 rounded"
+            />
+            <span className="text-sm" style={{ color: dash.text }}>Kahvaltı dahil</span>
+          </label>
         </div>
 
         <div>
