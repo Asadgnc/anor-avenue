@@ -21,6 +21,8 @@ export default async function HousekeepingPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  const role = (user.user_metadata?.role as string | undefined) ?? 'receptionist'
+
   const [roomsResult, tasksResult] = await Promise.all([
     supabase
       .from('rooms')
@@ -48,7 +50,7 @@ export default async function HousekeepingPage() {
         </p>
       </div>
 
-      <HousekeepingBoard rooms={rooms} tasks={tasks} />
+      <HousekeepingBoard rooms={rooms} tasks={tasks} role={role} />
     </div>
   )
 }

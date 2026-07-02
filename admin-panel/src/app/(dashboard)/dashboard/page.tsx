@@ -13,14 +13,14 @@ import {
   Sparkles,
   LayoutGrid,
   BedDouble,
-  Wallet,
+  Users,
+  DoorOpen,
+  DoorClosed,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import StatCard from '@/components/admin/StatCard'
 import RoomStatusGrid, { type RoomStatusRow } from '@/components/admin/RoomStatusGrid'
-import RevenueAreaChart from '@/components/admin/RevenueAreaChart'
 import RecentBookingsList, { type RecentBooking } from '@/components/admin/RecentBookingsList'
-import MonthSummaryCard from '@/components/admin/MonthSummaryCard'
 
 // ─── Sabitler ───────────────────────────────────────────────────────────────
 
@@ -99,48 +99,39 @@ async function fetchRoomStatusList(): Promise<RoomStatusRow[]> {
 
 async function fetchCleaningStatus() {
   const supabase = await createClient()
-  const [cleanResult, dirtyResult, inProgressResult, inspectedResult] = await Promise.all([
+  const [cleanResult, dirtyResult, inProgressResult, cleanedResult, inspectedResult] = await Promise.all([
     supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('cleaning_status', 'clean').eq('is_active', true),
     supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('cleaning_status', 'dirty').eq('is_active', true),
     supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('cleaning_status', 'in_progress').eq('is_active', true),
+    supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('cleaning_status', 'cleaned').eq('is_active', true),
     supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('cleaning_status', 'inspected').eq('is_active', true),
   ])
   return {
     clean: cleanResult.count ?? 0,
     dirty: dirtyResult.count ?? 0,
     in_progress: inProgressResult.count ?? 0,
+    cleaned: cleanedResult.count ?? 0,
     inspected: inspectedResult.count ?? 0,
   }
 }
 
-async function fetchRevenueTrend() {
+async function fetchRoomOccupancy() {
   const supabase = await createClient()
-  const today = new Date()
-  const start = new Date(today)
-  start.setDate(today.getDate() - 29)
-  const startStr = toDateStr(start)
-
-  const { data } = await supabase
-    .from('payments')
-    .select('amount, paid_at')
-    .eq('status', 'completed')
-    .gte('paid_at', startStr)
-
-  const rows = (data ?? []) as Array<{ amount: number; paid_at: string }>
-  const byDay = new Map<string, number>()
-  for (const r of rows) {
-    const day = r.paid_at.split('T')[0]
-    byDay.set(day, (byDay.get(day) ?? 0) + Number(r.amount))
-  }
-
-  const days = []
-  for (let i = 0; i < 30; i++) {
-    const d = new Date(start)
-    d.setDate(start.getDate() + i)
-    const dateStr = toDateStr(d)
-    days.push({ date: dateStr, amount: byDay.get(dateStr) ?? 0 })
-  }
-  return days
+  const todayStr = toDateStr(new Date())
+  const [totalResult, checkedInResult] = await Promise.all([
+    supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('is_active', true),
+    supabase
+      .from('reservations')
+      .select('adults, children')
+      .eq('status', 'checked_in')
+      .lte('check_in', todayStr)
+      .gt('check_out', todayStr),
+  ])
+  const totalRooms = totalResult.count ?? 0
+  const activeRes = (checkedInResult.data ?? []) as Array<{ adults: number; children: number }>
+  const occupiedRooms = activeRes.length
+  const guestCount = activeRes.reduce((sum, r) => sum + Number(r.adults) + Number(r.children), 0)
+  return { totalRooms, occupiedRooms, availableRooms: totalRooms - occupiedRooms, guestCount }
 }
 
 async function fetchRecentBookings(): Promise<RecentBooking[]> {
@@ -168,36 +159,6 @@ async function fetchRecentBookings(): Promise<RecentBooking[]> {
     adults: r.adults,
     room_number: r.rooms?.room_number ?? null,
   }))
-}
-
-async function fetchMonthSummary() {
-  const supabase = await createClient()
-  const now = new Date()
-  const monthStart = toDateStr(new Date(now.getFullYear(), now.getMonth(), 1))
-  const todayStr = toDateStr(now)
-
-  const [resResult, payResult, totalRoomsResult] = await Promise.all([
-    supabase.from('reservations').select('status, nights').gte('check_in', monthStart).lte('check_in', todayStr),
-    supabase.from('payments').select('status').gte('created_at', monthStart),
-    supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('is_active', true),
-  ])
-
-  const reservations = (resResult.data ?? []) as Array<{ status: string; nights: number }>
-  const nonCancelled = reservations.filter((r) => r.status !== 'cancelled')
-  const cancellationRate = reservations.length > 0 ? (reservations.filter((r) => r.status === 'cancelled').length / reservations.length) * 100 : 0
-  const avgNights = nonCancelled.length > 0 ? nonCancelled.reduce((s, r) => s + Number(r.nights), 0) / nonCancelled.length : 0
-
-  const payments = (payResult.data ?? []) as Array<{ status: string }>
-  const collectionRate = payments.length > 0 ? (payments.filter((p) => p.status === 'completed').length / payments.length) * 100 : 0
-
-  const totalRooms = Math.max(totalRoomsResult.count ?? 1, 1)
-  const daysElapsed = now.getDate()
-  const roomNightsThisMonth = nonCancelled.reduce((s, r) => s + Number(r.nights), 0)
-  const occupancyRate = Math.min(100, (roomNightsThisMonth / (totalRooms * daysElapsed)) * 100)
-
-  const monthLabel = now.toLocaleDateString('uz-UZ', { month: 'long', year: 'numeric' })
-
-  return { occupancyRate, collectionRate, cancellationRate, avgNights, monthLabel }
 }
 
 interface PendingRow {
@@ -234,16 +195,15 @@ export default async function DashboardPage({
 
   const { blocked } = await searchParams
 
-  const [stats, roomStatusList, cleaning, revenueTrend, recentBookings, pendingReservations, userName] = await Promise.all([
+  const [stats, roomStatusList, cleaning, recentBookings, pendingReservations, userName, occupancy] = await Promise.all([
     fetchStatCardsData(),
     fetchRoomStatusList(),
     fetchCleaningStatus(),
-    fetchRevenueTrend(),
     fetchRecentBookings(),
     fetchPendingReservations(),
     fetchUserName(user.id, user.email ?? 'Kullanıcı'),
+    fetchRoomOccupancy(),
   ])
-  const monthSummary = await fetchMonthSummary()
 
   const todayLabel = new Date().toLocaleDateString('uz-UZ', {
     weekday: 'long',
@@ -307,10 +267,39 @@ export default async function DashboardPage({
         </div>
       )}
 
-      {/* Genel Bakış */}
+      {/* Genel Bakış — oda & kişi sayıları (tıklanamaz, rozetsiz) */}
       <section className="space-y-3">
         <h2 className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
           <LayoutGrid size={14} /> Genel Bakış
+        </h2>
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard
+            icon={<BedDouble size={16} />}
+            label="Toplam Oda"
+            value={String(occupancy.totalRooms)}
+          />
+          <StatCard
+            icon={<DoorClosed size={16} />}
+            label="Dolu Oda"
+            value={String(occupancy.occupiedRooms)}
+          />
+          <StatCard
+            icon={<DoorOpen size={16} />}
+            label="Boş Oda"
+            value={String(occupancy.availableRooms)}
+          />
+          <StatCard
+            icon={<Users size={16} />}
+            label="Konaklayan Kişi"
+            value={String(occupancy.guestCount)}
+          />
+        </div>
+      </section>
+
+      {/* Bugünkü Hareket */}
+      <section className="space-y-3">
+        <h2 className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+          <CalendarPlus size={14} /> Bugünkü Hareket
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
@@ -360,7 +349,8 @@ export default async function DashboardPage({
                 { label: 'Temiz', count: cleaning.clean, color: 'text-green-600', icon: <CheckCircle2 size={16} /> },
                 { label: 'Kirli', count: cleaning.dirty, color: 'text-red-600', icon: <Wind size={16} /> },
                 { label: 'Temizleniyor', count: cleaning.in_progress, color: 'text-amber-600', icon: <Clock size={16} /> },
-                { label: 'Denetlendi', count: cleaning.inspected, color: 'text-primary', icon: <Sparkles size={16} /> },
+                { label: 'Temizlendi · Denetim bekliyor', count: cleaning.cleaned, color: 'text-sky-600', icon: <Sparkles size={16} /> },
+                { label: 'Denetlendi', count: cleaning.inspected, color: 'text-primary', icon: <CheckCircle2 size={16} /> },
               ].map((c) => (
                 <div key={c.label} className="rounded-lg border border-border p-3 flex items-center gap-2.5">
                   <span className={c.color}>{c.icon}</span>
@@ -372,25 +362,6 @@ export default async function DashboardPage({
               ))}
             </CardContent>
           </Card>
-        </div>
-      </section>
-
-      {/* Finans */}
-      <section className="space-y-3">
-        <h2 className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          <Wallet size={14} /> Finans
-        </h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <Link href="/reports" className="block transition-opacity hover:opacity-80">
-            <RevenueAreaChart data={revenueTrend} />
-          </Link>
-          <MonthSummaryCard
-            occupancyRate={monthSummary.occupancyRate}
-            collectionRate={monthSummary.collectionRate}
-            cancellationRate={monthSummary.cancellationRate}
-            avgNights={monthSummary.avgNights}
-            monthLabel={monthSummary.monthLabel}
-          />
         </div>
       </section>
 

@@ -20,6 +20,9 @@ import {
   UserCog,
   Hotel,
   CalendarCheck,
+  Package,
+  Leaf,
+  Wallet,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { cn } from '@/lib/utils'
@@ -49,6 +52,9 @@ const NAV_LINKS: NavLink[] = [
   { href: '/housekeeping/overview', label: 'Günlük Özet',       icon: CalendarCheck,   roles: ['admin', 'manager', 'receptionist', 'housekeeper'] },
   { href: '/payments',           label: 'Ödemeler',             icon: CreditCard,      roles: ['admin', 'manager', 'receptionist', 'accountant'], badgeKey: 'payments' },
   { href: '/reports',            label: 'Raporlar',             icon: BarChart3,       roles: ['admin', 'manager', 'accountant'] },
+  { href: '/depo',               label: 'Depo',                 icon: Package,         roles: ['admin', 'manager', 'receptionist', 'housekeeper', 'accountant'] },
+  { href: '/garden',             label: 'Bahçe İşleri',         icon: Leaf,            roles: ['admin', 'manager', 'receptionist', 'housekeeper'] },
+  { href: '/finance',            label: 'Para Akışı',           icon: Wallet,          roles: ['admin'] },
   { href: '/staff',              label: 'Personel',             icon: UserCog,         roles: ['admin'] },
   { href: '/settings',           label: 'Ayarlar',              icon: Settings,        roles: ['admin'] },
 ]

@@ -23,10 +23,11 @@ const ROOM_STATUSES = [
 ] as const
 
 const CLEANING_STATUSES = [
-  { value: 'clean',       label: 'Temiz',        color: dash.green,   bg: dash.greenLight },
-  { value: 'dirty',       label: 'Kirli',        color: dash.red,     bg: dash.redLight },
-  { value: 'in_progress', label: 'Temizleniyor', color: dash.orange,  bg: dash.orangeLight },
-  { value: 'inspected',   label: 'Denetlendi',   color: dash.primary, bg: dash.primaryLight },
+  { value: 'clean',       label: 'Temiz',              color: dash.green,   bg: dash.greenLight },
+  { value: 'dirty',       label: 'Kirli',              color: dash.red,     bg: dash.redLight },
+  { value: 'in_progress', label: 'Temizleniyor',       color: dash.orange,  bg: dash.orangeLight },
+  { value: 'cleaned',     label: 'Temizlendi',         color: '#0284C7',    bg: '#E0F2FE' },
+  { value: 'inspected',   label: 'Denetlendi',         color: dash.primary, bg: dash.primaryLight },
 ] as const
 
 const FLOOR_LABEL: Record<number, string> = {
@@ -397,13 +398,22 @@ export default function RoomsManager({ rooms, roomTypes }: Props) {
                                 : '—'}
                             </td>
                             <td className="px-4 py-3">
-                              <button
-                                onClick={() => setEditingRoomId(editingRoomId === room.id ? null : room.id)}
-                                className="text-xs px-2 py-1 rounded-lg border transition-opacity hover:opacity-80"
-                                style={{ color: 'var(--color-accent)', borderColor: 'var(--color-admin-border)' }}
-                              >
-                                {editingRoomId === room.id ? 'İptal' : 'Düzenle'}
-                              </button>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => setEditingRoomId(editingRoomId === room.id ? null : room.id)}
+                                  className="text-xs px-2 py-1 rounded-lg border transition-opacity hover:opacity-80"
+                                  style={{ color: 'var(--color-accent)', borderColor: 'var(--color-admin-border)' }}
+                                >
+                                  {editingRoomId === room.id ? 'İptal' : 'Düzenle'}
+                                </button>
+                                <a
+                                  href={`/rooms/${room.id}`}
+                                  className="text-xs px-2 py-1 rounded-lg border transition-opacity hover:opacity-80"
+                                  style={{ color: 'var(--color-admin-muted)', borderColor: 'var(--color-admin-border)' }}
+                                >
+                                  Eşyalar →
+                                </a>
+                              </div>
                             </td>
                           </tr>
                           {editingRoomId === room.id && (

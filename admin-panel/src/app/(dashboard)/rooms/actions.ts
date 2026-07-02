@@ -120,6 +120,50 @@ export async function updateRoomAction(
   return { success: true }
 }
 
+// ─── Oda Eşyaları ────────────────────────────────────────────────────────────
+
+export async function addRoomItemAction(
+  roomId: string,
+  formData: FormData
+): Promise<{ error?: string; success?: boolean }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Oturum geçersiz.' }
+
+  const schema = z.object({
+    name: z.string().min(1, 'Eşya adı zorunlu'),
+    expected_qty: z.coerce.number().int().min(1),
+  })
+  const parsed = schema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) return { error: parsed.error.issues[0].message }
+
+  const service = createServiceClient()
+  const { error } = await service.from('room_items').insert({
+    room_id: roomId,
+    name: parsed.data.name,
+    expected_qty: parsed.data.expected_qty,
+  })
+
+  if (error) return { error: error.message }
+  revalidatePath(`/rooms/${roomId}`)
+  return { success: true }
+}
+
+export async function deleteRoomItemAction(
+  itemId: string,
+  roomId: string
+): Promise<{ error?: string }> {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: 'Oturum geçersiz.' }
+
+  const service = createServiceClient()
+  const { error } = await service.from('room_items').delete().eq('id', itemId)
+  if (error) return { error: error.message }
+  revalidatePath(`/rooms/${roomId}`)
+  return {}
+}
+
 // ─── Temizlik Durumu Güncelleme ───────────────────────────────────────────────
 
 export async function updateCleaningStatusAction(

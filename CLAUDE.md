@@ -378,6 +378,18 @@ Mert "nar çarpışması" konsepti önerdi. Konsept henüz karara bağlanmadı �
   - `pnpm build` başarılı; kök package.json eklendi (pnpm dev artık kökten çalışıyor)
   - ⚠️ Ekran görüntüsü alınamadı (headless tarayıcı yok) — kullanıcı tarayıcıda doğrulayacak
 
+- [x] Admin panel: Rol Bazlı Panel Genişlemesi (2 Temmuz 2026)
+  - DB migration 007: `cleaned` enum değeri + room_items, room_inspections, inventory_purchases, garden_tasks tabloları
+  - Dashboard sadeleştirildi: Finans bölümü kaldırıldı; Genel Bakış → Toplam/Dolu/Boş Oda + Konaklayan Kişi (tıklanamaz)
+  - StatCard: href + deltaPercent opsiyonel
+  - Temizlik: cleaned durumu + rol bazlı butonlar + /housekeeping/[roomId] denetim sayfası
+  - Oda Eşya Yönetimi: /rooms/[id] (admin); RoomsManager'a "Eşyalar →" linki
+  - /depo: herkes alım girebilir; kategori→form→kayıt
+  - /finance: sadece admin; gelir/gider UZS+USD ayrı toplamlar
+  - /garden: görev listesi + bahçe malzemeleri
+  - SidebarNav + middleware: yeni roller ve sayfalar eklendi
+  - pnpm build başarılı ✓
+
 ## Sonraki Adımlar (Kalan — sadece merchant hesabı sonrası)
 1. Payme/Click/Uzum gerçek entegrasyon — UI + endpoint hazır, sadece merchant credentials bekleniyor
 
