@@ -16,7 +16,6 @@ import {
   Wallet,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import DashboardTopbar from '@/components/admin/DashboardTopbar'
 import StatCard from '@/components/admin/StatCard'
 import RoomStatusGrid, { type RoomStatusRow } from '@/components/admin/RoomStatusGrid'
 import RevenueAreaChart from '@/components/admin/RevenueAreaChart'
@@ -24,14 +23,6 @@ import RecentBookingsList, { type RecentBooking } from '@/components/admin/Recen
 import MonthSummaryCard from '@/components/admin/MonthSummaryCard'
 
 // ─── Sabitler ───────────────────────────────────────────────────────────────
-
-const ROLE_LABELS: Record<string, string> = {
-  admin: 'Admin',
-  manager: 'Müdür',
-  receptionist: 'Resepsiyon',
-  housekeeper: 'Temizlik',
-  accountant: 'Muhasebeci',
-}
 
 function toDateStr(d: Date): string {
   return d.toISOString().split('T')[0]
@@ -48,12 +39,6 @@ async function fetchUserName(userId: string, fallback: string): Promise<string> 
   const supabase = await createClient()
   const { data } = await supabase.from('profiles').select('full_name').eq('id', userId).single()
   return data?.full_name || fallback
-}
-
-async function fetchPendingPaymentsCount(): Promise<number> {
-  const supabase = await createClient()
-  const { count } = await supabase.from('payments').select('id', { count: 'exact', head: true }).eq('status', 'pending')
-  return count ?? 0
 }
 
 async function fetchStatCardsData() {
@@ -248,16 +233,14 @@ export default async function DashboardPage({
   if (!user) redirect('/login')
 
   const { blocked } = await searchParams
-  const role = (user.user_metadata?.role as string | undefined) ?? 'receptionist'
 
-  const [stats, roomStatusList, cleaning, revenueTrend, recentBookings, pendingReservations, pendingPaymentsCount, userName] = await Promise.all([
+  const [stats, roomStatusList, cleaning, revenueTrend, recentBookings, pendingReservations, userName] = await Promise.all([
     fetchStatCardsData(),
     fetchRoomStatusList(),
     fetchCleaningStatus(),
     fetchRevenueTrend(),
     fetchRecentBookings(),
     fetchPendingReservations(),
-    fetchPendingPaymentsCount(),
     fetchUserName(user.id, user.email ?? 'Kullanıcı'),
   ])
   const monthSummary = await fetchMonthSummary()
@@ -271,14 +254,12 @@ export default async function DashboardPage({
 
   return (
     <div className="space-y-6">
-      <DashboardTopbar
-        title="Dashboard"
-        subtitle={todayLabel}
-        userName={userName}
-        roleLabel={ROLE_LABELS[role] ?? role}
-        pendingReservations={pendingReservations.length}
-        pendingPayments={pendingPaymentsCount}
-      />
+      <div>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          Hoş geldin, {userName}
+        </h1>
+        <p className="text-sm mt-0.5 capitalize text-muted-foreground">{todayLabel}</p>
+      </div>
 
       {blocked === '1' && (
         <div className="rounded-lg p-4 flex items-center gap-3 bg-destructive/10">

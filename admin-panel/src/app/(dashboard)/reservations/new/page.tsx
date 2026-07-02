@@ -33,7 +33,7 @@ export default async function NewReservationPage() {
           ← Takvim
         </Link>
         <span style={{ color: 'var(--color-admin-border)' }}>/</span>
-        <h1 className="text-2xl font-semibold text-[#15112B]">Yeni Rezervasyon</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Yeni Rezervasyon</h1>
       </div>
 
       {rooms.length === 0 && (

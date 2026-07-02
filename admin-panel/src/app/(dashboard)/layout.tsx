@@ -1,7 +1,16 @@
 import { createClient } from '@/lib/supabase-server'
 import SidebarNav from '@/components/admin/SidebarNav'
+import AppTopbar from '@/components/admin/AppTopbar'
 
 export const dynamic = 'force-dynamic'
+
+const ROLE_LABELS: Record<string, string> = {
+  admin: 'Admin',
+  manager: 'Müdür',
+  receptionist: 'Resepsiyon',
+  housekeeper: 'Temizlik',
+  accountant: 'Muhasebeci',
+}
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -9,6 +18,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const role = (user?.user_metadata?.role as string | undefined) ?? 'receptionist'
   const userEmail = user?.email ?? ''
+  // Ek sorgu atmamak için ad, metadata'dan; yoksa e-postanın @ öncesi kullanılır
+  const userName =
+    (user?.user_metadata?.full_name as string | undefined) ||
+    (userEmail ? userEmail.split('@')[0] : 'Kullanıcı')
 
   const [pendingReservations, pendingPayments] = await Promise.all([
     supabase.from('reservations').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
@@ -21,12 +34,20 @@ export default async function DashboardLayout({ children }: { children: React.Re
   }
 
   return (
-    <div className="min-h-screen flex bg-muted/40">
+    <div className="min-h-screen flex bg-background">
       <SidebarNav role={role} userEmail={userEmail} badges={badges} />
-      {/* pt-[calc(3.5rem+1rem)] = mobil top bar (56px) + padding */}
-      <main className="flex-1 min-w-0 px-4 md:px-8 py-4 md:py-8 pt-[calc(3.5rem+1rem)] md:pt-8 overflow-auto">
-        {children}
-      </main>
+      <div className="flex-1 min-w-0 flex flex-col">
+        <AppTopbar
+          userName={userName}
+          roleLabel={ROLE_LABELS[role] ?? role}
+          pendingReservations={badges.reservations}
+          pendingPayments={badges.payments}
+        />
+        {/* pt-[calc(3.5rem+1rem)] = mobil top bar (56px) + padding */}
+        <main className="px-4 md:px-8 py-4 md:py-6 pt-[calc(3.5rem+1rem)] md:pt-6 overflow-auto">
+          {children}
+        </main>
+      </div>
     </div>
   )
 }

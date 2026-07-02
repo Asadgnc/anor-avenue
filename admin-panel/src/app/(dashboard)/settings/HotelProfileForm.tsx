@@ -18,7 +18,7 @@ const initState: HotelProfileState = {}
 const inputClass = 'w-full px-3 py-2 rounded-lg text-sm border outline-none transition-colors'
 const inputStyle = {
   backgroundColor: 'var(--color-admin-card)',
-  color: '#15112B',
+  color: 'var(--foreground)',
   borderColor: 'var(--color-admin-border)',
 }
 

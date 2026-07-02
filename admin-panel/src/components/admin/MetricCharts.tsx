@@ -1,7 +1,5 @@
 // Saf SVG bar chart bileşeni — harici kütüphane yok, Server Component uyumlu
 
-import { dash } from '@/lib/dashboardTheme'
-
 interface DayMetric {
   date: string
   occupancy: number
@@ -62,28 +60,26 @@ interface ChartCardProps {
 
 function ChartCard({ title, subtitle, color, data, getValue, maxValue, currentValue, trend }: ChartCardProps) {
   return (
-    <div
-      className="rounded-xl border p-5 flex flex-col gap-3"
-      style={{ backgroundColor: 'var(--color-admin-card)', borderColor: 'var(--color-admin-border)' }}
-    >
+    <div className="rounded-xl bg-card ring-1 ring-foreground/10 p-5 flex flex-col gap-3">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-admin-muted)' }}>
+          <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
             {title}
           </p>
-          <p className="text-2xl font-bold tabular-nums mt-1" style={{ color }}>
+          <p className="text-2xl font-bold tabular-nums mt-1 text-foreground">
             {currentValue}
           </p>
-          <p className="text-xs mt-0.5" style={{ color: 'var(--color-admin-muted)' }}>
+          <p className="text-xs mt-0.5 text-muted-foreground">
             {subtitle}
           </p>
         </div>
-        <span className="text-xs font-medium px-2 py-1 rounded-full" style={{ backgroundColor: 'var(--color-admin-bg)', color: 'var(--color-admin-muted)' }}>
+        <span className="text-xs font-medium px-2 py-1 rounded-full bg-muted text-muted-foreground">
           {trend}
         </span>
       </div>
       <BarChart data={data} getValue={getValue} color={color} maxValue={maxValue} />
-      <div className="flex justify-between text-xs" style={{ color: 'var(--color-admin-muted)' }}>
+      <div className="flex justify-between text-xs text-muted-foreground">
         <span>{data[0]?.date.slice(5) ?? ''}</span>
         <span>Son 30 gün</span>
         <span>{data[data.length - 1]?.date.slice(5) ?? ''}</span>
@@ -121,7 +117,7 @@ export default function MetricCharts({ data }: MetricChartsProps) {
       <ChartCard
         title="Doluluk"
         subtitle={`Ort. ${avgOccupancy.toFixed(1)}% / Bugün ${last.occupancy.toFixed(1)}%`}
-        color={dash.blue}
+        color="var(--chart-1)"
         data={data}
         getValue={(d) => d.occupancy}
         maxValue={maxOccupancy}
@@ -131,7 +127,7 @@ export default function MetricCharts({ data }: MetricChartsProps) {
       <ChartCard
         title="ADR"
         subtitle={`Ort. ${formatUZS(avgAdr)} K UZS / gece`}
-        color="var(--color-accent)"
+        color="var(--chart-2)"
         data={data}
         getValue={(d) => d.adr}
         maxValue={maxAdr}
@@ -141,7 +137,7 @@ export default function MetricCharts({ data }: MetricChartsProps) {
       <ChartCard
         title="RevPAR"
         subtitle={`Ort. ${formatUZS(avgRevpar)} K UZS`}
-        color={dash.green}
+        color="var(--chart-4)"
         data={data}
         getValue={(d) => d.revpar}
         maxValue={maxRevpar}

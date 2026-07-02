@@ -32,7 +32,7 @@ type BadgeKey = 'reservations' | 'payments'
 type NavLink = {
   href: string
   label: string
-  icon: React.ComponentType<{ size?: number }>
+  icon: React.ComponentType<{ size?: number; className?: string }>
   roles: UserRole[]
   badgeKey?: BadgeKey
 }
@@ -109,13 +109,13 @@ export default function SidebarNav({ role, userEmail, badges = {} }: Props) {
               href={href}
               onClick={() => setMobileOpen(false)}
               className={cn(
-                'flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                'relative flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150',
                 active
-                  ? 'bg-sidebar-primary text-sidebar-primary-foreground'
+                  ? 'bg-sidebar-accent text-sidebar-foreground before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[3px] before:rounded-full before:bg-sidebar-primary'
                   : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'
               )}
             >
-              <Icon size={16} />
+              <Icon size={16} className={active ? 'text-sidebar-primary' : undefined} />
               <span className="flex-1">{label}</span>
               {!!badgeValue && (
                 <span className="text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center bg-destructive text-white">
@@ -138,7 +138,7 @@ export default function SidebarNav({ role, userEmail, badges = {} }: Props) {
 
         <button
           onClick={handleLogout}
-          className="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm w-full transition-colors text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+          className="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm w-full transition-colors duration-150 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
         >
           <LogOut size={16} />
           Çıkış Yap
@@ -168,8 +168,8 @@ export default function SidebarNav({ role, userEmail, badges = {} }: Props) {
         </SheetContent>
       </Sheet>
 
-      {/* ── Desktop sidebar ── */}
-      <aside className="hidden md:flex md:sticky md:top-4 w-64 flex-col shrink-0 self-start md:m-4 md:rounded-2xl md:h-[calc(100vh-2rem)] bg-sidebar text-sidebar-foreground">
+      {/* ── Desktop sidebar — tam yükseklik, sağdan ince çizgiyle ayrılır ── */}
+      <aside className="hidden md:flex md:sticky md:top-0 w-64 md:h-screen flex-col shrink-0 self-start bg-sidebar text-sidebar-foreground border-r border-sidebar-border">
         {navContent}
       </aside>
     </>

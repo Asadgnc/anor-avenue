@@ -15,7 +15,7 @@ export default function NewGuestFormClient() {
     }
   }, [state.guestId, router])
 
-  const inputClass = 'w-full px-3 py-2 rounded-lg text-sm text-[#15112B] focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]'
+  const inputClass = 'w-full px-3 py-2 rounded-lg text-sm text-foreground focus:outline-none focus:ring-1 focus:ring-[var(--color-accent)]'
   const inputStyle = { backgroundColor: 'var(--color-admin-bg)', border: '1px solid var(--color-admin-border)' }
   const labelStyle: React.CSSProperties = {
     color: 'var(--color-admin-muted)',

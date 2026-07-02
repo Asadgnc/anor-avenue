@@ -59,7 +59,7 @@ export default async function ReservationsPage({ searchParams }: Props) {
       {/* Başlık */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-[#15112B]">Rezervasyon Takvimi</h1>
+          <h1 className="text-2xl font-semibold text-foreground">Rezervasyon Takvimi</h1>
           <p className="mt-1 text-sm" style={{ color: 'var(--color-admin-muted)' }}>
             {startDate} — {endDate} · {rooms.length} oda
           </p>

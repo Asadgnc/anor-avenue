@@ -1,22 +1,8 @@
-import { dash } from '@/lib/dashboardTheme'
+// Bölüm sarmalayıcı — pastel zemin yerine dashboard tarzı
+// büyük harfli bölüm başlığı + şeffaf zemin kullanır.
+// Prop arayüzü korunmuştur; `tone` görsel olarak artık kullanılmaz.
 
 type Tone = 'purple' | 'green' | 'orange' | 'blue' | 'neutral'
-
-const TONE_BG: Record<Tone, string> = {
-  purple: dash.zonePurple,
-  green: dash.zoneGreen,
-  orange: dash.zoneOrange,
-  blue: dash.zoneBlue,
-  neutral: dash.bg,
-}
-
-const TONE_ACCENT: Record<Tone, string> = {
-  purple: dash.primary,
-  green: dash.green,
-  orange: dash.orange,
-  blue: dash.blue,
-  neutral: dash.muted,
-}
 
 interface SectionZoneProps {
   tone: Tone
@@ -26,23 +12,17 @@ interface SectionZoneProps {
   children: React.ReactNode
 }
 
-export default function SectionZone({ tone, title, icon, action, children }: SectionZoneProps) {
+export default function SectionZone({ title, icon, action, children }: SectionZoneProps) {
   return (
-    <div className="rounded-3xl p-4 md:p-5" style={{ backgroundColor: TONE_BG[tone] }}>
-      <div className="flex items-center justify-between gap-3 mb-3 px-1">
-        <div className="flex items-center gap-2">
-          {icon && (
-            <span style={{ color: TONE_ACCENT[tone] }} className="shrink-0">
-              {icon}
-            </span>
-          )}
-          <p className="text-sm font-semibold" style={{ color: dash.text }}>
-            {title}
-          </p>
-        </div>
+    <section className="space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          {icon && <span className="shrink-0 [&>svg]:size-3.5">{icon}</span>}
+          {title}
+        </h2>
         {action}
       </div>
       {children}
-    </div>
+    </section>
   )
 }

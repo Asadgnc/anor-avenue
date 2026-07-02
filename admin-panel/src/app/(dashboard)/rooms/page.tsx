@@ -29,7 +29,7 @@ export default async function RoomsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-[#15112B]">Oda Yönetimi</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Oda Yönetimi</h1>
         <p className="mt-1 text-sm" style={{ color: 'var(--color-admin-muted)' }}>
           {rooms.length} aktif oda · Durumları buradan güncelleyebilirsiniz
         </p>

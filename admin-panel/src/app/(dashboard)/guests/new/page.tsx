@@ -18,7 +18,7 @@ export default async function NewGuestPage() {
         >
           ← Misafirler
         </Link>
-        <h1 className="text-2xl font-semibold text-[#15112B]">Yeni Misafir</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Yeni Misafir</h1>
       </div>
 
       <div className="rounded-2xl p-6" style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}>

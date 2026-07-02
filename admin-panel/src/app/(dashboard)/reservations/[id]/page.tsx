@@ -78,7 +78,7 @@ function Row({ label, value }: { label: string; value: string | ReactNode }) {
   return (
     <div className="flex justify-between gap-4 py-2.5 text-sm" style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
       <span style={{ color: 'var(--color-admin-muted)' }}>{label}</span>
-      <span className="text-[#15112B] text-right">{value}</span>
+      <span className="text-foreground text-right">{value}</span>
     </div>
   )
 }
@@ -139,7 +139,7 @@ export default async function ReservationDetailPage({
         </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-2xl font-semibold text-[#15112B]">
+            <h1 className="text-2xl font-semibold text-foreground">
               {res.guests?.first_name} {res.guests?.last_name}
             </h1>
             <span
@@ -279,7 +279,7 @@ export default async function ReservationDetailPage({
             {payments.map((p) => (
               <div key={p.id} className="px-5 py-3 flex items-center justify-between text-sm gap-3">
                 <div className="flex-1 min-w-0">
-                  <span className="text-[#15112B] font-medium">{METHOD_LABELS[p.method]}</span>
+                  <span className="text-foreground font-medium">{METHOD_LABELS[p.method]}</span>
                   {p.notes && (
                     <span className="ml-2 text-xs" style={{ color: 'var(--color-admin-muted)' }}>
                       {p.notes}

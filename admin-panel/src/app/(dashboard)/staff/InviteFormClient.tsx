@@ -18,7 +18,7 @@ export default function InviteFormClient() {
 
   const inputStyle = {
     backgroundColor: 'var(--color-admin-card)',
-    color: '#15112B',
+    color: 'var(--foreground)',
     borderColor: 'var(--color-admin-border)',
   }
 

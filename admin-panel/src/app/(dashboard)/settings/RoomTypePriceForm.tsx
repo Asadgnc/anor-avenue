@@ -20,7 +20,7 @@ export default function RoomTypePriceForm({ id, name, basePrice }: Props) {
   return (
     <form action={action} className="flex items-center gap-3">
       <input type="hidden" name="roomTypeId" value={id} />
-      <span className="text-sm text-[#15112B] min-w-36">{name}</span>
+      <span className="text-sm text-foreground min-w-36">{name}</span>
       <div className="flex items-center gap-2 flex-1">
         <input
           name="basePrice"
@@ -31,7 +31,7 @@ export default function RoomTypePriceForm({ id, name, basePrice }: Props) {
           className="px-3 py-2 rounded-lg text-sm border outline-none w-40 tabular-nums"
           style={{
             backgroundColor: 'var(--color-admin-card)',
-            color: '#15112B',
+            color: 'var(--foreground)',
             borderColor: state.error ? '#EF4444' : 'var(--color-admin-border)',
           }}
         />

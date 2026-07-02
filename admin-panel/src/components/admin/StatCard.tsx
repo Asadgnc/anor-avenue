@@ -15,7 +15,7 @@ export default function StatCard({ icon, label, value, deltaPercent, href }: Sta
 
   return (
     <Link href={href}>
-      <Card className="transition-colors hover:bg-muted/40">
+      <Card className="transition-shadow duration-150 hover:ring-foreground/20">
         <CardContent className="flex flex-col gap-3">
           <div className="flex items-center justify-between">
             <span className="w-8 h-8 rounded-full flex items-center justify-center shrink-0 bg-muted text-muted-foreground">

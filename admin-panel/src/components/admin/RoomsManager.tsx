@@ -334,7 +334,7 @@ export default function RoomsManager({ rooms, roomTypes }: Props) {
           className="rounded-2xl p-12 text-center"
           style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
         >
-          <p className="text-[#15112B]">Henüz oda yok.</p>
+          <p className="text-foreground">Henüz oda yok.</p>
           <p className="text-sm mt-1" style={{ color: 'var(--color-admin-muted)' }}>Yukarıdan oda ekleyin.</p>
         </div>
       ) : (
@@ -373,7 +373,7 @@ export default function RoomsManager({ rooms, roomTypes }: Props) {
                           <tr
                             style={{ backgroundColor: 'var(--color-admin-card)', borderBottom: '1px solid var(--color-admin-border)' }}
                           >
-                            <td className="px-4 py-3 font-semibold text-[#15112B]">{room.room_number}</td>
+                            <td className="px-4 py-3 font-semibold text-foreground">{room.room_number}</td>
                             <td className="px-4 py-3" style={{ color: 'var(--color-admin-muted)' }}>
                               {room.room_types?.name ?? '—'}
                             </td>

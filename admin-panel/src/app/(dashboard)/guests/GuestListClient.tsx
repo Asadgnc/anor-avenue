@@ -38,7 +38,7 @@ export default function GuestListClient({ guests }: Props) {
         style={{
           backgroundColor: 'var(--color-admin-card)',
           border: '1px solid var(--color-admin-border)',
-          color: '#15112B',
+          color: 'var(--foreground)',
         }}
       />
 
@@ -88,7 +88,7 @@ export default function GuestListClient({ guests }: Props) {
                     style={{ borderBottom: '1px solid var(--color-admin-border)' }}
                     className="hover:bg-black/[0.03] transition-colors"
                   >
-                    <td className="px-5 py-3 font-medium text-[#15112B]">
+                    <td className="px-5 py-3 font-medium text-foreground">
                       {g.first_name} {g.last_name}
                     </td>
                     <td className="px-5 py-3" style={{ color: 'var(--color-admin-muted)' }}>

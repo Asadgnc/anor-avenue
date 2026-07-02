@@ -92,7 +92,7 @@ export default async function GuestDetailPage({ params }: { params: Promise<{ id
           ← Misafirler
         </Link>
         <div>
-          <h1 className="text-2xl font-semibold text-[#15112B]">
+          <h1 className="text-2xl font-semibold text-foreground">
             {guest.first_name} {guest.last_name}
           </h1>
           <p className="text-xs mt-0.5" style={{ color: 'var(--color-admin-muted)' }}>
@@ -121,7 +121,7 @@ export default async function GuestDetailPage({ params }: { params: Promise<{ id
                 className="flex items-center justify-between px-5 py-3 hover:bg-black/[0.03] transition-colors"
               >
                 <div>
-                  <p className="text-sm font-mono text-[#15112B]">{r.reservation_code}</p>
+                  <p className="text-sm font-mono text-foreground">{r.reservation_code}</p>
                   <p className="text-xs mt-0.5" style={{ color: 'var(--color-admin-muted)' }}>
                     {r.check_in} → {r.check_out} · {r.rooms?.room_number ?? '—'} {r.rooms?.room_types?.name ?? ''}
                   </p>

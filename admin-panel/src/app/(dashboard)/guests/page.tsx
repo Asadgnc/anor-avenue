@@ -22,7 +22,7 @@ export default async function GuestsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-[#15112B]">Misafirler</h1>
+          <h1 className="text-2xl font-semibold text-foreground">Misafirler</h1>
           <p className="mt-1 text-sm" style={{ color: 'var(--color-admin-muted)' }}>
             {rows.length} kayıt
           </p>

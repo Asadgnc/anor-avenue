@@ -364,6 +364,20 @@ Mert "nar çarpışması" konsepti önerdi. Konsept henüz karara bağlanmadı �
   - Rezervasyon düzenleme formu: aynı alanlar eklendi
   - Rezervasyon detay sayfası: kahvaltı + beklenen saat bilgisi gösterimi eklendi
 
+- [x] Admin panel: tam tasarım yenileme — "Lacivert + Altın" kurumsal tema (2 Temmuz 2026)
+  - Kullanıcı onayıyla seçilen palet: koyu lacivert sidebar (#16233B), açık gri zemin (#F8FAFC), beyaz kartlar, altın vurgu (#B45309 metin / #D9A441 koyu zeminde)
+  - İki çakışan stil sistemi birleştirildi: globals.css token'ları + dashboardTheme.ts aynı palete eşlendi (eski inline stilli ~25 sayfa otomatik yeni renkleri aldı)
+  - Pastel "tonlu bölgeler" (SectionZone) kaldırıldı → şeffaf zemin + büyük harfli bölüm başlığı (önceki tasarım kullanıcı tarafından beğenilmemişti)
+  - Sidebar: yüzen kart yerine tam yükseklik; aktif linkte altın sol çubuk + altın ikon; logo kutusu altın
+  - Yeni ortak üst bar (AppTopbar): tüm sayfalarda sayfa adı + bildirim zilleri + kullanıcı kartı; DashboardTopbar silindi, dashboard'a "Hoş geldin" başlığı geldi
+  - Grafikler griden lacivert/mavi/altın tonlarına geçti (--chart-1..5 token'ları)
+  - Gölge yerine tek yükseklik dili: ince çizgi (ring-1); --shadow-card da buna eşlendi
+  - Tam sınıf geçişi yapılan sayfalar: payments, reports, reservations/list, ReservationCalendar (+ tabular-nums, StatusBadge, hover durumları)
+  - Takvimde "bugün" sütunu altın vurgulu (bg-gold-soft)
+  - Sabit hex renkler temizlendi (text-[#15112B] → text-foreground vb.)
+  - `pnpm build` başarılı; kök package.json eklendi (pnpm dev artık kökten çalışıyor)
+  - ⚠️ Ekran görüntüsü alınamadı (headless tarayıcı yok) — kullanıcı tarayıcıda doğrulayacak
+
 ## Sonraki Adımlar (Kalan — sadece merchant hesabı sonrası)
 1. Payme/Click/Uzum gerçek entegrasyon — UI + endpoint hazır, sadece merchant credentials bekleniyor
 

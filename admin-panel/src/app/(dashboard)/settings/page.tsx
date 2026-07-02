@@ -50,7 +50,7 @@ export default async function SettingsPage() {
   return (
     <div className="space-y-8 max-w-2xl">
       <div>
-        <h1 className="text-2xl font-semibold text-[#15112B]">Ayarlar</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Ayarlar</h1>
         <p className="text-sm mt-1" style={{ color: 'var(--color-admin-muted)' }}>
           Otel profili, oda fiyatları ve bildirim konfigürasyonu
         </p>
@@ -62,7 +62,7 @@ export default async function SettingsPage() {
         style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
       >
         <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
-          <h2 className="text-sm font-semibold text-[#15112B]">Otel Profili</h2>
+          <h2 className="text-sm font-semibold text-foreground">Otel Profili</h2>
           <p className="text-xs mt-0.5" style={{ color: 'var(--color-admin-muted)' }}>
             Fatura ve onay e-postalarında kullanılır
           </p>
@@ -86,7 +86,7 @@ export default async function SettingsPage() {
         style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
       >
         <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
-          <h2 className="text-sm font-semibold text-[#15112B]">Oda Tipi Fiyatları</h2>
+          <h2 className="text-sm font-semibold text-foreground">Oda Tipi Fiyatları</h2>
           <p className="text-xs mt-0.5" style={{ color: 'var(--color-admin-muted)' }}>
             Değişiklik anında aktif olur — yeni rezervasyonlara yansır
           </p>
@@ -109,7 +109,7 @@ export default async function SettingsPage() {
         style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
       >
         <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
-          <h2 className="text-sm font-semibold text-[#15112B]">Email Bildirimleri</h2>
+          <h2 className="text-sm font-semibold text-foreground">Email Bildirimleri</h2>
           <p className="text-xs mt-0.5" style={{ color: 'var(--color-admin-muted)' }}>
             Vercel ortam değişkenlerinden okunur
           </p>
@@ -117,7 +117,7 @@ export default async function SettingsPage() {
         <div className="px-5 py-4 space-y-3 text-sm">
           <div className="flex justify-between">
             <span style={{ color: 'var(--color-admin-muted)' }}>Admin bildirim e-postası</span>
-            <span className="font-mono text-xs text-[#15112B]">{ADMIN_EMAIL}</span>
+            <span className="font-mono text-xs text-foreground">{ADMIN_EMAIL}</span>
           </div>
           <div className="flex justify-between">
             <span style={{ color: 'var(--color-admin-muted)' }}>Resend API</span>
@@ -132,7 +132,7 @@ export default async function SettingsPage() {
             className="mt-2 p-3 rounded-lg text-xs space-y-1"
             style={{ backgroundColor: 'var(--color-admin-bg)', color: 'var(--color-admin-muted)' }}
           >
-            <p className="font-semibold text-[#15112B]">Vercel ortam değişkenlerine şunları ekle:</p>
+            <p className="font-semibold text-foreground">Vercel ortam değişkenlerine şunları ekle:</p>
             <p className="font-mono">RESEND_API_KEY=re_xxxxxxxxxxxx</p>
             <p className="font-mono">ADMIN_NOTIFICATION_EMAIL=a.kenja3683@gmail.com</p>
             <p className="font-mono">EMAIL_FROM=Anor Avenue Hotel &lt;noreply@seninadresi.com&gt;</p>

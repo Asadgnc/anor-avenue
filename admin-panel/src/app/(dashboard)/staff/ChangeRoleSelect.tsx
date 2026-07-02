@@ -31,7 +31,7 @@ export default function ChangeRoleSelect({ userId, currentRole }: Props) {
         className="px-2 py-1 rounded text-xs border outline-none appearance-none"
         style={{
           backgroundColor: 'var(--color-admin-card)',
-          color: '#15112B',
+          color: 'var(--foreground)',
           borderColor: state.error ? '#EF4444' : 'var(--color-admin-border)',
         }}
       >

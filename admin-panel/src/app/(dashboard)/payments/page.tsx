@@ -1,9 +1,9 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
-import { Wallet } from 'lucide-react'
+import { Wallet, CreditCard } from 'lucide-react'
 import type { Payment, PaymentMethod, PaymentStatus } from '@/types/hotel'
-import { dash } from '@/lib/dashboardTheme'
 import SectionZone from '@/components/admin/SectionZone'
+import StatusBadge, { type StatusTone } from '@/components/admin/StatusBadge'
 
 interface PaymentWithReservation extends Payment {
   reservations: {
@@ -20,11 +20,11 @@ const METHOD_LABELS: Record<PaymentMethod, string> = {
   transfer: 'Havale',
 }
 
-const STATUS_CONFIG: Record<PaymentStatus, { label: string; color: string; bg: string }> = {
-  pending:   { label: 'Bekliyor',   color: dash.orange, bg: dash.orangeLight },
-  completed: { label: 'Tamamlandı', color: dash.green,  bg: dash.greenLight },
-  failed:    { label: 'Başarısız',  color: dash.red,     bg: dash.redLight },
-  refunded:  { label: 'İade',       color: dash.muted,   bg: dash.border },
+const STATUS_CONFIG: Record<PaymentStatus, { label: string; tone: StatusTone }> = {
+  pending:   { label: 'Bekliyor',   tone: 'warning' },
+  completed: { label: 'Tamamlandı', tone: 'success' },
+  failed:    { label: 'Başarısız',  tone: 'error' },
+  refunded:  { label: 'İade',       tone: 'neutral' },
 }
 
 function formatUZS(amount: number): string {
@@ -54,45 +54,35 @@ export default async function PaymentsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-semibold text-[#15112B]">Ödemeler</h1>
-        <p className="mt-1 text-sm" style={{ color: 'var(--color-admin-muted)' }}>
-          {rows.length} kayıt
-        </p>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Ödemeler</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{rows.length} kayıt</p>
       </div>
 
-      {/* Summary cards — yeşil tonlu bölge */}
+      {/* Özet kartları */}
       <SectionZone tone="green" title="Ödeme Özeti" icon={<Wallet size={16} />}>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <SummaryCard label="Toplam Gelir" value={formatUZS(totalCompleted)} color={dash.green} />
-          <SummaryCard label="Bekleyen Ödeme" value={String(pendingCount)} color={dash.orange} />
-          <SummaryCard label="Toplam Kayıt" value={String(rows.length)} color="var(--color-accent)" />
+          <SummaryCard label="Toplam Gelir" value={formatUZS(totalCompleted)} accent="text-success" />
+          <SummaryCard label="Bekleyen Ödeme" value={String(pendingCount)} accent="text-warning" />
+          <SummaryCard label="Toplam Kayıt" value={String(rows.length)} accent="text-primary" />
         </div>
       </SectionZone>
 
-      {/* Table */}
-      <div
-        style={{
-          backgroundColor: 'var(--color-admin-card)',
-          borderRadius: '0.75rem',
-          boxShadow: 'var(--shadow-card)',
-          overflow: 'hidden',
-        }}
-      >
+      {/* Tablo */}
+      <div className="rounded-xl bg-card ring-1 ring-foreground/10 overflow-hidden">
         {rows.length === 0 ? (
-          <div className="py-16 text-center" style={{ color: 'var(--color-admin-muted)' }}>
-            <p className="text-4xl mb-3">💳</p>
+          <div className="py-16 text-center text-muted-foreground">
+            <CreditCard size={28} className="mx-auto mb-3 opacity-50" />
             <p>Henüz ödeme kaydı yok.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
+                <tr className="border-b border-border">
                   {['Rezervasyon', 'Misafir', 'Tutar', 'Yöntem', 'Durum', 'Tarih'].map((h) => (
                     <th
                       key={h}
-                      className="text-left px-5 py-3 text-xs font-semibold uppercase tracking-widest"
-                      style={{ color: 'var(--color-admin-muted)' }}
+                      className="text-left px-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
                     >
                       {h}
                     </th>
@@ -106,36 +96,24 @@ export default async function PaymentsPage() {
                   return (
                     <tr
                       key={p.id}
-                      style={{ borderBottom: '1px solid var(--color-admin-border)' }}
-                      className="hover:bg-black/[0.03] transition-colors"
+                      className="border-b border-border hover:bg-muted/50 transition-colors duration-150"
                     >
-                      <td className="px-5 py-3 font-mono text-xs text-[#15112B]">
+                      <td className="px-5 py-3 font-mono text-xs text-foreground">
                         {p.reservations?.reservation_code ?? '—'}
                       </td>
-                      <td className="px-5 py-3 text-[#15112B]">
+                      <td className="px-5 py-3 text-foreground">
                         {guest ? `${guest.first_name} ${guest.last_name}` : '—'}
                       </td>
-                      <td className="px-5 py-3 font-semibold" style={{ color: 'var(--color-accent)' }}>
+                      <td className="px-5 py-3 font-semibold tabular-nums text-primary">
                         {formatUZS(p.amount)}
                       </td>
-                      <td className="px-5 py-3" style={{ color: 'var(--color-admin-muted)' }}>
+                      <td className="px-5 py-3 text-muted-foreground">
                         {METHOD_LABELS[p.method]}
                       </td>
                       <td className="px-5 py-3">
-                        <span
-                          style={{
-                            color: sc.color,
-                            backgroundColor: sc.bg,
-                            fontSize: '0.7rem',
-                            fontWeight: '700',
-                            padding: '0.2rem 0.6rem',
-                            borderRadius: '9999px',
-                          }}
-                        >
-                          {sc.label}
-                        </span>
+                        <StatusBadge tone={sc.tone}>{sc.label}</StatusBadge>
                       </td>
-                      <td className="px-5 py-3" style={{ color: 'var(--color-admin-muted)' }}>
+                      <td className="px-5 py-3 tabular-nums text-muted-foreground">
                         {p.paid_at
                           ? new Date(p.paid_at).toLocaleDateString('tr-TR')
                           : new Date(p.created_at).toLocaleDateString('tr-TR')}
@@ -152,22 +130,11 @@ export default async function PaymentsPage() {
   )
 }
 
-function SummaryCard({ label, value, color }: { label: string; value: string; color: string }) {
+function SummaryCard({ label, value, accent }: { label: string; value: string; accent: string }) {
   return (
-    <div
-      style={{
-        backgroundColor: 'var(--color-admin-card)',
-        boxShadow: 'var(--shadow-card)',
-        borderRadius: '0.75rem',
-        padding: '1.25rem',
-      }}
-    >
-      <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--color-admin-muted)' }}>
-        {label}
-      </p>
-      <p className="text-2xl font-bold tabular-nums" style={{ color }}>
-        {value}
-      </p>
+    <div className="rounded-xl bg-card ring-1 ring-foreground/10 p-5">
+      <p className="text-xs font-semibold uppercase tracking-wide mb-2 text-muted-foreground">{label}</p>
+      <p className={`text-2xl font-bold tabular-nums ${accent}`}>{value}</p>
     </div>
   )
 }

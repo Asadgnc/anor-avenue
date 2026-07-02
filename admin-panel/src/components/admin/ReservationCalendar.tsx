@@ -4,6 +4,7 @@ import { Fragment, useMemo, useState } from 'react'
 import Link from 'next/link'
 import type { Room, Reservation, ReservationStatus } from '@/types/hotel'
 import { dash } from '@/lib/dashboardTheme'
+import { cn } from '@/lib/utils'
 
 // ─── Renk / Durum Tablosu ────────────────────────────────────────────────────
 
@@ -90,7 +91,7 @@ function Legend() {
               className="w-3 h-3 rounded-sm border"
               style={{ backgroundColor: cfg.bg, borderColor: cfg.border }}
             />
-            <span className="text-xs" style={{ color: 'var(--color-admin-muted)' }}>
+            <span className="text-xs text-muted-foreground">
               {cfg.label}
             </span>
           </div>
@@ -117,22 +118,21 @@ function ReservationDetail({
       onClick={onClose}
     >
       <div
-        className="rounded-xl border p-6 w-full max-w-sm shadow-2xl"
-        style={{ backgroundColor: 'var(--color-admin-card)', borderColor: cfg.border }}
+        className="rounded-xl border p-6 w-full max-w-sm shadow-2xl bg-card"
+        style={{ borderColor: cfg.border }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Başlık */}
         <div className="flex items-start justify-between mb-5">
           <div>
-            <p className="font-semibold text-[#15112B] text-lg">{guestFullName(reservation)}</p>
+            <p className="font-semibold text-foreground text-lg">{guestFullName(reservation)}</p>
             <p className="text-xs mt-0.5 font-mono" style={{ color: cfg.text }}>
               {reservation.reservation_code}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="text-sm px-2 py-1 rounded-lg transition-opacity hover:opacity-70"
-            style={{ color: 'var(--color-admin-muted)', backgroundColor: 'var(--color-admin-bg)' }}
+            className="text-sm px-2 py-1 rounded-lg transition-opacity hover:opacity-70 text-muted-foreground bg-muted"
           >
             ✕
           </button>
@@ -163,8 +163,7 @@ function ReservationDetail({
         <Link
           href={`/reservations/${reservation.id}`}
           onClick={onClose}
-          className="block mt-5 text-center py-2 rounded-lg text-sm font-semibold transition-opacity hover:opacity-80"
-          style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
+          className="block mt-5 text-center py-2 rounded-lg text-sm font-semibold transition-opacity hover:opacity-90 duration-150 bg-primary text-primary-foreground"
         >
           Detay & İşlemler →
         </Link>
@@ -184,8 +183,8 @@ function DetailRow({
 }) {
   return (
     <div className="flex justify-between items-center text-sm gap-4">
-      <span style={{ color: 'var(--color-admin-muted)' }}>{label}</span>
-      {children ?? <span className="text-[#15112B] text-right">{value}</span>}
+      <span className="text-muted-foreground">{label}</span>
+      {children ?? <span className="text-foreground text-right">{value}</span>}
     </div>
   )
 }
@@ -218,12 +217,9 @@ export default function ReservationCalendar({ rooms, reservations, startDate }: 
 
   if (rooms.length === 0) {
     return (
-      <div
-        className="rounded-2xl p-16 text-center"
-        style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
-      >
-        <p className="text-[#15112B] font-medium mb-2">Henüz oda kaydı yok</p>
-        <p className="text-sm" style={{ color: 'var(--color-admin-muted)' }}>
+      <div className="rounded-xl p-16 text-center bg-card ring-1 ring-foreground/10">
+        <p className="text-foreground font-medium mb-2">Henüz oda kaydı yok</p>
+        <p className="text-sm text-muted-foreground">
           Supabase SQL Editor&apos;de <code className="font-mono">docs/schema.sql</code> çalıştırıldıktan
           sonra odalar burada görünecek.
         </p>
@@ -235,22 +231,12 @@ export default function ReservationCalendar({ rooms, reservations, startDate }: 
     <>
       <Legend />
 
-      <div
-        className="rounded-2xl overflow-x-auto"
-        style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
-      >
+      <div className="rounded-xl overflow-x-auto bg-card ring-1 ring-foreground/10">
         <table className="border-collapse text-sm" style={{ minWidth: '860px', width: '100%' }}>
           {/* ─ Başlık ─ */}
           <thead>
             <tr>
-              <th
-                className="sticky left-0 z-10 w-40 min-w-40 px-4 py-3 text-left text-xs font-medium"
-                style={{
-                  backgroundColor: 'var(--color-admin-card)',
-                  color: 'var(--color-admin-muted)',
-                  borderBottom: '1px solid var(--color-admin-border)',
-                }}
-              >
+              <th className="sticky left-0 z-10 w-40 min-w-40 px-4 py-3 text-left text-xs font-medium bg-card text-muted-foreground border-b border-border">
                 Oda
               </th>
               {dates.map((dateStr) => {
@@ -260,18 +246,14 @@ export default function ReservationCalendar({ rooms, reservations, startDate }: 
                 return (
                   <th
                     key={dateStr}
-                    className="w-12 min-w-12 px-0.5 py-2 text-center text-xs font-medium"
-                    style={{
-                      backgroundColor: isToday ? dash.primaryLight : 'var(--color-admin-card)',
-                      color: isToday
-                        ? 'var(--color-accent)'
+                    className={cn(
+                      'w-12 min-w-12 px-0.5 py-2 text-center text-xs font-medium',
+                      isToday
+                        ? 'bg-gold-soft text-gold border-b-2 border-gold'
                         : weekend
-                        ? dash.text
-                        : 'var(--color-admin-muted)',
-                      borderBottom: isToday
-                        ? '2px solid var(--color-accent)'
-                        : '1px solid var(--color-admin-border)',
-                    }}
+                        ? 'bg-card text-foreground border-b border-border'
+                        : 'bg-card text-muted-foreground border-b border-border'
+                    )}
                   >
                     <div className="leading-tight">{weekday}</div>
                     <div className="font-bold leading-tight">{day}</div>
@@ -289,13 +271,7 @@ export default function ReservationCalendar({ rooms, reservations, startDate }: 
                 <tr>
                   <td
                     colSpan={dates.length + 1}
-                    className="px-4 py-1.5 text-xs font-semibold uppercase tracking-widest"
-                    style={{
-                      color: 'var(--color-accent)',
-                      backgroundColor: dash.primaryLight,
-                      borderBottom: '1px solid var(--color-admin-border)',
-                      borderTop: '1px solid var(--color-admin-border)',
-                    }}
+                    className="px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-primary bg-accent border-y border-border"
                   >
                     {FLOOR_LABEL[floor] ?? `${floor}. Kat`}
                   </td>
@@ -307,20 +283,11 @@ export default function ReservationCalendar({ rooms, reservations, startDate }: 
                   return (
                     <tr key={room.id}>
                       {/* Oda Etiketi */}
-                      <td
-                        className="sticky left-0 z-10 px-4 py-2"
-                        style={{
-                          backgroundColor: 'var(--color-admin-card)',
-                          borderBottom: '1px solid var(--color-admin-border)',
-                        }}
-                      >
-                        <div className="font-semibold text-[#15112B] leading-tight">
+                      <td className="sticky left-0 z-10 px-4 py-2 bg-card border-b border-border">
+                        <div className="font-semibold text-foreground leading-tight">
                           {room.room_number}
                         </div>
-                        <div
-                          className="text-xs leading-tight mt-0.5"
-                          style={{ color: 'var(--color-admin-muted)' }}
-                        >
+                        <div className="text-xs leading-tight mt-0.5 text-muted-foreground">
                           {room.room_types?.name ?? '—'}
                         </div>
                       </td>
@@ -344,11 +311,7 @@ export default function ReservationCalendar({ rooms, reservations, startDate }: 
                         return (
                           <td
                             key={dateStr}
-                            className="px-0.5 py-1.5 align-middle"
-                            style={{
-                              borderBottom: '1px solid var(--color-admin-border)',
-                              backgroundColor: isToday ? dash.primaryLight : undefined,
-                            }}
+                            className={cn('px-0.5 py-1.5 align-middle border-b border-border', isToday && 'bg-gold-soft/40')}
                           >
                             {res && cfg ? (
                               <button

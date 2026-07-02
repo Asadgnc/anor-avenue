@@ -1,8 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { BarChart3 } from 'lucide-react'
-import { dash } from '@/lib/dashboardTheme'
+import { BarChart3, Download } from 'lucide-react'
 import SectionZone from '@/components/admin/SectionZone'
 
 function formatUZS(n: number) {
@@ -91,8 +90,8 @@ export default async function ReportsPage({
   if (!data) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-semibold text-[#15112B]">Günlük Rapor</h1>
-        <p style={{ color: dash.red }}>Rapor yüklenemedi.</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Günlük Rapor</h1>
+        <p className="text-destructive">Rapor yüklenemedi.</p>
       </div>
     )
   }
@@ -102,8 +101,8 @@ export default async function ReportsPage({
       {/* Başlık + Tarih Seçici */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-semibold text-[#15112B]">Günlük Rapor</h1>
-          <p className="mt-1 text-sm" style={{ color: 'var(--color-admin-muted)' }}>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Günlük Rapor</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             {new Date(date + 'T00:00:00').toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
         </div>
@@ -114,34 +113,31 @@ export default async function ReportsPage({
               type="date"
               defaultValue={date}
               max={today}
-              className="px-3 py-2 rounded-lg text-sm text-[#15112B] focus:outline-none"
-              style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
+              className="px-3 py-2 rounded-lg text-sm text-foreground bg-card ring-1 ring-foreground/10 focus:outline-none focus:ring-2 focus:ring-ring"
             />
             <button
               type="submit"
-              className="px-4 py-2 rounded-lg text-sm font-semibold transition-opacity hover:opacity-80"
-              style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
+              className="px-4 py-2 rounded-lg text-sm font-semibold bg-primary text-primary-foreground transition-opacity hover:opacity-90 duration-150"
             >
               Görüntüle
             </button>
           </form>
           <a
             href={`/api/reports/export?date=${date}`}
-            className="px-4 py-2 rounded-lg text-sm font-semibold transition-opacity hover:opacity-80 flex items-center gap-1.5"
-            style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)', color: dash.text }}
+            className="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 bg-card ring-1 ring-foreground/10 text-foreground transition-shadow hover:ring-foreground/20 duration-150"
           >
-            ↓ Excel İndir
+            <Download size={14} /> Excel İndir
           </a>
         </div>
       </div>
 
-      {/* Özet Kartlar — mor tonlu bölge */}
+      {/* Özet Kartlar */}
       <SectionZone tone="purple" title="Günün Özeti" icon={<BarChart3 size={16} />}>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <SummaryCard label="Doluluk" value={`${data.occupancyRate.toFixed(0)}%`} sub={`${data.occupiedRooms}/${data.totalRooms} oda`} color="var(--color-accent)" />
-          <SummaryCard label="Günlük Gelir" value={formatUZS(data.totalRevenue)} sub={`${data.payments.length} işlem`} color={dash.green} />
-          <SummaryCard label="Check-in" value={String(data.checkins.length)} sub="misafir girişi" color={dash.blue} />
-          <SummaryCard label="Check-out" value={String(data.checkouts.length)} sub="misafir çıkışı" color={dash.orange} />
+          <SummaryCard label="Doluluk" value={`${data.occupancyRate.toFixed(0)}%`} sub={`${data.occupiedRooms}/${data.totalRooms} oda`} accent="text-primary" />
+          <SummaryCard label="Günlük Gelir" value={formatUZS(data.totalRevenue)} sub={`${data.payments.length} işlem`} accent="text-success" />
+          <SummaryCard label="Check-in" value={String(data.checkins.length)} sub="misafir girişi" accent="text-info" />
+          <SummaryCard label="Check-out" value={String(data.checkouts.length)} sub="misafir çıkışı" accent="text-warning" />
         </div>
       </SectionZone>
 
@@ -152,13 +148,12 @@ export default async function ReportsPage({
             {Object.entries(data.revenueByMethod).map(([method, amount]) => (
               <div
                 key={method}
-                className="flex flex-col gap-1 px-4 py-3 rounded-lg"
-                style={{ backgroundColor: 'var(--color-admin-bg)', border: '1px solid var(--color-admin-border)', minWidth: '120px' }}
+                className="flex flex-col gap-1 px-4 py-3 rounded-lg min-w-[120px] bg-muted border border-border"
               >
-                <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-admin-muted)' }}>
+                <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   {METHOD_LABELS[method] ?? method}
                 </span>
-                <span className="font-bold tabular-nums" style={{ color: 'var(--color-accent)' }}>
+                <span className="font-bold tabular-nums text-primary">
                   {formatUZS(amount)}
                 </span>
               </div>
@@ -170,27 +165,27 @@ export default async function ReportsPage({
       {/* Bugün Giriş Yapanlar */}
       <Section title={`Check-in Listesi (${data.checkins.length})`}>
         {data.checkins.length === 0 ? (
-          <p className="text-sm" style={{ color: 'var(--color-admin-muted)' }}>Bu tarihte check-in yok.</p>
+          <p className="text-sm text-muted-foreground">Bu tarihte check-in yok.</p>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
+              <tr className="border-b border-border">
                 {['Rezervasyon', 'Misafir', 'Oda', 'Oda Fiyatı'].map((h) => (
-                  <th key={h} className="text-left py-2 px-3 text-xs uppercase tracking-widest" style={{ color: 'var(--color-admin-muted)' }}>{h}</th>
+                  <th key={h} className="text-left py-2 px-3 text-xs uppercase tracking-wide text-muted-foreground">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {(data.checkins as unknown as CheckinRow[]).map((r) => (
-                <tr key={r.id} style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
+                <tr key={r.id} className="border-b border-border hover:bg-muted/50 transition-colors duration-150">
                   <td className="py-2.5 px-3">
-                    <Link href={`/reservations/${r.id}`} className="font-mono text-xs hover:opacity-80" style={{ color: 'var(--color-accent)' }}>
+                    <Link href={`/reservations/${r.id}`} className="font-mono text-xs text-primary hover:underline">
                       {r.reservation_code}
                     </Link>
                   </td>
-                  <td className="py-2.5 px-3" style={{ color: dash.text }}>{r.guests?.first_name} {r.guests?.last_name}</td>
-                  <td className="py-2.5 px-3" style={{ color: 'var(--color-admin-muted)' }}>{r.rooms?.room_number ?? '—'}</td>
-                  <td className="py-2.5 px-3 tabular-nums" style={{ color: 'var(--color-admin-muted)' }}>{formatUZS(r.room_rate)}</td>
+                  <td className="py-2.5 px-3 text-foreground">{r.guests?.first_name} {r.guests?.last_name}</td>
+                  <td className="py-2.5 px-3 text-muted-foreground">{r.rooms?.room_number ?? '—'}</td>
+                  <td className="py-2.5 px-3 tabular-nums text-muted-foreground">{formatUZS(r.room_rate)}</td>
                 </tr>
               ))}
             </tbody>
@@ -201,27 +196,27 @@ export default async function ReportsPage({
       {/* Bugün Çıkış Yapanlar */}
       <Section title={`Check-out Listesi (${data.checkouts.length})`}>
         {data.checkouts.length === 0 ? (
-          <p className="text-sm" style={{ color: 'var(--color-admin-muted)' }}>Bu tarihte check-out yok.</p>
+          <p className="text-sm text-muted-foreground">Bu tarihte check-out yok.</p>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
+              <tr className="border-b border-border">
                 {['Rezervasyon', 'Misafir', 'Oda', 'Toplam'].map((h) => (
-                  <th key={h} className="text-left py-2 px-3 text-xs uppercase tracking-widest" style={{ color: 'var(--color-admin-muted)' }}>{h}</th>
+                  <th key={h} className="text-left py-2 px-3 text-xs uppercase tracking-wide text-muted-foreground">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {(data.checkouts as unknown as CheckoutRow[]).map((r) => (
-                <tr key={r.id} style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
+                <tr key={r.id} className="border-b border-border hover:bg-muted/50 transition-colors duration-150">
                   <td className="py-2.5 px-3">
-                    <Link href={`/reservations/${r.id}`} className="font-mono text-xs hover:opacity-80" style={{ color: 'var(--color-accent)' }}>
+                    <Link href={`/reservations/${r.id}`} className="font-mono text-xs text-primary hover:underline">
                       {r.reservation_code}
                     </Link>
                   </td>
-                  <td className="py-2.5 px-3" style={{ color: dash.text }}>{r.guests?.first_name} {r.guests?.last_name}</td>
-                  <td className="py-2.5 px-3" style={{ color: 'var(--color-admin-muted)' }}>{r.rooms?.room_number ?? '—'}</td>
-                  <td className="py-2.5 px-3 font-semibold tabular-nums" style={{ color: 'var(--color-accent)' }}>{formatUZS(r.total_amount)}</td>
+                  <td className="py-2.5 px-3 text-foreground">{r.guests?.first_name} {r.guests?.last_name}</td>
+                  <td className="py-2.5 px-3 text-muted-foreground">{r.rooms?.room_number ?? '—'}</td>
+                  <td className="py-2.5 px-3 font-semibold tabular-nums text-primary">{formatUZS(r.total_amount)}</td>
                 </tr>
               ))}
             </tbody>
@@ -234,26 +229,20 @@ export default async function ReportsPage({
 
 // ─── Alt Bileşenler ──────────────────────────────────────────────────────────
 
-function SummaryCard({ label, value, sub, color }: { label: string; value: string; sub: string; color: string }) {
+function SummaryCard({ label, value, sub, accent }: { label: string; value: string; sub: string; accent: string }) {
   return (
-    <div
-      className="rounded-xl p-4"
-      style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
-    >
-      <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: 'var(--color-admin-muted)' }}>{label}</p>
-      <p className="text-2xl font-bold tabular-nums leading-none" style={{ color }}>{value}</p>
-      <p className="text-xs mt-1.5" style={{ color: 'var(--color-admin-muted)' }}>{sub}</p>
+    <div className="rounded-xl p-4 bg-card ring-1 ring-foreground/10">
+      <p className="text-xs font-semibold uppercase tracking-wide mb-2 text-muted-foreground">{label}</p>
+      <p className={`text-2xl font-bold tabular-nums leading-none ${accent}`}>{value}</p>
+      <p className="text-xs mt-1.5 text-muted-foreground">{sub}</p>
     </div>
   )
 }
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div
-      className="rounded-2xl overflow-hidden"
-      style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
-    >
-      <p className="px-5 py-3 text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-admin-muted)', borderBottom: '1px solid var(--color-admin-border)' }}>
+    <div className="rounded-xl overflow-hidden bg-card ring-1 ring-foreground/10">
+      <p className="px-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground border-b border-border">
         {title}
       </p>
       <div className="px-5 py-4">{children}</div>

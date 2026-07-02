@@ -6,7 +6,7 @@ import DeleteStaffButton from './DeleteStaffButton'
 import ChangeRoleSelect from './ChangeRoleSelect'
 
 const ROLE_COLORS: Record<string, string> = {
-  admin:        '#5B4FE9',
+  admin:        'var(--color-accent)',
   manager:      '#3B82F6',
   receptionist: '#22C55E',
   housekeeper:  '#F59E0B',
@@ -47,7 +47,7 @@ export default async function StaffPage() {
   return (
     <div className="space-y-8 max-w-3xl">
       <div>
-        <h1 className="text-2xl font-semibold text-[#15112B]">Personel Yönetimi</h1>
+        <h1 className="text-2xl font-semibold text-foreground">Personel Yönetimi</h1>
         <p className="text-sm mt-1" style={{ color: 'var(--color-admin-muted)' }}>
           Sisteme erişimi olan hesaplar
         </p>
@@ -59,7 +59,7 @@ export default async function StaffPage() {
         style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
       >
         <div>
-          <h2 className="text-sm font-semibold text-[#15112B]">Yeni Personel Davet Et</h2>
+          <h2 className="text-sm font-semibold text-foreground">Yeni Personel Davet Et</h2>
           <p className="text-xs mt-0.5" style={{ color: 'var(--color-admin-muted)' }}>
             Girilen e-postaya giriş bağlantısı gönderilir
           </p>
@@ -103,7 +103,7 @@ export default async function StaffPage() {
                 >
                   {/* İsim + Email */}
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-[#15112B] font-medium">
+                    <p className="text-sm text-foreground font-medium">
                       {u.fullName}
                       {isMe && (
                         <span className="ml-2 text-xs font-normal" style={{ color: 'var(--color-admin-muted)' }}>
@@ -150,8 +150,8 @@ export default async function StaffPage() {
         className="rounded-lg p-4 text-xs space-y-1"
         style={{ backgroundColor: 'var(--color-admin-bg)', color: 'var(--color-admin-muted)' }}
       >
-        <p className="font-semibold text-[#15112B]">Rol Erişim Seviyeleri</p>
-        <p><span className="font-mono" style={{ color: '#5B4FE9' }}>admin</span> — Her şey: sistem ayarları, kullanıcı yönetimi, tüm raporlar</p>
+        <p className="font-semibold text-foreground">Rol Erişim Seviyeleri</p>
+        <p><span className="font-mono" style={{ color: 'var(--color-accent)' }}>admin</span> — Her şey: sistem ayarları, kullanıcı yönetimi, tüm raporlar</p>
         <p><span className="font-mono" style={{ color: '#3B82F6' }}>manager</span> — Operasyon + finans + raporlar (personel/ayarlar sınırlı)</p>
         <p><span className="font-mono" style={{ color: '#22C55E' }}>receptionist</span> — Rezervasyon, check-in/out, ödeme, misafir, temizlik</p>
         <p><span className="font-mono" style={{ color: '#F59E0B' }}>housekeeper</span> — Sadece Dashboard ve Temizlik sayfası</p>

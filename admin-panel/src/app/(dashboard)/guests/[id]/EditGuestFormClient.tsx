@@ -22,7 +22,7 @@ interface GuestDetail {
 const inputCls = 'w-full px-3 py-2 rounded-lg text-sm border outline-none'
 const inputStyle = {
   backgroundColor: 'var(--color-admin-bg)',
-  color: '#15112B',
+  color: 'var(--foreground)',
   borderColor: 'var(--color-admin-border)',
 }
 
@@ -49,7 +49,7 @@ function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex justify-between gap-4 py-2.5 text-sm" style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
       <span style={{ color: 'var(--color-admin-muted)' }}>{label}</span>
-      <span className="text-[#15112B] text-right">{value || '—'}</span>
+      <span className="text-foreground text-right">{value || '—'}</span>
     </div>
   )
 }
