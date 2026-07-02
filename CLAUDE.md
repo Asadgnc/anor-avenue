@@ -390,6 +390,21 @@ Mert "nar çarpışması" konsepti önerdi. Konsept henüz karara bağlanmadı �
   - SidebarNav + middleware: yeni roller ve sayfalar eklendi
   - pnpm build başarılı ✓
 
+- [x] Admin panel: Rol bazlı kişiselleştirme, anlık senkron, depo stok takibi (2 Temmuz 2026)
+  - DB migration 008: reservations RLS'e housekeeper eklendi (Günlük Özet artık housekeeper için çalışıyor)
+  - guests ve room_types tablolarına SELECT politikası eklendi (join'lar artık boş dönmüyor)
+  - Supabase Realtime: reservations + rooms tabloları publication'a eklendi
+  - RealtimeRefresher.tsx: layout'a mount — herhangi bir profilde değişiklik olunca tüm açık ekranlar ~0.5 sn'de yenilenir
+  - AppTopbar: zil (bekleyen rezervasyon) ve mesaj kutusu (bekleyen ödeme) sadece erişim yetkisi olan rollerde görünür; housekeeper/accountant görmez
+  - HousekeepingBoard: yeni temizlik akışı — housekeeper kendi ekranında "cleaned" durumunu "Temiz" olarak görür, kart tıklaması ve denetim linki yok; resepsiyonist "Denetle" butonuyla inspection sayfasına gider
+  - housekeeping/actions.ts: submitRoomInspectionAction artık denetim sonrası odayı otomatik 'clean' yapar; sadece admin/manager/receptionist denetim yapabilir
+  - inventory_products tablosu: stok kataloğu + mevcut adet (on_hand)
+  - inventory_movements tablosu: hareket defteri (giriş/çıkış, kim/ne zaman/kaç/nereye)
+  - depo/actions.ts: addPurchaseAction artık ürünü inventory_products'ta bul/oluştur + on_hand artır + hareket kaydı ekler; consumeStockAction: on_hand düşür + hareket kaydet; getProductMovementsAction: sadece admin, ürün geçmişi döner
+  - Depo sayfası: "Ürünler" bölümü (stok + Kullan butonu, admin: Geçmiş butonu) + "Alım Geçmişi" bölümü (housekeeper görmez); temizlikçide "Yeni Alım" butonu yok
+  - pnpm build başarılı ✓
+  - ⚠️ Ekran görüntüsü alınamadı — kullanıcı tarayıcıda doğrulayacak
+
 ## Sonraki Adımlar (Kalan — sadece merchant hesabı sonrası)
 1. Payme/Click/Uzum gerçek entegrasyon — UI + endpoint hazır, sadece merchant credentials bekleniyor
 

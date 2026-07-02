@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import SidebarNav from '@/components/admin/SidebarNav'
 import AppTopbar from '@/components/admin/AppTopbar'
+import RealtimeRefresher from '@/components/admin/RealtimeRefresher'
 
 export const dynamic = 'force-dynamic'
 
@@ -40,9 +41,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <AppTopbar
           userName={userName}
           roleLabel={ROLE_LABELS[role] ?? role}
+          role={role}
           pendingReservations={badges.reservations}
           pendingPayments={badges.payments}
         />
+        <RealtimeRefresher />
         {/* pt-[calc(3.5rem+1rem)] = mobil top bar (56px) + padding */}
         <main className="px-4 md:px-8 py-4 md:py-6 pt-[calc(3.5rem+1rem)] md:pt-6 overflow-auto">
           {children}

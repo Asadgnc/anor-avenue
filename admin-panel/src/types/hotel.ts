@@ -107,6 +107,32 @@ export interface InventoryPurchase {
   profiles?: { full_name: string } | null
 }
 
+export type InventoryCategory = 'cleaning' | 'kitchen' | 'food' | 'beverage' | 'decoration' | 'room_furniture' | 'replacement'
+export type InventoryDestination = 'room' | 'garden' | 'kitchen' | 'reception' | 'general'
+export type MovementType = 'in' | 'out'
+
+export interface InventoryProduct {
+  id: string
+  name: string
+  category: InventoryCategory
+  on_hand: number
+  created_at: string
+}
+
+export interface InventoryMovement {
+  id: string
+  product_id: string
+  type: MovementType
+  quantity: number
+  destination: InventoryDestination
+  room_id: string | null
+  moved_by: string | null
+  note: string | null
+  created_at: string
+  profiles?: { full_name: string } | null
+  rooms?: { room_number: string } | null
+}
+
 export interface GardenTask {
   id: string
   title: string

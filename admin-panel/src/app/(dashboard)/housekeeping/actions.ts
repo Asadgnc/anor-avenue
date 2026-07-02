@@ -10,6 +10,9 @@ const cleaningStatusSchema = z.enum(['clean', 'dirty', 'in_progress', 'cleaned',
 // Temizlikçi yalnızca bu hedef durumlara geçiş yapabilir
 const HOUSEKEEPER_ALLOWED_TARGETS = new Set(['in_progress', 'cleaned'])
 
+// Denetim yapabilecek roller
+const INSPECTION_ROLES = new Set(['admin', 'manager', 'receptionist'])
+
 export async function updateCleaningStatus(roomId: string, newStatus: string) {
   const validatedStatus = cleaningStatusSchema.parse(newStatus)
   const validatedRoomId = z.string().uuid().parse(roomId)
@@ -50,6 +53,12 @@ export async function submitRoomInspectionAction(data: {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('Oturum geçersiz.')
 
+  // Sadece yetkili roller denetim yapabilir
+  const role = (user.user_metadata?.role as string | undefined) ?? 'receptionist'
+  if (!INSPECTION_ROLES.has(role)) {
+    throw new Error('Denetim yapmak için yetkiniz yok.')
+  }
+
   const schema = z.object({
     roomId: z.string().uuid(),
     reservationId: z.string().uuid().optional(),
@@ -66,7 +75,9 @@ export async function submitRoomInspectionAction(data: {
   const validated = schema.parse(data)
 
   const service = createServiceClient()
-  const { error } = await service.from('room_inspections').insert({
+
+  // 1. Denetim kaydını ekle
+  const { error: inspectError } = await service.from('room_inspections').insert({
     room_id: validated.roomId,
     reservation_id: validated.reservationId ?? null,
     inspected_by: user.id,
@@ -76,9 +87,16 @@ export async function submitRoomInspectionAction(data: {
     damage_note: validated.damageNote ?? null,
     missing_items: validated.missingItems,
   })
+  if (inspectError) throw new Error(inspectError.message)
 
-  if (error) throw new Error(error.message)
+  // 2. Denetim onaylanınca oda durumu 'clean' olur
+  const { error: roomError } = await service
+    .from('rooms')
+    .update({ cleaning_status: 'clean' })
+    .eq('id', validated.roomId)
+  if (roomError) throw new Error(roomError.message)
 
   revalidatePath(`/housekeeping/${validated.roomId}`)
   revalidatePath('/housekeeping')
+  revalidatePath('/dashboard')
 }

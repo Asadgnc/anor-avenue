@@ -22,37 +22,54 @@ interface Props {
   role: string
 }
 
+// Tüm roller için durum etiket ve renkleri
 const STATUS_CONFIG: Record<CleaningStatus, { label: string; color: string; bg: string }> = {
-  clean:       { label: 'Temiz',                       color: dash.green,   bg: dash.greenLight  },
-  dirty:       { label: 'Kirli',                       color: dash.red,     bg: dash.redLight    },
-  in_progress: { label: 'Temizleniyor',                color: dash.orange,  bg: dash.orangeLight },
-  cleaned:     { label: 'Temizlendi · Denetim bekliyor', color: '#0284C7',  bg: '#E0F2FE'        },
-  inspected:   { label: 'Denetlendi',                  color: dash.primary, bg: dash.primaryLight },
+  clean:       { label: 'Temiz',                          color: dash.green,   bg: dash.greenLight   },
+  dirty:       { label: 'Kirli',                          color: dash.red,     bg: dash.redLight     },
+  in_progress: { label: 'Temizleniyor',                   color: dash.orange,  bg: dash.orangeLight  },
+  cleaned:     { label: 'Temizlendi · Denetleyin',        color: '#0284C7',    bg: '#E0F2FE'         },
+  inspected:   { label: 'Denetlendi',                     color: dash.primary, bg: dash.primaryLight },
+}
+
+// Temizlikçi kendi ekranında 'cleaned' durumunu "Temiz" olarak görür
+const HOUSEKEEPER_STATUS_LABEL: Partial<Record<CleaningStatus, string>> = {
+  cleaned: 'Temiz',
 }
 
 // Temizlikçi için geçiş — sadece 2 adım
 function getHousekeeperAction(status: CleaningStatus): { next: CleaningStatus; label: string } | null {
-  if (status === 'dirty') return { next: 'in_progress', label: 'Temizliğe Başla' }
-  if (status === 'in_progress') return { next: 'cleaned', label: 'Temizlendi' }
+  if (status === 'dirty')       return { next: 'in_progress', label: 'Temizliğe Başla' }
+  if (status === 'in_progress') return { next: 'cleaned',     label: 'Temizlendi'      }
   return null
 }
 
-// Yönetici / resepsiyon için tüm geçişler
-const MANAGER_NEXT: Record<CleaningStatus, CleaningStatus> = {
+// Yönetici / resepsiyon için geçişler (cleaned → denetleme sayfasına yönlenir, buton yok)
+const MANAGER_NEXT: Partial<Record<CleaningStatus, CleaningStatus>> = {
   dirty:       'in_progress',
   in_progress: 'cleaned',
-  cleaned:     'inspected',
-  inspected:   'clean',
   clean:       'dirty',
+  inspected:   'clean', // geriye dönük uyumluluk
 }
-
-const MANAGER_LABEL: Record<CleaningStatus, string> = {
+const MANAGER_LABEL: Partial<Record<CleaningStatus, string>> = {
   dirty:       'Temizliğe Başla',
   in_progress: 'Temizlendi',
-  cleaned:     'Denetlendi',
-  inspected:   'Temiz İşaretle',
   clean:       'Kirli İşaretle',
+  inspected:   'Temize Al',
 }
+
+const btnStyle = (bg: string, color: string, pending: boolean): React.CSSProperties => ({
+  backgroundColor: bg,
+  color,
+  border: `1px solid ${color}40`,
+  borderRadius: '0.5rem',
+  padding: '0.375rem 0.75rem',
+  fontSize: '0.75rem',
+  fontWeight: '600',
+  width: '100%',
+  cursor: pending ? 'not-allowed' : 'pointer',
+  opacity: pending ? 0.6 : 1,
+  transition: 'opacity 0.15s',
+})
 
 export default function HousekeepingBoard({ rooms, tasks, role }: Props) {
   const [isPending, startTransition] = useTransition()
@@ -92,76 +109,96 @@ export default function HousekeepingBoard({ rooms, tasks, role }: Props) {
               {floorRooms.map((room) => {
                 const status = room.cleaning_status
                 const cfg = STATUS_CONFIG[status]
+
+                // Temizlikçide "cleaned" durumu "Temiz" etiketi gösterir
+                const displayLabel = isHousekeeper
+                  ? (HOUSEKEEPER_STATUS_LABEL[status] ?? cfg.label)
+                  : cfg.label
+
                 const roomTasks = tasksByRoom[room.id] ?? []
 
-                // Buton mantığı
+                // ——— Buton mantığı ———
                 let actionBtn: React.ReactNode = null
+
                 if (isHousekeeper) {
+                  // Temizlikçi: sadece dirty→in_progress ve in_progress→cleaned
                   const action = getHousekeeperAction(status)
                   if (action) {
                     actionBtn = (
                       <button
                         disabled={isPending}
                         onClick={(e) => handleStatusChange(e, room.id, action.next)}
-                        style={{
-                          backgroundColor: cfg.bg,
-                          color: cfg.color,
-                          border: `1px solid ${cfg.color}40`,
-                          borderRadius: '0.5rem',
-                          padding: '0.375rem 0.75rem',
-                          fontSize: '0.75rem',
-                          fontWeight: '600',
-                          width: '100%',
-                          cursor: isPending ? 'not-allowed' : 'pointer',
-                          opacity: isPending ? 0.6 : 1,
-                          transition: 'opacity 0.15s',
-                        }}
+                        style={btnStyle(cfg.bg, cfg.color, isPending)}
                       >
                         {action.label}
                       </button>
                     )
                   }
                 } else {
-                  const nextStatus = MANAGER_NEXT[status]
-                  actionBtn = (
-                    <button
-                      disabled={isPending}
-                      onClick={(e) => handleStatusChange(e, room.id, nextStatus)}
-                      style={{
-                        backgroundColor: cfg.bg,
-                        color: cfg.color,
-                        border: `1px solid ${cfg.color}40`,
-                        borderRadius: '0.5rem',
-                        padding: '0.375rem 0.75rem',
-                        fontSize: '0.75rem',
-                        fontWeight: '600',
-                        width: '100%',
-                        cursor: isPending ? 'not-allowed' : 'pointer',
-                        opacity: isPending ? 0.6 : 1,
-                        transition: 'opacity 0.15s',
-                      }}
-                    >
-                      {MANAGER_LABEL[status]}
-                    </button>
-                  )
+                  // Yönetici / resepsiyon / admin
+                  if (status === 'cleaned') {
+                    // Denetleme sayfasına yönlendir (inspection form temize çıkarır)
+                    actionBtn = (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          router.push(`/housekeeping/${room.id}`)
+                        }}
+                        style={{
+                          backgroundColor: '#E0F2FE',
+                          color: '#0369A1',
+                          border: '1px solid #0369A140',
+                          borderRadius: '0.5rem',
+                          padding: '0.375rem 0.75rem',
+                          fontSize: '0.75rem',
+                          fontWeight: '700',
+                          width: '100%',
+                          cursor: 'pointer',
+                          transition: 'opacity 0.15s',
+                        }}
+                      >
+                        🔍 Denetle
+                      </button>
+                    )
+                  } else {
+                    const nextStatus = MANAGER_NEXT[status]
+                    const btnLabel  = MANAGER_LABEL[status]
+                    if (nextStatus && btnLabel) {
+                      actionBtn = (
+                        <button
+                          disabled={isPending}
+                          onClick={(e) => handleStatusChange(e, room.id, nextStatus)}
+                          style={btnStyle(cfg.bg, cfg.color, isPending)}
+                        >
+                          {btnLabel}
+                        </button>
+                      )
+                    }
+                  }
                 }
+
+                // Temizlikçide kart tıklanabilir değil, denetim linki yok
+                const cardClickable = !isHousekeeper
+                const showInspectionHint = !isHousekeeper && status !== 'cleaned'
 
                 return (
                   <div
                     key={room.id}
-                    onClick={() => router.push(`/housekeeping/${room.id}`)}
+                    onClick={cardClickable ? () => router.push(`/housekeeping/${room.id}`) : undefined}
                     style={{
                       backgroundColor: 'var(--color-admin-card)',
                       boxShadow: 'var(--shadow-card)',
                       borderRadius: '0.75rem',
                       padding: '1rem',
-                      cursor: 'pointer',
+                      cursor: cardClickable ? 'pointer' : 'default',
                     }}
-                    className="hover:ring-1 hover:ring-foreground/15 transition-shadow"
+                    className={cardClickable ? 'hover:ring-1 hover:ring-foreground/15 transition-shadow' : ''}
                   >
-                    {/* Room header */}
+                    {/* Oda başlığı */}
                     <div className="flex items-center justify-between mb-3">
-                      <span className="font-bold text-lg" style={{ color: dash.text }}>#{room.room_number}</span>
+                      <span className="font-bold text-lg" style={{ color: dash.text }}>
+                        #{room.room_number}
+                      </span>
                       <span
                         style={{
                           backgroundColor: cfg.bg,
@@ -172,11 +209,11 @@ export default function HousekeepingBoard({ rooms, tasks, role }: Props) {
                           borderRadius: '9999px',
                         }}
                       >
-                        {cfg.label}
+                        {displayLabel}
                       </span>
                     </div>
 
-                    {/* Active tasks */}
+                    {/* Aktif görevler */}
                     {roomTasks.length > 0 && (
                       <div className="mb-3 space-y-1">
                         {roomTasks.map((t) => (
@@ -191,15 +228,22 @@ export default function HousekeepingBoard({ rooms, tasks, role }: Props) {
                       </div>
                     )}
 
-                    {/* Action button */}
+                    {/* Aksiyon butonu */}
                     {actionBtn}
 
-                    {/* Detay linki */}
-                    <p
-                      style={{ color: 'var(--color-admin-muted)', fontSize: '0.7rem', marginTop: '0.5rem', textAlign: 'center' }}
-                    >
-                      Denetim →
-                    </p>
+                    {/* Denetim hint'i (temizlikçide yok, cleaned'da "Denetle" butonu zaten var) */}
+                    {showInspectionHint && (
+                      <p
+                        style={{
+                          color: 'var(--color-admin-muted)',
+                          fontSize: '0.7rem',
+                          marginTop: '0.5rem',
+                          textAlign: 'center',
+                        }}
+                      >
+                        Denetim →
+                      </p>
+                    )}
                   </div>
                 )
               })}

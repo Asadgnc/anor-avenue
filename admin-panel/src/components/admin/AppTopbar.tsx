@@ -39,47 +39,59 @@ function resolveTitle(pathname: string): string {
   return best ? ROUTE_TITLES[best] : 'Anor Avenue'
 }
 
+// Zile ve mesaj kutusuna erişim yetkisi olan roller
+const BELL_ROLES = new Set(['admin', 'manager', 'receptionist'])
+const MAIL_ROLES = new Set(['admin', 'manager', 'receptionist', 'accountant'])
+
 type Props = {
   userName: string
   roleLabel: string
+  role: string
   pendingReservations: number
   pendingPayments: number
 }
 
-export default function AppTopbar({ userName, roleLabel, pendingReservations, pendingPayments }: Props) {
+export default function AppTopbar({ userName, roleLabel, role, pendingReservations, pendingPayments }: Props) {
   const pathname = usePathname()
   const initial = userName.charAt(0).toUpperCase() || '?'
+
+  const showBell = BELL_ROLES.has(role)
+  const showMail = MAIL_ROLES.has(role)
 
   return (
     <header className="sticky top-0 z-30 hidden md:flex h-14 items-center justify-between gap-4 px-6 bg-card/80 backdrop-blur border-b border-border">
       <p className="text-sm font-semibold text-foreground truncate">{resolveTitle(pathname)}</p>
 
       <div className="flex items-center gap-2.5">
-        <Link
-          href="/reservations/list?status=pending"
-          className="relative w-9 h-9 rounded-full flex items-center justify-center bg-card ring-1 ring-foreground/10 hover:ring-foreground/20 transition-shadow duration-150"
-          aria-label="Bekleyen rezervasyonlar"
-        >
-          <Bell size={15} className="text-foreground" />
-          {pendingReservations > 0 && (
-            <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 min-w-4 px-1 justify-center bg-destructive text-white">
-              {pendingReservations > 9 ? '9+' : pendingReservations}
-            </Badge>
-          )}
-        </Link>
+        {showBell && (
+          <Link
+            href="/reservations/list?status=pending"
+            className="relative w-9 h-9 rounded-full flex items-center justify-center bg-card ring-1 ring-foreground/10 hover:ring-foreground/20 transition-shadow duration-150"
+            aria-label="Bekleyen rezervasyonlar"
+          >
+            <Bell size={15} className="text-foreground" />
+            {pendingReservations > 0 && (
+              <Badge variant="destructive" className="absolute -top-1 -right-1 h-4 min-w-4 px-1 justify-center bg-destructive text-white">
+                {pendingReservations > 9 ? '9+' : pendingReservations}
+              </Badge>
+            )}
+          </Link>
+        )}
 
-        <Link
-          href="/payments"
-          className="relative w-9 h-9 rounded-full flex items-center justify-center bg-card ring-1 ring-foreground/10 hover:ring-foreground/20 transition-shadow duration-150"
-          aria-label="Bekleyen ödemeler"
-        >
-          <Mail size={15} className="text-foreground" />
-          {pendingPayments > 0 && (
-            <Badge variant="warning" className="absolute -top-1 -right-1 h-4 min-w-4 px-1 justify-center">
-              {pendingPayments > 9 ? '9+' : pendingPayments}
-            </Badge>
-          )}
-        </Link>
+        {showMail && (
+          <Link
+            href="/payments"
+            className="relative w-9 h-9 rounded-full flex items-center justify-center bg-card ring-1 ring-foreground/10 hover:ring-foreground/20 transition-shadow duration-150"
+            aria-label="Bekleyen ödemeler"
+          >
+            <Mail size={15} className="text-foreground" />
+            {pendingPayments > 0 && (
+              <Badge variant="warning" className="absolute -top-1 -right-1 h-4 min-w-4 px-1 justify-center">
+                {pendingPayments > 9 ? '9+' : pendingPayments}
+              </Badge>
+            )}
+          </Link>
+        )}
 
         <div className="flex items-center gap-2.5 pl-1.5 pr-3 py-1 rounded-full bg-card ring-1 ring-foreground/10">
           <span className="w-7 h-7 rounded-full flex items-center justify-center text-xs font-semibold text-primary-foreground bg-primary shrink-0">
