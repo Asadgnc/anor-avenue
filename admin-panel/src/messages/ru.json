@@ -22,7 +22,7 @@
   "nav": {
     "title": "Панель управления",
     "brandName": "Anor Avenue",
-    "dashboard": "Dashboard",
+    "dashboard": "Дашборд",
     "calendar": "Календарь",
     "reservationList": "Список броней",
     "newReservation": "Новая бронь",
@@ -42,14 +42,14 @@
     "openMenu": "Открыть меню"
   },
   "roles": {
-    "admin": "Admin",
+    "admin": "Админ",
     "manager": "Менеджер",
     "receptionist": "Ресепшн",
     "housekeeper": "Уборка",
     "accountant": "Бухгалтер"
   },
   "topbar": {
-    "dashboard": "Dashboard",
+    "dashboard": "Дашборд",
     "calendar": "Календарь броней",
     "reservationList": "Список броней",
     "newReservation": "Новая бронь",
@@ -387,7 +387,9 @@
         "checkIns": "Заездов завтра не ожидается.",
         "checkOuts": "Выездов сегодня нет.",
         "occupied": "Сейчас занятых номеров нет."
-      }
+      },
+      "local": "Местный",
+      "foreign": "Иностранец"
     },
     "inspection": {
       "title": "Номер #{number} — Проверка",
@@ -403,7 +405,19 @@
       "missingItems": "{n} недостающих предметов",
       "problemNote": "Проблема: {note}",
       "damageNote": "Повреждение: {note}",
-      "missingNote": "Недостаёт: {list}"
+      "missingNote": "Недостаёт: {list}",
+      "genericError": "Произошла ошибка.",
+      "savedReport": "Отчёт о проверке сохранён ✓",
+      "startNew": "Начать новую проверку",
+      "formTitle": "Новый отчёт о проверке",
+      "generalStatus": "Общее состояние",
+      "describeProblem": "Опишите проблему...",
+      "damageTitle": "Материальный ущерб (стены, душ, декор и т.д.)",
+      "describeDamage": "Опишите повреждение...",
+      "itemCheck": "Проверка предметов — отметьте отсутствующие",
+      "itemsMarked": "Отмечено недостающих предметов: {n}",
+      "saving": "Сохранение...",
+      "saveReport": "Сохранить отчёт о проверке"
     },
     "board": {
       "startCleaning": "Начать уборку",
@@ -529,8 +543,8 @@
       "admin": "Всё: настройки системы, управление пользователями, все отчёты",
       "manager": "Операции + финансы + отчёты (персонал/настройки ограничены)",
       "receptionist": "Брони, заезд/выезд, платежи, гости, уборка",
-      "housekeeper": "Только Dashboard и страница уборки",
-      "accountant": "Dashboard, Платежи, Отчёты"
+      "housekeeper": "Только Дашборд и страница уборки",
+      "accountant": "Дашборд, Платежи, Отчёты"
     },
     "inviteForm": {
       "nameLabel": "Ф.И.О.",
@@ -693,7 +707,20 @@
         "place": "Место",
         "entered": "Кто внёс"
       }
-    }
+    },
+    "productNamePlaceholder": "Напр.: Моющее средство, Хлеб...",
+    "placePlaceholder": "Напр.: Makro, базар...",
+    "currencyUzs": "UZS — Сум",
+    "currencyUsd": "USD — Доллар",
+    "broughtByDefault": "— (внёс = принёс)",
+    "filterSearchPlaceholder": "Поиск...",
+    "filterDatePlaceholder": "дд.мм.гг",
+    "filterAnyPlaceholder": "...",
+    "pageTitle": "Склад",
+    "productCountSubtitle": "{n} видов товаров · учёт остатков",
+    "recordCountWithArea": "{n} записей ({area})",
+    "recordCount": "{n} записей",
+    "purchaseNotePrefix": "Закупка: {place}"
   },
   "finance": {
     "title": "Движение средств",
@@ -781,7 +808,9 @@
     "remaining": "ОСТАТОК / QOLDIQ",
     "fullyPaid": "ОПЛАЧЕНО ПОЛНОСТЬЮ / TO'LIQ TO'LANGAN",
     "specialRequest": "Пожелания:",
-    "footer": "Этот документ составлен {hotel} {date}."
+    "footer": "Этот документ составлен {hotel} {date}.",
+    "printButton": "Печать / Сохранить",
+    "closeButton": "Закрыть"
   },
   "newReservation": {
     "sections": {
@@ -847,7 +876,24 @@
     "roomTypeRequired": "Выберите тип номера",
     "roomExists": "Номер «{number}» уже существует.",
     "itemNameRequired": "Название предмета обязательно",
-    "invalidEmail": "Неверный e-mail"
+    "invalidEmail": "Неверный e-mail",
+    "invalidData": "Неверные данные.",
+    "unauthorized": "Нет доступа.",
+    "duplicateRegistration": "Для этого гостя регистрация уже создана.",
+    "registrationCreateFailed": "Не удалось создать регистрацию: {msg}",
+    "emailAlreadyRegistered": "Этот e-mail уже зарегистрирован.",
+    "cannotChangeOwnRole": "Вы не можете изменить свою роль.",
+    "cannotDeleteOwnAccount": "Вы не можете удалить свой аккаунт.",
+    "invalidCredentials": "Неверный e-mail или пароль.",
+    "passwordRequired": "Введите пароль",
+    "taskNameRequired": "Название задачи обязательно",
+    "quantityPositive": "Количество должно быть больше 0",
+    "totalAmountRequired": "Укажите итоговую сумму",
+    "placeRequired": "Укажите место покупки",
+    "productNameRequired": "Название товара обязательно",
+    "productCreateFailed": "Не удалось создать товар.",
+    "productNotFound": "Товар не найден.",
+    "insufficientStock": "Недостаточно на складе. Доступно: {available}"
   },
   "roomItems": {
     "title": "Номер #{number} — Инвентарь",
@@ -858,5 +904,28 @@
     "addTitle": "Добавить предмет",
     "namePlaceholder": "Название предмета",
     "addButton": "Добавить"
+  },
+  "reportExport": {
+    "reportTitle": "Anor Avenue Hotel — Ежедневный отчёт — {date}",
+    "summary": "=== СВОДКА ===",
+    "dateRow": "Дата",
+    "totalIncome": "Итого доход (UZS)",
+    "checkInCount": "Число заездов",
+    "checkOutCount": "Число выездов",
+    "paymentCount": "Платёжных операций",
+    "incomeSection": "=== ДОХОД ЗА ДЕНЬ ===",
+    "incomeHeader": "Код брони,Имя гостя,Сумма (UZS),Способ,Время операции",
+    "checkInSection": "=== СПИСОК ЗАЕЗДОВ ===",
+    "checkInHeader": "Код брони,Имя гостя,Номер,Заезд,Выезд,Цена за ночь (UZS)",
+    "checkOutSection": "=== СПИСОК ВЫЕЗДОВ ===",
+    "checkOutHeader": "Код брони,Имя гостя,Номер,Заезд,Выезд,Итоговая сумма (UZS)",
+    "unauthorized": "Нет доступа"
+  },
+  "monthSummary": {
+    "title": "Сводка за месяц",
+    "avgNights": "{n} ноч. в среднем",
+    "occupancy": "Заполняемость",
+    "collection": "Собираемость платежей",
+    "cancellation": "Доля отмен"
   }
 }

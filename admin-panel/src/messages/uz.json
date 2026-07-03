@@ -22,7 +22,7 @@
   "nav": {
     "title": "Boshqaruv paneli",
     "brandName": "Anor Avenue",
-    "dashboard": "Dashboard",
+    "dashboard": "Boshqaruv paneli",
     "calendar": "Kalendar",
     "reservationList": "Bronlar ro'yxati",
     "newReservation": "Yangi bron",
@@ -49,7 +49,7 @@
     "accountant": "Buxgalter"
   },
   "topbar": {
-    "dashboard": "Dashboard",
+    "dashboard": "Boshqaruv paneli",
     "calendar": "Bronlar kalendari",
     "reservationList": "Bronlar ro'yxati",
     "newReservation": "Yangi bron",
@@ -387,7 +387,9 @@
         "checkIns": "Ertaga kirish kutilmayapti.",
         "checkOuts": "Bugun chiqish yo'q.",
         "occupied": "Hozirda band xona yo'q."
-      }
+      },
+      "local": "Mahalliy",
+      "foreign": "Xorijiy"
     },
     "inspection": {
       "title": "Xona #{number} — Tekshiruv",
@@ -403,7 +405,19 @@
       "missingItems": "{n} ta yetishmayotgan narsa",
       "problemNote": "Muammo: {note}",
       "damageNote": "Zarar: {note}",
-      "missingNote": "Yetishmaydi: {list}"
+      "missingNote": "Yetishmaydi: {list}",
+      "genericError": "Xatolik yuz berdi.",
+      "savedReport": "Tekshiruv hisoboti saqlandi ✓",
+      "startNew": "Yangi tekshiruv boshlash",
+      "formTitle": "Yangi tekshiruv hisoboti",
+      "generalStatus": "Umumiy holat",
+      "describeProblem": "Muammoni tavsiflang...",
+      "damageTitle": "Moddiy zarar (devor, dush, dekor va h.k.)",
+      "describeDamage": "Zararni tavsiflang...",
+      "itemCheck": "Buyumlar nazorati — yetishmayotganlarini belgilang",
+      "itemsMarked": "{n} ta yetishmayotgan buyum belgilandi",
+      "saving": "Saqlanmoqda...",
+      "saveReport": "Tekshiruv hisobotini saqlash"
     },
     "board": {
       "startCleaning": "Tozalashni boshlash",
@@ -529,8 +543,8 @@
       "admin": "Hamma narsa: tizim sozlamalari, foydalanuvchilarni boshqarish, barcha hisobotlar",
       "manager": "Operatsiya + moliya + hisobotlar (xodimlar/sozlamalar cheklangan)",
       "receptionist": "Bron, kirish/chiqish, to'lov, mehmon, tozalash",
-      "housekeeper": "Faqat Dashboard va Tozalash sahifasi",
-      "accountant": "Dashboard, To'lovlar, Hisobotlar"
+      "housekeeper": "Faqat Boshqaruv paneli va Tozalash sahifasi",
+      "accountant": "Boshqaruv paneli, To'lovlar, Hisobotlar"
     },
     "inviteForm": {
       "nameLabel": "F.I.O.",
@@ -693,7 +707,20 @@
         "place": "Joy",
         "entered": "Kim kiritdi"
       }
-    }
+    },
+    "productNamePlaceholder": "Mas.: Yuvish vositasi, Non...",
+    "placePlaceholder": "Mas.: Makro, bozor...",
+    "currencyUzs": "UZS — Soʻm",
+    "currencyUsd": "USD — Dollar",
+    "broughtByDefault": "— (kirituvchi = keltiruvchi)",
+    "filterSearchPlaceholder": "Qidirish...",
+    "filterDatePlaceholder": "kk.oo.yy",
+    "filterAnyPlaceholder": "...",
+    "pageTitle": "Ombor",
+    "productCountSubtitle": "{n} xil mahsulot · qoldiq hisobi",
+    "recordCountWithArea": "{n} ta yozuv ({area})",
+    "recordCount": "{n} ta yozuv",
+    "purchaseNotePrefix": "Xarid: {place}"
   },
   "finance": {
     "title": "Pul oqimi",
@@ -781,7 +808,9 @@
     "remaining": "QOLDIQ / ОСТАТОК",
     "fullyPaid": "TO'LIQ TO'LANGAN / ОПЛАЧЕНО",
     "specialRequest": "Maxsus so'rov:",
-    "footer": "Ushbu hujjat {hotel} tomonidan {date} kuni tuzilgan."
+    "footer": "Ushbu hujjat {hotel} tomonidan {date} kuni tuzilgan.",
+    "printButton": "Chop etish / Saqlash",
+    "closeButton": "Yopish"
   },
   "newReservation": {
     "sections": {
@@ -847,7 +876,24 @@
     "roomTypeRequired": "Xona turini tanlang",
     "roomExists": "«{number}» raqamli xona allaqachon mavjud.",
     "itemNameRequired": "Buyum nomi majburiy",
-    "invalidEmail": "Notoʻgʻri e-mail"
+    "invalidEmail": "Notoʻgʻri e-mail",
+    "invalidData": "Notoʻgʻri maʼlumot.",
+    "unauthorized": "Ruxsat yoʻq.",
+    "duplicateRegistration": "Bu mehmon uchun roʻyxatdan oʻtkazish allaqachon yaratilgan.",
+    "registrationCreateFailed": "Roʻyxatdan oʻtkazishni yaratib boʻlmadi: {msg}",
+    "emailAlreadyRegistered": "Bu e-mail allaqachon roʻyxatdan oʻtgan.",
+    "cannotChangeOwnRole": "Oʻz rolingizni oʻzgartira olmaysiz.",
+    "cannotDeleteOwnAccount": "Oʻz akkauntingizni oʻchira olmaysiz.",
+    "invalidCredentials": "E-mail yoki parol notoʻgʻri.",
+    "passwordRequired": "Parolni kiriting",
+    "taskNameRequired": "Vazifa nomi majburiy",
+    "quantityPositive": "Miqdor 0 dan katta boʻlishi kerak",
+    "totalAmountRequired": "Umumiy summani kiriting",
+    "placeRequired": "Xarid joyini kiriting",
+    "productNameRequired": "Mahsulot nomi majburiy",
+    "productCreateFailed": "Mahsulotni yaratib boʻlmadi.",
+    "productNotFound": "Mahsulot topilmadi.",
+    "insufficientStock": "Omborda yetarli emas. Mavjud: {available}"
   },
   "roomItems": {
     "title": "Xona #{number} — Buyumlar",
@@ -858,5 +904,28 @@
     "addTitle": "Buyum qoʻshish",
     "namePlaceholder": "Buyum nomi",
     "addButton": "Qoʻshish"
+  },
+  "reportExport": {
+    "reportTitle": "Anor Avenue Hotel — Kunlik hisobot — {date}",
+    "summary": "=== XULOSA ===",
+    "dateRow": "Sana",
+    "totalIncome": "Jami daromad (UZS)",
+    "checkInCount": "Zaezdlar soni",
+    "checkOutCount": "Chiqishlar soni",
+    "paymentCount": "Toʻlov amaliyotlari",
+    "incomeSection": "=== KUNLIK DAROMAD ===",
+    "incomeHeader": "Bron kodi,Mehmon ismi,Summa (UZS),Usul,Amaliyot vaqti",
+    "checkInSection": "=== KIRISHLAR ROʻYXATI ===",
+    "checkInHeader": "Bron kodi,Mehmon ismi,Xona,Kirish,Chiqish,Bir kecha narxi (UZS)",
+    "checkOutSection": "=== CHIQISHLAR ROʻYXATI ===",
+    "checkOutHeader": "Bron kodi,Mehmon ismi,Xona,Kirish,Chiqish,Jami summa (UZS)",
+    "unauthorized": "Ruxsat yoʻq"
+  },
+  "monthSummary": {
+    "title": "Oylik xulosa",
+    "avgNights": "o'rtacha {n} kecha",
+    "occupancy": "Bandlik",
+    "collection": "Toʻlov yigʻilishi",
+    "cancellation": "Bekor qilish ulushi"
   }
 }
