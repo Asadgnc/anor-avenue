@@ -3,6 +3,7 @@
 import { z } from 'zod'
 import { createClient } from '@/lib/supabase-server'
 import { revalidatePath } from 'next/cache'
+import { getTranslations } from 'next-intl/server'
 
 const createSchema = z.object({
   guest_id: z.string().uuid(),
@@ -18,17 +19,18 @@ export async function createRegistrationAction(
   _prev: { error?: string; success?: boolean },
   formData: FormData
 ): Promise<{ error?: string; success?: boolean }> {
+  const t = await getTranslations('errors')
   const parsed = createSchema.safeParse({
     guest_id: formData.get('guest_id'),
     reservation_id: formData.get('reservation_id'),
   })
-  if (!parsed.success) return { error: 'Geçersiz veri.' }
+  if (!parsed.success) return { error: t('invalidData') }
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Yetkisiz.' }
+  if (!user) return { error: t('unauthorized') }
 
-  // Aynı misafir + rezervasyon için tekrar kayıt açma
+  // Prevent duplicate registration for the same guest + reservation
   const { data: existing } = await supabase
     .from('guest_registrations')
     .select('id')
@@ -36,7 +38,7 @@ export async function createRegistrationAction(
     .eq('reservation_id', parsed.data.reservation_id)
     .maybeSingle()
 
-  if (existing) return { error: 'Bu misafir için zaten kayıt açılmış.' }
+  if (existing) return { error: t('duplicateRegistration') }
 
   const { error } = await supabase.from('guest_registrations').insert({
     guest_id: parsed.data.guest_id,
@@ -45,7 +47,7 @@ export async function createRegistrationAction(
     status: 'pending',
   })
 
-  if (error) return { error: 'Kayıt oluşturulamadı: ' + error.message }
+  if (error) return { error: t('registrationCreateFailed', { msg: error.message }) }
 
   revalidatePath('/registrations')
   return { success: true }
@@ -55,12 +57,13 @@ export async function updateRegistrationStatusAction(
   id: string,
   status: 'pending' | 'submitted' | 'confirmed'
 ): Promise<{ error?: string }> {
+  const t = await getTranslations('errors')
   const parsed = updateStatusSchema.safeParse({ id, status })
-  if (!parsed.success) return { error: 'Geçersiz veri.' }
+  if (!parsed.success) return { error: t('invalidData') }
 
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Yetkisiz.' }
+  if (!user) return { error: t('unauthorized') }
 
   const { error } = await supabase
     .from('guest_registrations')

@@ -25,7 +25,7 @@ export default async function NewReservationPage() {
 
   return (
     <div className="space-y-6">
-      {/* Başlık */}
+      {/* Header */}
       <div className="flex items-center gap-3">
         <Link
           href="/reservations"

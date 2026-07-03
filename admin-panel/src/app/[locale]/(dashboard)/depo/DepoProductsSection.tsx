@@ -1,30 +1,32 @@
 'use client'
 
 import { useState, useActionState } from 'react'
+import { useLocale, useTranslations } from 'next-intl'
 import { consumeStockAction, getProductMovementsAction } from './actions'
 import type { InventoryProduct, InventoryMovement, InventoryCategory, InventoryDestination } from '@/types/hotel'
 
-const CATEGORIES: Record<InventoryCategory, string> = {
-  cleaning:       '🧹 Temizlik',
-  kitchen:        '🍳 Mutfak',
-  food:           '🥖 Yiyecek',
-  beverage:       '🥤 İçecek',
-  decoration:     '🌿 Dekorasyon',
-  room_furniture: '🛏 Oda Eşyası',
-  replacement:    '🔧 Yenileme',
+const CATEGORY_EMOJI: Record<InventoryCategory, string> = {
+  cleaning:       '🧹',
+  kitchen:        '🍳',
+  food:           '🥖',
+  beverage:       '🥤',
+  decoration:     '🌿',
+  room_furniture: '🛏',
+  replacement:    '🔧',
 }
 
-const DESTINATIONS: Record<InventoryDestination, string> = {
-  room:       'Oda',
-  garden:     'Bahçe',
-  kitchen:    'Mutfak',
-  reception:  'Resepsiyon',
-  general:    'Genel',
+const CATEGORY_KEYS = Object.keys(CATEGORY_EMOJI) as InventoryCategory[]
+const DESTINATION_KEYS: InventoryDestination[] = ['room', 'garden', 'kitchen', 'reception', 'general']
+
+const MOVEMENT_TYPE_COLOR: Record<string, { color: string; bg: string }> = {
+  in:  { color: '#15803D', bg: '#DCFCE7' },
+  out: { color: '#B45309', bg: '#FEF3C7' },
 }
 
-const MOVEMENT_TYPE_LABEL: Record<string, { label: string; color: string; bg: string }> = {
-  in:  { label: 'Giriş', color: '#15803D', bg: '#DCFCE7' },
-  out: { label: 'Çıkış', color: '#B45309', bg: '#FEF3C7' },
+const LOCALE_BCP47: Record<string, string> = {
+  ru: 'ru-RU',
+  uz: 'uz-UZ',
+  'uz-cyrl': 'uz-Cyrl-UZ',
 }
 
 interface Room {
@@ -40,7 +42,7 @@ interface Props {
 
 const initialConsumeState = { error: undefined as string | undefined, success: undefined as boolean | undefined }
 
-// ——— Tüketim formu — ayrı bileşen, her mount'ta taze state ———
+// ——— Consume form — separate component, fresh state on every mount ———
 function ConsumeForm({
   product,
   rooms,
@@ -54,24 +56,28 @@ function ConsumeForm({
 }) {
   const [destination, setDestination] = useState<InventoryDestination>('room')
   const [consumeState, consumeFormAction, isPending] = useActionState(consumeStockAction, initialConsumeState)
+  const t = useTranslations('depo.products')
+  const tForm = useTranslations('depo.products.consumeForm')
+  const tDest = useTranslations('depo.products.destinations')
+  const tc = useTranslations('common')
 
   const inputCls = 'w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground outline-none focus:ring-1 focus:ring-primary'
 
   if (consumeState.success) {
     return (
       <div className="flex items-center gap-3 py-2">
-        <span className="text-sm text-green-700 font-medium">✓ Stoktan düşüldü</span>
+        <span className="text-sm text-green-700 font-medium">{t('consumeSuccess')}</span>
         <button
           onClick={onAgain}
           className="text-xs text-primary underline font-medium"
         >
-          Tekrar kullan
+          {t('useAgainButton')}
         </button>
         <button
           onClick={onClose}
           className="text-xs text-muted-foreground underline"
         >
-          Kapat
+          {t('closeButton')}
         </button>
       </div>
     )
@@ -82,7 +88,7 @@ function ConsumeForm({
       <input type="hidden" name="productId" value={product.id} />
 
       <div>
-        <label className="block text-xs font-medium text-muted-foreground mb-1">Miktar</label>
+        <label className="block text-xs font-medium text-muted-foreground mb-1">{tForm('quantityLabel')}</label>
         <input
           name="quantity"
           type="number"
@@ -96,24 +102,24 @@ function ConsumeForm({
       </div>
 
       <div>
-        <label className="block text-xs font-medium text-muted-foreground mb-1">Kullanım Yeri</label>
+        <label className="block text-xs font-medium text-muted-foreground mb-1">{tForm('destinationLabel')}</label>
         <select
           name="destination"
           value={destination}
           onChange={(e) => setDestination(e.target.value as InventoryDestination)}
           className={inputCls + ' w-auto'}
         >
-          {Object.entries(DESTINATIONS).map(([k, v]) => (
-            <option key={k} value={k}>{v}</option>
+          {DESTINATION_KEYS.map((k) => (
+            <option key={k} value={k}>{tDest(k)}</option>
           ))}
         </select>
       </div>
 
       {destination === 'room' && (
         <div>
-          <label className="block text-xs font-medium text-muted-foreground mb-1">Oda No</label>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">{tForm('roomLabel')}</label>
           <select name="roomId" className={inputCls + ' w-auto'}>
-            <option value="">— Seçin</option>
+            <option value="">{tc('select')}</option>
             {rooms.map((r) => (
               <option key={r.id} value={r.id}>#{r.room_number}</option>
             ))}
@@ -122,11 +128,11 @@ function ConsumeForm({
       )}
 
       <div>
-        <label className="block text-xs font-medium text-muted-foreground mb-1">Not (opsiyonel)</label>
+        <label className="block text-xs font-medium text-muted-foreground mb-1">{tForm('noteLabel')}</label>
         <input
           name="note"
           type="text"
-          placeholder="Kısa açıklama..."
+          placeholder={tForm('noteLabel')}
           className="w-48 px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground outline-none focus:ring-1 focus:ring-primary"
         />
       </div>
@@ -140,14 +146,14 @@ function ConsumeForm({
           disabled={isPending}
           className="px-4 py-2 rounded-lg bg-primary text-white text-xs font-semibold disabled:opacity-60 transition-opacity"
         >
-          {isPending ? 'Kaydediliyor…' : 'Onayla'}
+          {isPending ? tForm('savingButton') : tForm('confirmButton')}
         </button>
       </div>
     </form>
   )
 }
 
-// ——— Tek ürün satırı ———
+// ——— Single product row ———
 function ProductRow({
   product,
   rooms,
@@ -157,12 +163,17 @@ function ProductRow({
   rooms: Room[]
   isAdmin: boolean
 }) {
+  const t = useTranslations('depo.products')
+  const tHist = useTranslations('depo.products.history')
+  const tDest = useTranslations('depo.products.destinations')
+  const locale = useLocale()
+  const dateLocale = LOCALE_BCP47[locale] ?? 'ru-RU'
   const [showConsume, setShowConsume] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
   const [historyLoading, setHistoryLoading] = useState(false)
   const [historyData, setHistoryData] = useState<InventoryMovement[] | null>(null)
   const [historyError, setHistoryError] = useState<string | null>(null)
-  // Her "Kullan" açılışında key artarak ConsumeForm'u taze mount eder
+  // Each time "Use" opens, incrementing the key remounts ConsumeForm fresh
   const [openKey, setOpenKey] = useState(0)
 
   const lowStock = product.on_hand <= 3
@@ -171,7 +182,7 @@ function ProductRow({
     if (showConsume) {
       setShowConsume(false)
     } else {
-      setOpenKey((k) => k + 1) // taze mount
+      setOpenKey((k) => k + 1) // fresh mount
       setShowConsume(true)
       setShowHistory(false)
     }
@@ -190,34 +201,34 @@ function ProductRow({
 
   return (
     <div className="border-b border-border last:border-0">
-      {/* Ana satır */}
+      {/* Main row */}
       <div className="flex items-center gap-3 px-4 py-3 hover:bg-muted/20 transition-colors">
         <span className="flex-1 text-sm font-medium text-foreground">{product.name}</span>
         <span
           className={`text-sm font-bold tabular-nums min-w-[3rem] text-right ${lowStock ? 'text-red-600' : 'text-foreground'}`}
         >
           {product.on_hand}
-          {lowStock && <span className="ml-1 text-xs font-normal text-red-500">⚠ az</span>}
+          {lowStock && <span className="ml-1 text-xs font-normal text-red-500">{t('lowStockWarning')}</span>}
         </span>
         <div className="flex gap-1.5">
           <button
             onClick={handleOpenConsume}
             className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary text-white hover:opacity-90 transition-opacity"
           >
-            {showConsume ? 'Kapat' : 'Kullan'}
+            {showConsume ? t('closeButton') : t('useButton')}
           </button>
           {isAdmin && (
             <button
               onClick={handleShowHistory}
               className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-border text-muted-foreground hover:bg-muted/50 transition-colors"
             >
-              Geçmiş
+              {t('historyButton')}
             </button>
           )}
         </div>
       </div>
 
-      {/* Tüketim paneli */}
+      {/* Consume panel */}
       {showConsume && (
         <div className="px-4 pb-4 pt-1 bg-muted/10 border-t border-border">
           <ConsumeForm
@@ -226,51 +237,52 @@ function ProductRow({
             rooms={rooms}
             onClose={() => setShowConsume(false)}
             onAgain={() => {
-              // Taze form aç (key artır)
+              // Open a fresh form (increment key)
               setOpenKey((k) => k + 1)
             }}
           />
         </div>
       )}
 
-      {/* Admin geçmiş paneli */}
+      {/* Admin history panel */}
       {isAdmin && showHistory && (
         <div className="px-4 pb-4 pt-1 bg-muted/5 border-t border-border">
-          {historyLoading && <p className="text-xs text-muted-foreground py-2">Yükleniyor…</p>}
+          {historyLoading && <p className="text-xs text-muted-foreground py-2">{tHist('loadingText')}</p>}
           {historyError && <p className="text-xs text-destructive py-2">{historyError}</p>}
           {historyData !== null && historyData.length === 0 && (
-            <p className="text-xs text-muted-foreground py-2">Henüz hareket kaydı yok.</p>
+            <p className="text-xs text-muted-foreground py-2">{tHist('noHistory')}</p>
           )}
           {historyData !== null && historyData.length > 0 && (
             <div className="overflow-x-auto">
               <table className="w-full text-xs mt-2">
                 <thead>
                   <tr className="text-muted-foreground">
-                    <th className="text-left pb-1 pr-3">Tarih</th>
-                    <th className="text-left pb-1 pr-3">Tür</th>
-                    <th className="text-right pb-1 pr-3">Adet</th>
-                    <th className="text-left pb-1 pr-3">Kim</th>
-                    <th className="text-left pb-1 pr-3">Nereye</th>
-                    <th className="text-left pb-1">Not</th>
+                    <th className="text-left pb-1 pr-3">{tHist('headers.date')}</th>
+                    <th className="text-left pb-1 pr-3">{tHist('headers.type')}</th>
+                    <th className="text-right pb-1 pr-3">{tHist('headers.quantity')}</th>
+                    <th className="text-left pb-1 pr-3">{tHist('headers.who')}</th>
+                    <th className="text-left pb-1 pr-3">{tHist('headers.where')}</th>
+                    <th className="text-left pb-1">{tHist('headers.note')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
                   {historyData.map((m) => {
-                    const typeInfo = MOVEMENT_TYPE_LABEL[m.type] ?? { label: m.type, color: '#64748B', bg: '#F1F5F9' }
+                    const typeColor = MOVEMENT_TYPE_COLOR[m.type] ?? { color: '#64748B', bg: '#F1F5F9' }
+                    const typeLabel = m.type === 'in' ? tHist('typeIn') : m.type === 'out' ? tHist('typeOut') : m.type
                     const destLabel = m.destination === 'room' && m.rooms?.room_number
-                      ? `Oda #${m.rooms.room_number}`
-                      : DESTINATIONS[m.destination] ?? m.destination
+                      ? `${tDest('room')} #${m.rooms.room_number}`
+                      : (['room','garden','kitchen','reception','general'].includes(m.destination) ? tDest(m.destination) : m.destination)
                     return (
                       <tr key={m.id} className="hover:bg-muted/10">
                         <td className="py-1.5 pr-3 tabular-nums text-muted-foreground">
-                          {new Date(m.created_at).toLocaleString('tr-TR', { dateStyle: 'short', timeStyle: 'short' })}
+                          {new Date(m.created_at).toLocaleString(dateLocale, { dateStyle: 'short', timeStyle: 'short' })}
                         </td>
                         <td className="py-1.5 pr-3">
                           <span
-                            style={{ backgroundColor: typeInfo.bg, color: typeInfo.color }}
+                            style={{ backgroundColor: typeColor.bg, color: typeColor.color }}
                             className="px-1.5 py-0.5 rounded font-semibold"
                           >
-                            {typeInfo.label}
+                            {typeLabel}
                           </span>
                         </td>
                         <td className="py-1.5 pr-3 text-right tabular-nums font-medium text-foreground">
@@ -294,27 +306,31 @@ function ProductRow({
   )
 }
 
-// ——— Ana bileşen ———
+// ——— Main component ———
 export default function DepoProductsSection({ products, rooms, isAdmin }: Props) {
+  const t = useTranslations('depo.products')
+  const tCat = useTranslations('depo.categories')
   const [searchName, setSearchName] = useState('')
   const [filterCat, setFilterCat] = useState<string>('all')
+
+  const catLabel = (cat: InventoryCategory) => `${CATEGORY_EMOJI[cat]} ${tCat(cat)}`
 
   if (products.length === 0) {
     return (
       <p className="text-sm text-muted-foreground text-center py-6">
-        Henüz stok kaydı yok. Alım girince ürünler otomatik oluşur.
+        {t('noProducts')}
       </p>
     )
   }
 
-  // Filtrele
+  // Filter
   const filtered = products.filter((p) => {
     const nameMatch = p.name.toLowerCase().includes(searchName.toLowerCase())
     const catMatch = filterCat === 'all' || p.category === filterCat
     return nameMatch && catMatch
   })
 
-  // Kategoriye göre grupla
+  // Group by category
   const grouped: Partial<Record<InventoryCategory, InventoryProduct[]>> = {}
   for (const p of filtered) {
     if (!grouped[p.category]) grouped[p.category] = []
@@ -323,13 +339,13 @@ export default function DepoProductsSection({ products, rooms, isAdmin }: Props)
 
   return (
     <div className="space-y-4">
-      {/* Filtre satırı */}
+      {/* Filter row */}
       <div className="flex flex-wrap gap-3 items-center">
         <input
           type="text"
           value={searchName}
           onChange={(e) => setSearchName(e.target.value)}
-          placeholder="Ürün ara..."
+          placeholder={t('searchPlaceholder')}
           className="px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground outline-none focus:ring-1 focus:ring-primary w-52"
         />
         <select
@@ -337,9 +353,9 @@ export default function DepoProductsSection({ products, rooms, isAdmin }: Props)
           onChange={(e) => setFilterCat(e.target.value)}
           className="px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground outline-none focus:ring-1 focus:ring-primary"
         >
-          <option value="all">Tüm Kategoriler</option>
-          {(Object.entries(CATEGORIES) as [InventoryCategory, string][]).map(([k, v]) => (
-            <option key={k} value={k}>{v}</option>
+          <option value="all">{t('allCategories')}</option>
+          {CATEGORY_KEYS.map((k) => (
+            <option key={k} value={k}>{catLabel(k)}</option>
           ))}
         </select>
         {(searchName || filterCat !== 'all') && (
@@ -347,39 +363,34 @@ export default function DepoProductsSection({ products, rooms, isAdmin }: Props)
             onClick={() => { setSearchName(''); setFilterCat('all') }}
             className="text-xs text-muted-foreground underline"
           >
-            Temizle
+            {t('clearFilter')}
           </button>
-        )}
-        {filtered.length !== products.length && (
-          <span className="text-xs text-muted-foreground">
-            {filtered.length} / {products.length} ürün
-          </span>
         )}
       </div>
 
       {filtered.length === 0 && (
-        <p className="text-sm text-muted-foreground text-center py-6">Arama kriterine uygun ürün yok.</p>
+        <p className="text-sm text-muted-foreground text-center py-6">{t('noFilterResult')}</p>
       )}
 
-      {(Object.keys(CATEGORIES) as InventoryCategory[])
+      {CATEGORY_KEYS
         .filter((cat) => grouped[cat] && grouped[cat]!.length > 0)
         .map((cat) => (
           <div key={cat} className="rounded-xl border border-border bg-card overflow-hidden">
-            {/* Kategori başlığı */}
+            {/* Category header */}
             <div className="px-4 py-2.5 bg-muted/20 border-b border-border">
               <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-                {CATEGORIES[cat]}
+                {catLabel(cat)}
               </span>
             </div>
 
-            {/* Ürün başlık satırı */}
+            {/* Product header row */}
             <div className="flex items-center gap-3 px-4 py-2 bg-muted/10 border-b border-border/50">
-              <span className="flex-1 text-xs font-semibold text-muted-foreground uppercase tracking-wide">Ürün Adı</span>
-              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide min-w-[3rem] text-right">Adet</span>
+              <span className="flex-1 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('nameHeader')}</span>
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wide min-w-[3rem] text-right">{t('quantityHeader')}</span>
               <span className="w-[120px]" />
             </div>
 
-            {/* Ürün satırları */}
+            {/* Product rows */}
             {grouped[cat]!.map((product) => (
               <ProductRow
                 key={product.id}

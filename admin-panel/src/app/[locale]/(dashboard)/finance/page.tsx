@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingDown, TrendingUp, Minus } from 'lucide-react'
 import FinanceExpenseTable from './FinanceExpenseTable'
@@ -38,11 +39,13 @@ export default async function FinancePage() {
   const payments = (paymentsResult.data ?? []) as unknown as PaymentRow[]
   const purchases = (purchasesResult.data ?? []) as unknown as PurchaseRow[]
 
-  // Gelir toplamları — UZS ve USD ayrı
+  const t = await getTranslations('finance')
+
+  // Income totals — UZS and USD separately
   const incomeUZS = payments.filter((p) => p.currency === 'UZS').reduce((s, p) => s + Number(p.amount), 0)
   const incomeUSD = payments.filter((p) => p.currency === 'USD').reduce((s, p) => s + Number(p.amount), 0)
 
-  // Gider toplamları
+  // Expense totals
   const expenseUZS = purchases.filter((p) => p.currency === 'UZS').reduce((s, p) => s + Number(p.total_amount), 0)
   const expenseUSD = purchases.filter((p) => p.currency === 'USD').reduce((s, p) => s + Number(p.total_amount), 0)
 
@@ -52,14 +55,14 @@ export default async function FinancePage() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Para Akışı</h1>
-        <p className="text-sm text-muted-foreground mt-1">Gelir ve gider özeti — UZS/USD ayrı gösterilir</p>
+        <h1 className="text-2xl font-semibold text-foreground">{t('title')}</h1>
+        <p className="text-sm text-muted-foreground mt-1">{t('subtitle')}</p>
       </div>
 
-      {/* Özet kartları */}
+      {/* Summary cards */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <Card>
-          <CardHeader><CardTitle className="text-sm flex items-center gap-2"><TrendingUp size={16} className="text-green-600" /> Gelir</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-sm flex items-center gap-2"><TrendingUp size={16} className="text-green-600" /> {t('income')}</CardTitle></CardHeader>
           <CardContent className="space-y-1">
             <p className="text-2xl font-semibold tabular-nums text-foreground">{fmt(incomeUZS)} so&apos;m</p>
             {incomeUSD > 0 && <p className="text-sm text-muted-foreground tabular-nums">{fmtUSD(incomeUSD)} USD</p>}
@@ -67,7 +70,7 @@ export default async function FinancePage() {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="text-sm flex items-center gap-2"><TrendingDown size={16} className="text-red-600" /> Gider</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-sm flex items-center gap-2"><TrendingDown size={16} className="text-red-600" /> {t('expense')}</CardTitle></CardHeader>
           <CardContent className="space-y-1">
             <p className="text-2xl font-semibold tabular-nums text-foreground">{fmt(expenseUZS)} so&apos;m</p>
             {expenseUSD > 0 && <p className="text-sm text-muted-foreground tabular-nums">{fmtUSD(expenseUSD)} USD</p>}
@@ -75,7 +78,7 @@ export default async function FinancePage() {
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="text-sm flex items-center gap-2"><Minus size={16} className={netUZS >= 0 ? 'text-green-600' : 'text-red-600'} /> Net</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-sm flex items-center gap-2"><Minus size={16} className={netUZS >= 0 ? 'text-green-600' : 'text-red-600'} /> {t('net')}</CardTitle></CardHeader>
           <CardContent className="space-y-1">
             <p className={`text-2xl font-semibold tabular-nums ${netUZS >= 0 ? 'text-green-700' : 'text-red-700'}`}>
               {netUZS >= 0 ? '+' : ''}{fmt(netUZS)} so&apos;m
@@ -89,18 +92,18 @@ export default async function FinancePage() {
         </Card>
       </div>
 
-      {/* Gelir tablosu */}
+      {/* Income table */}
       <section className="space-y-3">
         <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
-          <TrendingUp size={14} /> Gelirler ({payments.length} ödeme)
+          <TrendingUp size={14} /> {t('incomeSection', { n: payments.length })}
         </h2>
         <FinanceIncomeTable payments={payments} />
       </section>
 
-      {/* Gider tablosu */}
+      {/* Expense table */}
       <section className="space-y-3">
         <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-wide flex items-center gap-2">
-          <TrendingDown size={14} /> Giderler — Depo ({purchases.length} alım)
+          <TrendingDown size={14} /> {t('expenseSection', { n: purchases.length })}
         </h2>
         <FinanceExpenseTable purchases={purchases} />
       </section>

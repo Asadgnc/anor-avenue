@@ -1,8 +1,15 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { getLocale, getTranslations } from 'next-intl/server'
 import { BarChart3, Download } from 'lucide-react'
 import SectionZone from '@/components/admin/SectionZone'
+
+const LOCALE_BCP47: Record<string, string> = {
+  ru: 'ru-RU',
+  uz: 'uz-UZ',
+  'uz-cyrl': 'uz-Cyrl-UZ',
+}
 
 function formatUZS(n: number) {
   return new Intl.NumberFormat('uz-UZ', { maximumFractionDigits: 0 }).format(n) + ' UZS'
@@ -69,10 +76,6 @@ interface CheckoutRow {
   rooms: { room_number: string } | null
 }
 
-const METHOD_LABELS: Record<string, string> = {
-  cash: 'Nakit', payme: 'Payme', click: 'Click', uzum: 'Uzum', transfer: 'Havale',
-}
-
 export default async function ReportsPage({
   searchParams,
 }: {
@@ -82,6 +85,20 @@ export default async function ReportsPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  const locale = await getLocale()
+  const dateLocale = LOCALE_BCP47[locale] ?? 'ru-RU'
+  const t = await getTranslations('reports')
+  const tMethods = await getTranslations('payments.methods')
+
+  const methodLabel = (method: string): string => {
+    if (method === 'payme') return 'Payme'
+    if (method === 'click') return 'Click'
+    if (method === 'uzum') return 'Uzum'
+    if (method === 'cash') return tMethods('cash')
+    if (method === 'transfer') return tMethods('transfer')
+    return method
+  }
+
   const params = await searchParams
   const today = new Date().toISOString().split('T')[0]
   const date = params.date ?? today
@@ -90,20 +107,20 @@ export default async function ReportsPage({
   if (!data) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Günlük Rapor</h1>
-        <p className="text-destructive">Rapor yüklenemedi.</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t('title')}</h1>
+        <p className="text-destructive">{t('errorMessage')}</p>
       </div>
     )
   }
 
   return (
     <div className="space-y-8 max-w-3xl">
-      {/* Başlık + Tarih Seçici */}
+      {/* Header + date picker */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">Günlük Rapor</h1>
+          <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t('title')}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {new Date(date + 'T00:00:00').toLocaleDateString('tr-TR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+            {new Date(date + 'T00:00:00').toLocaleDateString(dateLocale, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
         </div>
         <div className="flex gap-2 items-center flex-wrap">
@@ -119,31 +136,31 @@ export default async function ReportsPage({
               type="submit"
               className="px-4 py-2 rounded-lg text-sm font-semibold bg-primary text-primary-foreground transition-opacity hover:opacity-90 duration-150"
             >
-              Görüntüle
+              {t('viewButton')}
             </button>
           </form>
           <a
-            href={`/api/reports/export?date=${date}`}
+            href={`/api/reports/export?date=${date}&locale=${locale}`}
             className="px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-1.5 bg-card ring-1 ring-foreground/10 text-foreground transition-shadow hover:ring-foreground/20 duration-150"
           >
-            <Download size={14} /> Excel İndir
+            <Download size={14} /> {t('exportButton')}
           </a>
         </div>
       </div>
 
-      {/* Özet Kartlar */}
-      <SectionZone tone="purple" title="Günün Özeti" icon={<BarChart3 size={16} />}>
+      {/* Summary cards */}
+      <SectionZone tone="purple" title={t('summaryTitle')} icon={<BarChart3 size={16} />}>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <SummaryCard label="Doluluk" value={`${data.occupancyRate.toFixed(0)}%`} sub={`${data.occupiedRooms}/${data.totalRooms} oda`} accent="text-primary" />
-          <SummaryCard label="Günlük Gelir" value={formatUZS(data.totalRevenue)} sub={`${data.payments.length} işlem`} accent="text-success" />
-          <SummaryCard label="Check-in" value={String(data.checkins.length)} sub="misafir girişi" accent="text-info" />
-          <SummaryCard label="Check-out" value={String(data.checkouts.length)} sub="misafir çıkışı" accent="text-warning" />
+          <SummaryCard label={t('occupancy')} value={`${data.occupancyRate.toFixed(0)}%`} sub={t('roomsCount', { occupied: data.occupiedRooms, total: data.totalRooms })} accent="text-primary" />
+          <SummaryCard label={t('dailyIncome')} value={formatUZS(data.totalRevenue)} sub={t('transactions', { n: data.payments.length })} accent="text-success" />
+          <SummaryCard label="Check-in" value={String(data.checkins.length)} sub={t('checkIns')} accent="text-info" />
+          <SummaryCard label="Check-out" value={String(data.checkouts.length)} sub={t('checkOuts')} accent="text-warning" />
         </div>
       </SectionZone>
 
-      {/* Gelir Yöntem Dağılımı */}
+      {/* Revenue breakdown by method */}
       {Object.keys(data.revenueByMethod).length > 0 && (
-        <Section title="Gelir Dağılımı">
+        <Section title={t('revenueBreakdown')}>
           <div className="flex flex-wrap gap-3">
             {Object.entries(data.revenueByMethod).map(([method, amount]) => (
               <div
@@ -151,7 +168,7 @@ export default async function ReportsPage({
                 className="flex flex-col gap-1 px-4 py-3 rounded-lg min-w-[120px] bg-muted border border-border"
               >
                 <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  {METHOD_LABELS[method] ?? method}
+                  {methodLabel(method)}
                 </span>
                 <span className="font-bold tabular-nums text-primary">
                   {formatUZS(amount)}
@@ -162,15 +179,15 @@ export default async function ReportsPage({
         </Section>
       )}
 
-      {/* Bugün Giriş Yapanlar */}
-      <Section title={`Check-in Listesi (${data.checkins.length})`}>
+      {/* Today's check-ins */}
+      <Section title={t('checkInList', { n: data.checkins.length })}>
         {data.checkins.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Bu tarihte check-in yok.</p>
+          <p className="text-sm text-muted-foreground">{t('noCheckIns')}</p>
         ) : (
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
-                {['Rezervasyon', 'Misafir', 'Oda', 'Oda Fiyatı'].map((h) => (
+                {[t('headers.reservation'), t('headers.guest'), t('headers.room'), t('headers.roomPrice')].map((h) => (
                   <th key={h} className="text-left py-2 px-3 text-xs uppercase tracking-wide text-muted-foreground">{h}</th>
                 ))}
               </tr>
@@ -193,15 +210,15 @@ export default async function ReportsPage({
         )}
       </Section>
 
-      {/* Bugün Çıkış Yapanlar */}
-      <Section title={`Check-out Listesi (${data.checkouts.length})`}>
+      {/* Today's check-outs */}
+      <Section title={t('checkOutList', { n: data.checkouts.length })}>
         {data.checkouts.length === 0 ? (
-          <p className="text-sm text-muted-foreground">Bu tarihte check-out yok.</p>
+          <p className="text-sm text-muted-foreground">{t('noCheckOuts')}</p>
         ) : (
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border">
-                {['Rezervasyon', 'Misafir', 'Oda', 'Toplam'].map((h) => (
+                {[t('headers.reservation'), t('headers.guest'), t('headers.room'), t('headers.total')].map((h) => (
                   <th key={h} className="text-left py-2 px-3 text-xs uppercase tracking-wide text-muted-foreground">{h}</th>
                 ))}
               </tr>
@@ -227,7 +244,7 @@ export default async function ReportsPage({
   )
 }
 
-// ─── Alt Bileşenler ──────────────────────────────────────────────────────────
+// ─── Subcomponents ──────────────────────────────────────────────────────────
 
 function SummaryCard({ label, value, sub, accent }: { label: string; value: string; sub: string; accent: string }) {
   return (

@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
+import { useTranslations } from 'next-intl'
 import { updateRoomTypePriceAction, type PriceState } from './actions'
 
 interface Props {
@@ -16,6 +17,8 @@ export default function RoomTypePriceForm({ id, name, basePrice }: Props) {
     updateRoomTypePriceAction,
     initState
   )
+  const t = useTranslations('settings.roomTypePrices')
+  const tc = useTranslations('common')
 
   return (
     <form action={action} className="flex items-center gap-3">
@@ -35,7 +38,7 @@ export default function RoomTypePriceForm({ id, name, basePrice }: Props) {
             borderColor: state.error ? '#EF4444' : 'var(--color-admin-border)',
           }}
         />
-        <span className="text-xs" style={{ color: 'var(--color-admin-muted)' }}>UZS / gece</span>
+        <span className="text-xs" style={{ color: 'var(--color-admin-muted)' }}>{t('priceUnit')}</span>
       </div>
       <button
         type="submit"
@@ -43,7 +46,7 @@ export default function RoomTypePriceForm({ id, name, basePrice }: Props) {
         className="px-3 py-2 rounded-lg text-xs font-semibold disabled:opacity-50 transition-opacity hover:opacity-80"
         style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
       >
-        {pending ? '…' : state.success ? 'Kaydedildi ✓' : 'Kaydet'}
+        {pending ? '…' : state.success ? tc('saved') : tc('save')}
       </button>
       {state.error && (
         <span className="text-xs" style={{ color: '#EF4444' }}>{state.error}</span>

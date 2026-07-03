@@ -1,20 +1,17 @@
 'use client'
 
 import { useActionState } from 'react'
+import { useTranslations } from 'next-intl'
 import { inviteStaffAction, type StaffState } from './actions'
 
-const ROLES = [
-  { value: 'receptionist', label: 'Resepsiyon' },
-  { value: 'manager',      label: 'Müdür' },
-  { value: 'housekeeper',  label: 'Temizlik' },
-  { value: 'accountant',   label: 'Muhasebeci' },
-  { value: 'admin',        label: 'Admin' },
-] as const
+const ROLE_VALUES = ['receptionist', 'manager', 'housekeeper', 'accountant', 'admin'] as const
 
 const init: StaffState = {}
 
 export default function InviteFormClient() {
   const [state, action, pending] = useActionState<StaffState, FormData>(inviteStaffAction, init)
+  const t = useTranslations('staff.inviteForm')
+  const tRoles = useTranslations('roles')
 
   const inputStyle = {
     backgroundColor: 'var(--color-admin-card)',
@@ -26,12 +23,12 @@ export default function InviteFormClient() {
     <form action={action} className="flex flex-wrap gap-3 items-end">
       <div className="flex flex-col gap-1.5">
         <label className="text-xs font-medium" style={{ color: 'var(--color-admin-muted)' }}>
-          Ad Soyad
+          {t('nameLabel')}
         </label>
         <input
           name="fullName"
           type="text"
-          placeholder="Ahmet Yılmaz"
+          placeholder={t('namePlaceholder')}
           required
           className="px-3 py-2 rounded-lg text-sm border outline-none w-44"
           style={inputStyle}
@@ -39,12 +36,12 @@ export default function InviteFormClient() {
       </div>
       <div className="flex flex-col gap-1.5">
         <label className="text-xs font-medium" style={{ color: 'var(--color-admin-muted)' }}>
-          E-posta adresi
+          {t('emailLabel')}
         </label>
         <input
           name="email"
           type="email"
-          placeholder="personel@ornek.com"
+          placeholder={t('emailPlaceholder')}
           required
           className="px-3 py-2 rounded-lg text-sm border outline-none w-56"
           style={{
@@ -55,7 +52,7 @@ export default function InviteFormClient() {
       </div>
       <div className="flex flex-col gap-1.5">
         <label className="text-xs font-medium" style={{ color: 'var(--color-admin-muted)' }}>
-          Rol
+          {t('roleLabel')}
         </label>
         <select
           name="role"
@@ -63,8 +60,8 @@ export default function InviteFormClient() {
           className="px-3 py-2 rounded-lg text-sm border outline-none appearance-none"
           style={inputStyle}
         >
-          {ROLES.map((r) => (
-            <option key={r.value} value={r.value}>{r.label}</option>
+          {ROLE_VALUES.map((r) => (
+            <option key={r} value={r}>{tRoles(r)}</option>
           ))}
         </select>
       </div>
@@ -74,7 +71,7 @@ export default function InviteFormClient() {
         className="px-4 py-2 rounded-lg text-sm font-semibold disabled:opacity-50 transition-opacity hover:opacity-80"
         style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
       >
-        {pending ? 'Gönderiliyor…' : state.success ? 'Davet gönderildi ✓' : 'Davet Gönder'}
+        {pending ? t('sendingButton') : state.success ? t('sentButton') : t('sendButton')}
       </button>
       {state.error && (
         <span className="text-xs" style={{ color: '#EF4444' }}>{state.error}</span>

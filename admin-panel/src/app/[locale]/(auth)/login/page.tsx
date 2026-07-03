@@ -1,12 +1,14 @@
 'use client'
 
 import { useActionState } from 'react'
+import { useTranslations } from 'next-intl'
 import { loginAction, type LoginState } from './actions'
 
 const initialState: LoginState = {}
 
 export default function LoginPage() {
   const [state, action, isPending] = useActionState(loginAction, initialState)
+  const t = useTranslations('login')
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -14,7 +16,7 @@ export default function LoginPage() {
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-8">
           <div className="mb-8 text-center">
             <h1 className="text-2xl font-semibold text-gray-900">Anor Avenue</h1>
-            <p className="mt-1 text-sm text-gray-500">Yönetim Paneli</p>
+            <p className="mt-1 text-sm text-gray-500">{t('panelTitle')}</p>
           </div>
 
           <form action={action} className="space-y-4">
@@ -23,7 +25,7 @@ export default function LoginPage() {
                 htmlFor="email"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                E-posta
+                {t('emailLabel')}
               </label>
               <input
                 id="email"
@@ -45,7 +47,7 @@ export default function LoginPage() {
                 htmlFor="password"
                 className="block text-sm font-medium text-gray-700 mb-1"
               >
-                Şifre
+                {t('passwordLabel')}
               </label>
               <input
                 id="password"
@@ -75,7 +77,7 @@ export default function LoginPage() {
                          rounded-lg hover:bg-gray-700 transition-colors
                          disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isPending ? 'Giriş yapılıyor…' : 'Giriş Yap'}
+              {isPending ? t('loggingIn') : t('loginButton')}
             </button>
           </form>
         </div>

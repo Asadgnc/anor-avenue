@@ -17,7 +17,8 @@
     "showAll": "Barchasi ({n})",
     "visibleCount": "{visible} / {total} yozuv",
     "noFilterResult": "Filtr bo'yicha yozuv yo'q.",
-    "redirecting": "Yo'naltirilmoqda…"
+    "redirecting": "Yo'naltirilmoqda…",
+    "confirm": "Tasdiqlash"
   },
   "nav": {
     "title": "Boshqaruv paneli",
@@ -771,7 +772,7 @@
   "invoice": {
     "title": "Kvitansiya — Anor Avenue",
     "previewTitle": "Kvitansiya ko'rinishi",
-    "invoiceLabel": "Квитанция / Fatura",
+    "invoiceLabel": "Kvitansiya",
     "dateLabel": "Sana: ",
     "guestSection": "Mehmon / Гость",
     "guestFields": {

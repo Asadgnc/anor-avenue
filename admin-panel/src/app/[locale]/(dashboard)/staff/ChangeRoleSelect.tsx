@@ -1,15 +1,10 @@
 'use client'
 
 import { useActionState } from 'react'
+import { useTranslations } from 'next-intl'
 import { changeRoleAction, type StaffState } from './actions'
 
-const ROLES = [
-  { value: 'admin',        label: 'Admin' },
-  { value: 'manager',      label: 'Müdür' },
-  { value: 'receptionist', label: 'Resepsiyon' },
-  { value: 'housekeeper',  label: 'Temizlik' },
-  { value: 'accountant',   label: 'Muhasebeci' },
-] as const
+const ROLE_VALUES = ['admin', 'manager', 'receptionist', 'housekeeper', 'accountant'] as const
 
 type Props = {
   userId: string
@@ -20,6 +15,8 @@ const init: StaffState = {}
 
 export default function ChangeRoleSelect({ userId, currentRole }: Props) {
   const [state, action, pending] = useActionState<StaffState, FormData>(changeRoleAction, init)
+  const tRoles = useTranslations('roles')
+  const tc = useTranslations('common')
 
   return (
     <form action={action} className="flex items-center gap-2">
@@ -35,8 +32,8 @@ export default function ChangeRoleSelect({ userId, currentRole }: Props) {
           borderColor: state.error ? '#EF4444' : 'var(--color-admin-border)',
         }}
       >
-        {ROLES.map((r) => (
-          <option key={r.value} value={r.value}>{r.label}</option>
+        {ROLE_VALUES.map((r) => (
+          <option key={r} value={r}>{tRoles(r)}</option>
         ))}
       </select>
       <button
@@ -45,7 +42,7 @@ export default function ChangeRoleSelect({ userId, currentRole }: Props) {
         className="px-2 py-1 rounded text-xs font-semibold disabled:opacity-40 hover:opacity-80 transition-opacity"
         style={{ backgroundColor: 'var(--color-admin-bg)', color: 'var(--color-accent)', border: '1px solid var(--color-admin-border)' }}
       >
-        {pending ? '…' : state.success ? '✓' : 'Kaydet'}
+        {pending ? '…' : state.success ? '✓' : tc('save')}
       </button>
       {state.error && (
         <span className="text-xs" style={{ color: '#EF4444' }}>{state.error}</span>

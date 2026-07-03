@@ -58,7 +58,7 @@ export default async function ReservationsPage({ searchParams }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* Başlık */}
+      {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold text-foreground">{t('title')}</h1>
@@ -67,7 +67,7 @@ export default async function ReservationsPage({ searchParams }: Props) {
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
-          {/* Liste görünümü */}
+          {/* List view */}
           <Link
             href="/reservations/list"
             className="px-3 py-2 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"

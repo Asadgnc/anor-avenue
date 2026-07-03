@@ -1,9 +1,16 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
+import { getLocale, getTranslations } from 'next-intl/server'
 import { Wallet, CreditCard } from 'lucide-react'
 import type { Payment, PaymentMethod, PaymentStatus } from '@/types/hotel'
 import SectionZone from '@/components/admin/SectionZone'
 import StatusBadge, { type StatusTone } from '@/components/admin/StatusBadge'
+
+const LOCALE_BCP47: Record<string, string> = {
+  ru: 'ru-RU',
+  uz: 'uz-UZ',
+  'uz-cyrl': 'uz-Cyrl-UZ',
+}
 
 interface PaymentWithReservation extends Payment {
   reservations: {
@@ -12,19 +19,11 @@ interface PaymentWithReservation extends Payment {
   } | null
 }
 
-const METHOD_LABELS: Record<PaymentMethod, string> = {
-  payme: 'Payme',
-  click: 'Click',
-  uzum: 'Uzum',
-  cash: 'Nakit',
-  transfer: 'Havale',
-}
-
-const STATUS_CONFIG: Record<PaymentStatus, { label: string; tone: StatusTone }> = {
-  pending:   { label: 'Bekliyor',   tone: 'warning' },
-  completed: { label: 'Tamamlandı', tone: 'success' },
-  failed:    { label: 'Başarısız',  tone: 'error' },
-  refunded:  { label: 'İade',       tone: 'neutral' },
+const STATUS_TONE: Record<PaymentStatus, StatusTone> = {
+  pending:   'warning',
+  completed: 'success',
+  failed:    'error',
+  refunded:  'neutral',
 }
 
 function formatUZS(amount: number): string {
@@ -35,6 +34,19 @@ export default async function PaymentsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  const locale = await getLocale()
+  const dateLocale = LOCALE_BCP47[locale] ?? 'ru-RU'
+  const t = await getTranslations('payments')
+  const tStatus = await getTranslations('status.payment')
+
+  const methodLabel = (method: PaymentMethod): string => {
+    if (method === 'payme') return 'Payme'
+    if (method === 'click') return 'Click'
+    if (method === 'uzum') return 'Uzum'
+    if (method === 'cash') return t('methods.cash')
+    return t('methods.transfer')
+  }
 
   const { data: payments } = await supabase
     .from('payments')
@@ -54,32 +66,32 @@ export default async function PaymentsPage() {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">Ödemeler</h1>
-        <p className="mt-1 text-sm text-muted-foreground">{rows.length} kayıt</p>
+        <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t('title')}</h1>
+        <p className="mt-1 text-sm text-muted-foreground">{t('count', { n: rows.length })}</p>
       </div>
 
-      {/* Özet kartları */}
-      <SectionZone tone="green" title="Ödeme Özeti" icon={<Wallet size={16} />}>
+      {/* Summary cards */}
+      <SectionZone tone="green" title={t('summaryTitle')} icon={<Wallet size={16} />}>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <SummaryCard label="Toplam Gelir" value={formatUZS(totalCompleted)} accent="text-success" />
-          <SummaryCard label="Bekleyen Ödeme" value={String(pendingCount)} accent="text-warning" />
-          <SummaryCard label="Toplam Kayıt" value={String(rows.length)} accent="text-primary" />
+          <SummaryCard label={t('totalIncome')} value={formatUZS(totalCompleted)} accent="text-success" />
+          <SummaryCard label={t('pendingPayment')} value={String(pendingCount)} accent="text-warning" />
+          <SummaryCard label={t('totalCount')} value={String(rows.length)} accent="text-primary" />
         </div>
       </SectionZone>
 
-      {/* Tablo */}
+      {/* Table */}
       <div className="rounded-xl bg-card ring-1 ring-foreground/10 overflow-hidden">
         {rows.length === 0 ? (
           <div className="py-16 text-center text-muted-foreground">
             <CreditCard size={28} className="mx-auto mb-3 opacity-50" />
-            <p>Henüz ödeme kaydı yok.</p>
+            <p>{t('empty')}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border">
-                  {['Rezervasyon', 'Misafir', 'Tutar', 'Yöntem', 'Durum', 'Tarih'].map((h) => (
+                  {[t('headers.reservation'), t('headers.guest'), t('headers.amount'), t('headers.method'), t('headers.status'), t('headers.date')].map((h) => (
                     <th
                       key={h}
                       className="text-left px-5 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
@@ -91,7 +103,6 @@ export default async function PaymentsPage() {
               </thead>
               <tbody>
                 {rows.map((p) => {
-                  const sc = STATUS_CONFIG[p.status]
                   const guest = p.reservations?.guests
                   return (
                     <tr
@@ -108,15 +119,15 @@ export default async function PaymentsPage() {
                         {formatUZS(p.amount)}
                       </td>
                       <td className="px-5 py-3 text-muted-foreground">
-                        {METHOD_LABELS[p.method]}
+                        {methodLabel(p.method)}
                       </td>
                       <td className="px-5 py-3">
-                        <StatusBadge tone={sc.tone}>{sc.label}</StatusBadge>
+                        <StatusBadge tone={STATUS_TONE[p.status]}>{tStatus(p.status)}</StatusBadge>
                       </td>
                       <td className="px-5 py-3 tabular-nums text-muted-foreground">
                         {p.paid_at
-                          ? new Date(p.paid_at).toLocaleDateString('tr-TR')
-                          : new Date(p.created_at).toLocaleDateString('tr-TR')}
+                          ? new Date(p.paid_at).toLocaleDateString(dateLocale)
+                          : new Date(p.created_at).toLocaleDateString(dateLocale)}
                       </td>
                     </tr>
                   )

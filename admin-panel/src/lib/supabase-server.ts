@@ -23,7 +23,7 @@ export async function createClient() {
             cookieStore.set(name, value, options)
           )
         } catch {
-          // Server Component içinde cookie yazılamaz — middleware halleder
+          // Cookies cannot be written inside a Server Component — middleware handles it
         }
       },
     },

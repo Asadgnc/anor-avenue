@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
+import { useTranslations } from 'next-intl'
 import { updateHotelProfileAction, type HotelProfileState } from './actions'
 
 interface Props {
@@ -27,13 +28,14 @@ export default function HotelProfileForm(props: Props) {
     updateHotelProfileAction,
     initState
   )
+  const t = useTranslations('settings.hotelProfile')
 
   return (
     <form action={action} className="space-y-4">
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="sm:col-span-2">
           <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-admin-muted)' }}>
-            Otel Adı
+            {t('fields.name')}
           </label>
           <input
             name="hotel_name"
@@ -46,7 +48,7 @@ export default function HotelProfileForm(props: Props) {
 
         <div className="sm:col-span-2">
           <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-admin-muted)' }}>
-            Adres
+            {t('fields.address')}
           </label>
           <input
             name="address"
@@ -58,7 +60,7 @@ export default function HotelProfileForm(props: Props) {
 
         <div>
           <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-admin-muted)' }}>
-            Telefon
+            {t('fields.phone')}
           </label>
           <input
             name="phone"
@@ -72,7 +74,7 @@ export default function HotelProfileForm(props: Props) {
 
         <div>
           <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-admin-muted)' }}>
-            E-posta
+            {t('fields.email')}
           </label>
           <input
             name="email"
@@ -86,7 +88,7 @@ export default function HotelProfileForm(props: Props) {
 
         <div>
           <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-admin-muted)' }}>
-            Web Sitesi
+            {t('fields.website')}
           </label>
           <input
             name="website"
@@ -101,7 +103,7 @@ export default function HotelProfileForm(props: Props) {
         <div className="flex gap-3">
           <div className="flex-1">
             <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-admin-muted)' }}>
-              Giriş Saati
+              {t('fields.checkInTime')}
             </label>
             <input
               name="checkin_time"
@@ -114,7 +116,7 @@ export default function HotelProfileForm(props: Props) {
           </div>
           <div className="flex-1">
             <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-admin-muted)' }}>
-              Çıkış Saati
+              {t('fields.checkOutTime')}
             </label>
             <input
               name="checkout_time"
@@ -135,7 +137,7 @@ export default function HotelProfileForm(props: Props) {
           className="px-4 py-2 rounded-lg text-xs font-semibold disabled:opacity-50 transition-opacity hover:opacity-80"
           style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
         >
-          {pending ? 'Kaydediliyor…' : state.success ? 'Kaydedildi ✓' : 'Kaydet'}
+          {pending ? t('savingButton') : state.success ? t('savedButton') : t('saveButton')}
         </button>
         {state.error && (
           <span className="text-xs" style={{ color: '#EF4444' }}>{state.error}</span>

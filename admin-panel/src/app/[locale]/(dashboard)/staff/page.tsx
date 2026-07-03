@@ -1,9 +1,16 @@
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase'
 import { redirect } from 'next/navigation'
+import { getLocale, getTranslations } from 'next-intl/server'
 import InviteFormClient from './InviteFormClient'
 import DeleteStaffButton from './DeleteStaffButton'
 import ChangeRoleSelect from './ChangeRoleSelect'
+
+const LOCALE_BCP47: Record<string, string> = {
+  ru: 'ru-RU',
+  uz: 'uz-UZ',
+  'uz-cyrl': 'uz-Cyrl-UZ',
+}
 
 const ROLE_COLORS: Record<string, string> = {
   admin:        'var(--color-accent)',
@@ -18,27 +25,31 @@ export default async function StaffPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  const locale = await getLocale()
+  const dateLocale = LOCALE_BCP47[locale] ?? 'ru-RU'
+  const t = await getTranslations('staff')
+
   const service = createServiceClient()
 
-  // Tüm auth kullanıcılarını çek
+  // Fetch all auth users
   const { data: usersData } = await service.auth.admin.listUsers()
   const authUsers = usersData?.users ?? []
 
-  // profiles tablosundan isim + rol bilgisi çek (doğru kaynak)
+  // Fetch name + role from the profiles table (source of truth)
   const { data: profiles } = await service
     .from('profiles')
     .select('id, full_name, role')
 
   const profileMap = new Map(profiles?.map((p) => [p.id, p]))
 
-  // İkisini birleştir
+  // Merge the two
   const users = authUsers.map((u) => {
     const profile = profileMap.get(u.id)
     return {
       id: u.id,
       email: u.email ?? '',
       fullName: profile?.full_name ?? '—',
-      // profiles tablosu birincil kaynak; yoksa user_metadata fallback
+      // profiles table is the primary source; fall back to user_metadata
       role: (profile?.role ?? u.user_metadata?.role ?? 'receptionist') as string,
       lastSignIn: u.last_sign_in_at ?? null,
     }
@@ -47,27 +58,27 @@ export default async function StaffPage() {
   return (
     <div className="space-y-8 max-w-3xl">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Personel Yönetimi</h1>
+        <h1 className="text-2xl font-semibold text-foreground">{t('title')}</h1>
         <p className="text-sm mt-1" style={{ color: 'var(--color-admin-muted)' }}>
-          Sisteme erişimi olan hesaplar
+          {t('subtitle')}
         </p>
       </div>
 
-      {/* Davet Formu */}
+      {/* Invite form */}
       <div
         className="rounded-2xl p-5 space-y-4"
         style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
       >
         <div>
-          <h2 className="text-sm font-semibold text-foreground">Yeni Personel Davet Et</h2>
+          <h2 className="text-sm font-semibold text-foreground">{t('inviteSection.title')}</h2>
           <p className="text-xs mt-0.5" style={{ color: 'var(--color-admin-muted)' }}>
-            Girilen e-postaya giriş bağlantısı gönderilir
+            {t('inviteSection.subtitle')}
           </p>
         </div>
         <InviteFormClient />
       </div>
 
-      {/* Kullanıcı Listesi */}
+      {/* User list */}
       <div
         className="rounded-2xl overflow-hidden"
         style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
@@ -77,7 +88,7 @@ export default async function StaffPage() {
           style={{ backgroundColor: 'var(--color-admin-bg)', borderBottom: '1px solid var(--color-admin-border)' }}
         >
           <span className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-admin-muted)' }}>
-            Aktif Hesaplar
+            {t('activeAccounts')}
           </span>
           <span
             className="text-xs font-bold px-2 py-0.5 rounded-full"
@@ -89,7 +100,7 @@ export default async function StaffPage() {
 
         {users.length === 0 ? (
           <p className="px-5 py-6 text-sm" style={{ color: 'var(--color-admin-muted)' }}>
-            Kullanıcı bulunamadı.
+            {t('empty')}
           </p>
         ) : (
           <div className="divide-y" style={{ borderColor: 'var(--color-admin-border)' }}>
@@ -101,13 +112,13 @@ export default async function StaffPage() {
                   className="px-5 py-3 flex flex-wrap items-center justify-between gap-3"
                   style={{ backgroundColor: 'var(--color-admin-card)' }}
                 >
-                  {/* İsim + Email */}
+                  {/* Name + Email */}
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-foreground font-medium">
                       {u.fullName}
                       {isMe && (
                         <span className="ml-2 text-xs font-normal" style={{ color: 'var(--color-admin-muted)' }}>
-                          (ben)
+                          {t('meBadge')}
                         </span>
                       )}
                     </p>
@@ -116,12 +127,12 @@ export default async function StaffPage() {
                     </p>
                     <p className="text-xs mt-0.5" style={{ color: 'var(--color-admin-muted)', opacity: 0.7 }}>
                       {u.lastSignIn
-                        ? `Son giriş: ${new Date(u.lastSignIn).toLocaleString('tr-TR')}`
-                        : 'Henüz giriş yapılmadı'}
+                        ? t('lastSignIn', { date: new Date(u.lastSignIn).toLocaleString(dateLocale) })
+                        : t('neverSignedIn')}
                     </p>
                   </div>
 
-                  {/* Rol + Değiştir + Sil */}
+                  {/* Role + Change + Delete */}
                   <div className="flex items-center gap-3 flex-wrap">
                     {isMe ? (
                       <span
@@ -145,17 +156,17 @@ export default async function StaffPage() {
         )}
       </div>
 
-      {/* Rol Açıklamaları */}
+      {/* Role descriptions */}
       <div
         className="rounded-lg p-4 text-xs space-y-1"
         style={{ backgroundColor: 'var(--color-admin-bg)', color: 'var(--color-admin-muted)' }}
       >
-        <p className="font-semibold text-foreground">Rol Erişim Seviyeleri</p>
-        <p><span className="font-mono" style={{ color: 'var(--color-accent)' }}>admin</span> — Her şey: sistem ayarları, kullanıcı yönetimi, tüm raporlar</p>
-        <p><span className="font-mono" style={{ color: '#3B82F6' }}>manager</span> — Operasyon + finans + raporlar (personel/ayarlar sınırlı)</p>
-        <p><span className="font-mono" style={{ color: '#22C55E' }}>receptionist</span> — Rezervasyon, check-in/out, ödeme, misafir, temizlik</p>
-        <p><span className="font-mono" style={{ color: '#F59E0B' }}>housekeeper</span> — Sadece Dashboard ve Temizlik sayfası</p>
-        <p><span className="font-mono" style={{ color: '#FD5070' }}>accountant</span> — Dashboard, Ödemeler, Raporlar</p>
+        <p className="font-semibold text-foreground">{t('rolesSection')}</p>
+        <p><span className="font-mono" style={{ color: 'var(--color-accent)' }}>admin</span> — {t('roleDescriptions.admin')}</p>
+        <p><span className="font-mono" style={{ color: '#3B82F6' }}>manager</span> — {t('roleDescriptions.manager')}</p>
+        <p><span className="font-mono" style={{ color: '#22C55E' }}>receptionist</span> — {t('roleDescriptions.receptionist')}</p>
+        <p><span className="font-mono" style={{ color: '#F59E0B' }}>housekeeper</span> — {t('roleDescriptions.housekeeper')}</p>
+        <p><span className="font-mono" style={{ color: '#FD5070' }}>accountant</span> — {t('roleDescriptions.accountant')}</p>
       </div>
     </div>
   )

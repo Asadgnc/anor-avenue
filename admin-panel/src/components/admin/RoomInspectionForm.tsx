@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { submitRoomInspectionAction } from '@/app/[locale]/(dashboard)/housekeeping/actions'
 import type { RoomItem } from '@/types/hotel'
 
@@ -13,6 +14,7 @@ interface Props {
 
 export default function RoomInspectionForm({ roomId, reservationId, items }: Props) {
   const router = useRouter()
+  const t = useTranslations('housekeeping.inspection')
   const [isPending, startTransition] = useTransition()
 
   const [allOk, setAllOk] = useState(true)
@@ -54,7 +56,7 @@ export default function RoomInspectionForm({ roomId, reservationId, items }: Pro
         setSuccess(true)
         router.refresh()
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Bir hata oluştu.')
+        setError(err instanceof Error ? err.message : t('genericError'))
       }
     })
   }
@@ -76,12 +78,12 @@ export default function RoomInspectionForm({ roomId, reservationId, items }: Pro
   if (success) {
     return (
       <div className="rounded-xl bg-green-50 border border-green-200 p-6 text-center space-y-3">
-        <p className="text-green-700 font-semibold">Denetim raporu kaydedildi ✓</p>
+        <p className="text-green-700 font-semibold">{t('savedReport')}</p>
         <button
           onClick={() => { setSuccess(false); setAllOk(true); setDamageOk(true); setMissingIds(new Set()); setProblemNote(''); setDamageNote('') }}
           className="text-sm text-green-600 underline"
         >
-          Yeni denetim başlat
+          {t('startNew')}
         </button>
       </div>
     )
@@ -89,57 +91,57 @@ export default function RoomInspectionForm({ roomId, reservationId, items }: Pro
 
   return (
     <form onSubmit={handleSubmit} className="rounded-xl border border-border bg-card p-6 space-y-6">
-      <h2 className="text-base font-semibold text-foreground">Yeni Denetim Raporu</h2>
+      <h2 className="text-base font-semibold text-foreground">{t('formTitle')}</h2>
 
-      {/* Problem bildir */}
+      {/* Report problem */}
       <div className="space-y-3">
-        <p className="text-sm font-medium text-foreground">Genel Durum</p>
+        <p className="text-sm font-medium text-foreground">{t('generalStatus')}</p>
         <div className="flex gap-2">
           <button type="button" onClick={() => setAllOk(true)} className={toggleCls(allOk)}>
-            ✓ Problem yok
+            {t('noProblem')}
           </button>
           <button type="button" onClick={() => setAllOk(false)} className={toggleBadCls(!allOk)}>
-            ⚠ Problem var
+            {t('hasProblem')}
           </button>
         </div>
         {!allOk && (
           <textarea
             className={inputCls}
             rows={2}
-            placeholder="Problemi açıklayın..."
+            placeholder={t('describeProblem')}
             value={problemNote}
             onChange={(e) => setProblemNote(e.target.value)}
           />
         )}
       </div>
 
-      {/* Maddi hasar */}
+      {/* Material damage */}
       <div className="space-y-3">
-        <p className="text-sm font-medium text-foreground">Maddi Hasar (duvar, duş, dekor, vb.)</p>
+        <p className="text-sm font-medium text-foreground">{t('damageTitle')}</p>
         <div className="flex gap-2">
           <button type="button" onClick={() => setDamageOk(true)} className={toggleCls(damageOk)}>
-            ✓ Hasar yok
+            {t('noDamage')}
           </button>
           <button type="button" onClick={() => setDamageOk(false)} className={toggleBadCls(!damageOk)}>
-            ⚠ Hasar var
+            {t('hasDamage')}
           </button>
         </div>
         {!damageOk && (
           <textarea
             className={inputCls}
             rows={2}
-            placeholder="Hasarı açıklayın..."
+            placeholder={t('describeDamage')}
             value={damageNote}
             onChange={(e) => setDamageNote(e.target.value)}
           />
         )}
       </div>
 
-      {/* Eksik eşya */}
+      {/* Missing items */}
       {items.length > 0 && (
         <div className="space-y-3">
           <p className="text-sm font-medium text-foreground">
-            Eşya Kontrolü — eksik olanları işaretle
+            {t('itemCheck')}
           </p>
           <div className="grid grid-cols-2 gap-2">
             {items.map((item) => {
@@ -169,7 +171,7 @@ export default function RoomInspectionForm({ roomId, reservationId, items }: Pro
           </div>
           {missingIds.size > 0 && (
             <p className="text-xs text-amber-700 font-medium">
-              {missingIds.size} eksik eşya işaretlendi
+              {t('itemsMarked', { n: missingIds.size })}
             </p>
           )}
         </div>
@@ -184,7 +186,7 @@ export default function RoomInspectionForm({ roomId, reservationId, items }: Pro
         disabled={isPending}
         className="w-full py-2.5 rounded-lg bg-primary text-white text-sm font-semibold disabled:opacity-60 transition-opacity"
       >
-        {isPending ? 'Kaydediliyor...' : 'Denetim Raporunu Kaydet'}
+        {isPending ? t('saving') : t('saveReport')}
       </button>
     </form>
   )

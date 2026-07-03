@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import DepoClient from './DepoClient'
 import DepoProductsSection from './DepoProductsSection'
 import type { InventoryPurchase, InventoryProduct } from '@/types/hotel'
@@ -19,21 +20,21 @@ export default async function DepoPage({
 
   const { area } = await searchParams
 
-  // Stok ürünleri — herkese görünür
+  // Stock products — visible to everyone
   const productsQuery = supabase
     .from('inventory_products')
     .select('id, name, category, on_hand, created_at')
     .order('category')
     .order('name')
 
-  // Odalar — tüketim formu için (aktif odalar)
+  // Rooms — for the consume form (active rooms)
   const roomsQuery = supabase
     .from('rooms')
     .select('id, room_number')
     .eq('is_active', true)
     .order('room_number')
 
-  // Satın alım geçmişi + profil listesi — temizlikçiye gösterilmez
+  // Purchase history + profile list — not shown to housekeepers
   const purchasesQuery = isHousekeeper
     ? null
     : (area
@@ -63,24 +64,26 @@ export default async function DepoPage({
   const purchases = (purchasesResult.data ?? []) as unknown as InventoryPurchase[]
   const profiles  = (profilesResult.data ?? []) as Array<{ id: string; full_name: string }>
 
-  const areaLabel = area === 'rooms' ? 'Odalar' : area === 'garden' ? 'Bahçe' : undefined
+  const t = await getTranslations('depo')
+  const tArea = await getTranslations('depo.areas')
+  const areaLabel = area && tArea.has(area) ? tArea(area) : undefined
 
   return (
     <div className="space-y-8">
-      {/* Başlık */}
+      {/* Header */}
       <div>
         <h1 className="text-2xl font-semibold text-foreground">
-          Depo{areaLabel ? ` — ${areaLabel}` : ''}
+          {t('pageTitle')}{areaLabel ? ` — ${areaLabel}` : ''}
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
-          {products.length} çeşit ürün · stok takibi
+          {t('productCountSubtitle', { n: products.length })}
         </p>
       </div>
 
-      {/* Ürünler Bölümü */}
+      {/* Products section */}
       <div className="space-y-3">
         <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-          Ürünler
+          {t('productsTitle')}
         </h2>
         <DepoProductsSection
           products={products}
@@ -89,14 +92,18 @@ export default async function DepoPage({
         />
       </div>
 
-      {/* Alımlar Bölümü — sadece admin/manager/receptionist */}
+      {/* Purchases section — admin/manager/receptionist only */}
       {!isHousekeeper && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h2 className="text-xs font-semibold text-muted-foreground uppercase tracking-widest">
-              Alım Geçmişi
+              {t('purchaseHistoryTitle')}
             </h2>
-            <span className="text-xs text-muted-foreground">{purchases.length} kayıt{area ? ` (${areaLabel})` : ''}</span>
+            <span className="text-xs text-muted-foreground">
+              {area && areaLabel
+                ? t('recordCountWithArea', { n: purchases.length, area: areaLabel })
+                : t('recordCount', { n: purchases.length })}
+            </span>
           </div>
           <DepoClient purchases={purchases} profiles={profiles} areaFilter={area} />
         </div>

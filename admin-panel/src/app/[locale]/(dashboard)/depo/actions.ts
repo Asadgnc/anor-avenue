@@ -3,21 +3,22 @@
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase'
 import { revalidatePath } from 'next/cache'
+import { getTranslations } from 'next-intl/server'
 import { z } from 'zod'
 import type { InventoryMovement } from '@/types/hotel'
 
-// Tüketim yapabilecek roller
+// Roles allowed to consume stock
 const CONSUME_ROLES = new Set(['admin', 'manager', 'receptionist', 'housekeeper'])
 
 const purchaseSchema = z.object({
   category: z.enum(['cleaning', 'kitchen', 'food', 'beverage', 'decoration', 'room_furniture', 'replacement']),
   area: z.enum(['general', 'rooms', 'garden', 'kitchen', 'reception']).default('general'),
-  product_name: z.string().min(1, 'Ürün adı zorunlu'),
-  quantity: z.coerce.number().positive('Miktar 0\'dan büyük olmalı'),
+  product_name: z.string().min(1),
+  quantity: z.coerce.number().positive(),
   unit_price: z.coerce.number().nonnegative().optional(),
-  total_amount: z.coerce.number().positive('Toplam tutar zorunlu'),
+  total_amount: z.coerce.number().positive(),
   currency: z.enum(['UZS', 'USD']),
-  place: z.string().min(1, 'Alım yeri zorunlu'),
+  place: z.string().min(1),
   brought_by_name: z.string().optional(),
 })
 
@@ -25,17 +26,19 @@ export async function addPurchaseAction(
   _prev: { error?: string; success?: boolean },
   formData: FormData
 ): Promise<{ error?: string; success?: boolean }> {
+  const t = await getTranslations('errors')
+  const tDepo = await getTranslations('depo')
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Oturum geçersiz.' }
+  if (!user) return { error: t('sessionInvalid') }
 
   const parsed = purchaseSchema.safeParse(Object.fromEntries(formData))
-  if (!parsed.success) return { error: parsed.error.issues[0].message }
+  if (!parsed.success) return { error: t('invalidData') }
 
   const d = parsed.data
   const service = createServiceClient()
 
-  // 1. inventory_products: ada göre bul veya oluştur
+  // 1. inventory_products: find by name or create
   const { data: existing } = await service
     .from('inventory_products')
     .select('id, on_hand')
@@ -46,7 +49,7 @@ export async function addPurchaseAction(
   let productId: string
 
   if (existing) {
-    // Mevcut ürün — stok artır
+    // Existing product — increase stock
     const { error: updateErr } = await service
       .from('inventory_products')
       .update({ on_hand: Number(existing.on_hand) + d.quantity })
@@ -54,27 +57,27 @@ export async function addPurchaseAction(
     if (updateErr) return { error: updateErr.message }
     productId = existing.id
   } else {
-    // Yeni ürün oluştur
+    // Create new product
     const { data: newProduct, error: insertErr } = await service
       .from('inventory_products')
       .insert({ name: d.product_name.trim(), category: d.category, on_hand: d.quantity })
       .select('id')
       .single()
-    if (insertErr || !newProduct) return { error: insertErr?.message ?? 'Ürün oluşturulamadı.' }
+    if (insertErr || !newProduct) return { error: insertErr?.message ?? t('productCreateFailed') }
     productId = newProduct.id
   }
 
-  // 2. Hareket kaydı (giriş)
+  // 2. Movement record (in)
   await service.from('inventory_movements').insert({
     product_id: productId,
     type: 'in',
     quantity: d.quantity,
     destination: 'general',
     moved_by: user.id,
-    note: `Alım: ${d.place}`,
+    note: tDepo('purchaseNotePrefix', { place: d.place }),
   })
 
-  // 3. inventory_purchases kaydı (finans beslemesi korunur)
+  // 3. inventory_purchases record (keeps finance feed intact)
   const { error } = await service.from('inventory_purchases').insert({
     category: d.category,
     area: d.area,
@@ -96,10 +99,10 @@ export async function addPurchaseAction(
   return { success: true }
 }
 
-// ——— Stok Tüket (Kullan) ———
+// ——— Consume stock (Use) ———
 const consumeSchema = z.object({
-  productId: z.string().uuid('Geçersiz ürün.'),
-  quantity: z.coerce.number().positive('Miktar 0\'dan büyük olmalı'),
+  productId: z.string().uuid(),
+  quantity: z.coerce.number().positive(),
   destination: z.enum(['room', 'garden', 'kitchen', 'reception', 'general']),
   roomId: z.string().uuid().optional().or(z.literal('')),
   note: z.string().optional(),
@@ -109,39 +112,40 @@ export async function consumeStockAction(
   _prev: { error?: string; success?: boolean },
   formData: FormData
 ): Promise<{ error?: string; success?: boolean }> {
+  const t = await getTranslations('errors')
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Oturum geçersiz.' }
+  if (!user) return { error: t('sessionInvalid') }
 
   const role = (user.user_metadata?.role as string | undefined) ?? 'receptionist'
-  if (!CONSUME_ROLES.has(role)) return { error: 'Bu işlem için yetkiniz yok.' }
+  if (!CONSUME_ROLES.has(role)) return { error: t('permissionDenied') }
 
   const parsed = consumeSchema.safeParse(Object.fromEntries(formData))
-  if (!parsed.success) return { error: parsed.error.issues[0].message }
+  if (!parsed.success) return { error: t('quantityPositive') }
 
   const d = parsed.data
   const service = createServiceClient()
 
-  // Mevcut stok kontrolü
+  // Check current stock
   const { data: product } = await service
     .from('inventory_products')
     .select('on_hand')
     .eq('id', d.productId)
     .single()
 
-  if (!product) return { error: 'Ürün bulunamadı.' }
+  if (!product) return { error: t('productNotFound') }
   if (Number(product.on_hand) < d.quantity) {
-    return { error: `Yetersiz stok. Mevcut: ${product.on_hand}` }
+    return { error: t('insufficientStock', { available: product.on_hand }) }
   }
 
-  // Stok düş
+  // Decrease stock
   const { error: updateErr } = await service
     .from('inventory_products')
     .update({ on_hand: Number(product.on_hand) - d.quantity })
     .eq('id', d.productId)
   if (updateErr) return { error: updateErr.message }
 
-  // Hareket kaydı (çıkış)
+  // Movement record (out)
   await service.from('inventory_movements').insert({
     product_id: d.productId,
     type: 'out',
@@ -156,17 +160,18 @@ export async function consumeStockAction(
   return { success: true }
 }
 
-// ——— Ürün Geçmişi (Sadece admin) ———
+// ——— Product history (admin only) ———
 export async function getProductMovementsAction(productId: string): Promise<{
   movements?: InventoryMovement[]
   error?: string
 }> {
+  const t = await getTranslations('errors')
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Oturum geçersiz.' }
+  if (!user) return { error: t('sessionInvalid') }
 
   const role = (user.user_metadata?.role as string | undefined) ?? ''
-  if (role !== 'admin') return { error: 'Yetkiniz yok.' }
+  if (role !== 'admin') return { error: t('permissionDenied') }
 
   const service = createServiceClient()
   const { data, error } = await service

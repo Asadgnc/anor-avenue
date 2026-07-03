@@ -1,6 +1,6 @@
 import { createBrowserClient } from '@supabase/ssr'
 
-// Tarayıcı tarafında session'ı otomatik okur (cookies) — Realtime için kullan
+// Reads the session automatically on the browser side (cookies) — use for Realtime
 export function createBrowserSupabaseClient() {
   return createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,

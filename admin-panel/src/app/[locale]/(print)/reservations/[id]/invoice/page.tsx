@@ -2,11 +2,21 @@ import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase'
 import { redirect, notFound } from 'next/navigation'
 import type { Metadata } from 'next'
+import { getLocale, getTranslations } from 'next-intl/server'
 import PrintButton from './PrintButton'
 
-export const metadata: Metadata = { title: 'Fatura — Anor Avenue' }
+const LOCALE_BCP47: Record<string, string> = {
+  ru: 'ru-RU',
+  uz: 'uz-UZ',
+  'uz-cyrl': 'uz-Cyrl-UZ',
+}
 
-// ─── Tipler ──────────────────────────────────────────────────────────────────
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('invoice')
+  return { title: t('title') }
+}
+
+// ─── Types ──────────────────────────────────────────────────────────────────
 
 interface InvoiceData {
   id: string
@@ -44,21 +54,13 @@ interface PaymentRow {
   paid_at: string | null
 }
 
-// ─── Yardımcılar ─────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────
 
 function formatUZS(n: number) {
   return new Intl.NumberFormat('uz-UZ', { maximumFractionDigits: 0 }).format(n) + ' UZS'
 }
 
-function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' })
-}
-
-const METHOD_LABELS: Record<string, string> = {
-  payme: 'Payme', click: 'Click', uzum: 'Uzum', cash: 'Nakit', transfer: 'Banka havalesi',
-}
-
-// ─── Sayfa ───────────────────────────────────────────────────────────────────
+// ─── Page ───────────────────────────────────────────────────────────────────
 
 export default async function InvoicePage({
   params,
@@ -69,6 +71,23 @@ export default async function InvoicePage({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  const locale = await getLocale()
+  const dateLocale = LOCALE_BCP47[locale] ?? 'ru-RU'
+  const t = await getTranslations('invoice')
+  const tMethods = await getTranslations('payments.methods')
+
+  const formatDate = (d: string) =>
+    new Date(d).toLocaleDateString(dateLocale, { day: '2-digit', month: '2-digit', year: 'numeric' })
+
+  const methodLabel = (method: string): string => {
+    if (method === 'payme') return 'Payme'
+    if (method === 'click') return 'Click'
+    if (method === 'uzum') return 'Uzum'
+    if (method === 'cash') return tMethods('cash')
+    if (method === 'transfer') return tMethods('transfer')
+    return method
+  }
 
   const service = createServiceClient()
 
@@ -105,11 +124,11 @@ export default async function InvoicePage({
   const completedPayments = payments.filter((p) => p.status === 'completed')
   const totalPaid = completedPayments.reduce((s, p) => s + p.amount, 0)
   const remaining = res.total_amount - totalPaid
-  const todayStr = new Date().toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+  const todayStr = new Date().toLocaleDateString(dateLocale, { day: '2-digit', month: '2-digit', year: 'numeric' })
 
   return (
     <>
-      {/* Print CSS — sadece yazdırırken aktif */}
+      {/* Print CSS — active only when printing */}
       <style>{`
         @media print {
           @page { margin: 15mm 15mm 15mm 15mm; size: A4; }
@@ -119,21 +138,21 @@ export default async function InvoicePage({
         body { font-family: 'Inter', system-ui, sans-serif; background: #F3F4F6; }
       `}</style>
 
-      {/* Kontrol Çubuğu — yazdırırken gizlenir */}
+      {/* Control bar — hidden when printing */}
       <div
         className="print-hide flex items-center justify-between px-6 py-3"
         style={{ backgroundColor: '#1A1A2E', color: 'white' }}
       >
-        <span className="text-sm font-medium opacity-70">Fatura Önizleme</span>
+        <span className="text-sm font-medium opacity-70">{t('previewTitle')}</span>
         <PrintButton />
       </div>
 
-      {/* Fatura Kağıdı */}
+      {/* Invoice paper */}
       <div
         className="mx-auto my-8 print:my-0 max-w-2xl bg-white shadow-lg print:shadow-none"
         style={{ padding: '40px 48px' }}
       >
-        {/* ── Başlık ─────────────────────────────────────────────────────── */}
+        {/* ── Header ─────────────────────────────────────────────────────── */}
         <div className="flex items-start justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold" style={{ color: '#1A1A2E', letterSpacing: '-0.5px' }}>
@@ -141,86 +160,89 @@ export default async function InvoicePage({
             </h1>
             <p className="text-xs mt-1" style={{ color: '#6B7280' }}>
               {hotel.address && <>{hotel.address}<br /></>}
-              {hotel.phone && <>Tel: {hotel.phone}<br /></>}
+              {hotel.phone && <>{t('guestFields.phone')}{hotel.phone}<br /></>}
               {hotel.email && <>{hotel.email}</>}
             </p>
           </div>
           <div className="text-right">
             <p className="text-xs font-semibold uppercase tracking-widest mb-1" style={{ color: '#9CA3AF' }}>
-              Fatura / Квитанция
+              {t('invoiceLabel')}
             </p>
             <p className="text-xl font-bold" style={{ color: '#1A1A2E', fontFamily: 'monospace' }}>
               {res.reservation_code}
             </p>
             <p className="text-xs mt-1" style={{ color: '#6B7280' }}>
-              Düzenleme: {todayStr}
+              {t('dateLabel')}{todayStr}
             </p>
           </div>
         </div>
 
-        {/* Ayırıcı */}
+        {/* Divider */}
         <div style={{ borderTop: '2px solid #1A1A2E', marginBottom: '24px' }} />
 
-        {/* ── Misafir & Rezervasyon ──────────────────────────────────────── */}
+        {/* ── Guest & Reservation ──────────────────────────────────────── */}
         <div className="grid grid-cols-2 gap-8 mb-8">
-          {/* Misafir */}
+          {/* Guest */}
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: '#9CA3AF' }}>
-              Misafir / Mehmon
+              {t('guestSection')}
             </p>
             <p className="font-semibold text-sm" style={{ color: '#111827' }}>
               {res.guests?.first_name} {res.guests?.last_name}
             </p>
             {res.guests?.nationality && (
-              <p className="text-xs mt-0.5" style={{ color: '#6B7280' }}>Milliyet: {res.guests.nationality}</p>
+              <p className="text-xs mt-0.5" style={{ color: '#6B7280' }}>{t('guestFields.nationality')}{res.guests.nationality}</p>
             )}
             {res.guests?.passport_number && (
               <p className="text-xs" style={{ color: '#6B7280' }}>
-                Pasaport: {res.guests.passport_series ? `${res.guests.passport_series} ` : ''}{res.guests.passport_number}
+                {t('guestFields.passport')}{res.guests.passport_series ? `${res.guests.passport_series} ` : ''}{res.guests.passport_number}
               </p>
             )}
             {res.guests?.date_of_birth && (
-              <p className="text-xs" style={{ color: '#6B7280' }}>D.Tarihi: {formatDate(res.guests.date_of_birth)}</p>
+              <p className="text-xs" style={{ color: '#6B7280' }}>{t('guestFields.dob')}{formatDate(res.guests.date_of_birth)}</p>
             )}
             {res.guests?.phone && (
-              <p className="text-xs" style={{ color: '#6B7280' }}>Tel: {res.guests.phone}</p>
+              <p className="text-xs" style={{ color: '#6B7280' }}>{t('guestFields.phone')}{res.guests.phone}</p>
             )}
             {res.guests?.email && (
-              <p className="text-xs" style={{ color: '#6B7280' }}>E-posta: {res.guests.email}</p>
+              <p className="text-xs" style={{ color: '#6B7280' }}>{t('guestFields.email')}{res.guests.email}</p>
             )}
           </div>
 
-          {/* Rezervasyon */}
+          {/* Reservation */}
           <div>
             <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: '#9CA3AF' }}>
-              Rezervasyon / Бронь
+              {t('reservationSection')}
             </p>
             <table className="w-full text-xs" style={{ color: '#374151' }}>
               <tbody>
                 <tr>
-                  <td className="py-0.5" style={{ color: '#9CA3AF' }}>Oda</td>
+                  <td className="py-0.5" style={{ color: '#9CA3AF' }}>{t('reservationFields.room')}</td>
                   <td className="py-0.5 text-right font-medium">
                     {res.rooms?.room_number} · {res.rooms?.room_types?.name}
                   </td>
                 </tr>
                 <tr>
-                  <td className="py-0.5" style={{ color: '#9CA3AF' }}>Kat</td>
-                  <td className="py-0.5 text-right">{res.rooms?.floor}. kat</td>
+                  <td className="py-0.5" style={{ color: '#9CA3AF' }}>{t('reservationFields.floor')}</td>
+                  <td className="py-0.5 text-right">{res.rooms?.floor}{t('reservationFields.floorSuffix')}</td>
                 </tr>
                 <tr>
-                  <td className="py-0.5" style={{ color: '#9CA3AF' }}>Giriş</td>
+                  <td className="py-0.5" style={{ color: '#9CA3AF' }}>{t('reservationFields.checkIn')}</td>
                   <td className="py-0.5 text-right">{formatDate(res.check_in)}</td>
                 </tr>
                 <tr>
-                  <td className="py-0.5" style={{ color: '#9CA3AF' }}>Çıkış</td>
+                  <td className="py-0.5" style={{ color: '#9CA3AF' }}>{t('reservationFields.checkOut')}</td>
                   <td className="py-0.5 text-right">{formatDate(res.check_out)}</td>
                 </tr>
                 <tr>
-                  <td className="py-0.5" style={{ color: '#9CA3AF' }}>Gece / Kişi</td>
-                  <td className="py-0.5 text-right">{res.nights} gece · {res.adults} yetişkin{res.children ? ` + ${res.children} çocuk` : ''}</td>
+                  <td className="py-0.5" style={{ color: '#9CA3AF' }}>{t('reservationFields.nightsAdults')}</td>
+                  <td className="py-0.5 text-right">
+                    {t('nightsAdultsValue', { nights: res.nights, adults: res.adults })}
+                    {res.children ? ` ${t('childrenExtra', { n: res.children })}` : ''}
+                  </td>
                 </tr>
                 <tr>
-                  <td className="py-0.5" style={{ color: '#9CA3AF' }}>Kanal</td>
+                  <td className="py-0.5" style={{ color: '#9CA3AF' }}>{t('reservationFields.channel')}</td>
                   <td className="py-0.5 text-right capitalize">{res.channel}</td>
                 </tr>
               </tbody>
@@ -228,27 +250,27 @@ export default async function InvoicePage({
           </div>
         </div>
 
-        {/* ── Kalemler ─────────────────────────────────────────────────── */}
+        {/* ── Line items ─────────────────────────────────────────────────── */}
         <div style={{ border: '1px solid #E5E7EB', borderRadius: '8px', overflow: 'hidden', marginBottom: '20px' }}>
-          {/* Tablo Başlığı */}
+          {/* Table header */}
           <div
             className="grid grid-cols-12 px-4 py-2 text-xs font-semibold uppercase tracking-widest"
             style={{ backgroundColor: '#F9FAFB', color: '#9CA3AF', borderBottom: '1px solid #E5E7EB' }}
           >
-            <span className="col-span-7">Açıklama</span>
-            <span className="col-span-2 text-center">Adet</span>
-            <span className="col-span-3 text-right">Tutar</span>
+            <span className="col-span-7">{t('lineHeaders.description')}</span>
+            <span className="col-span-2 text-center">{t('lineHeaders.qty')}</span>
+            <span className="col-span-3 text-right">{t('lineHeaders.amount')}</span>
           </div>
 
-          {/* Oda Kirası */}
+          {/* Room rent */}
           <div
             className="grid grid-cols-12 px-4 py-3 text-sm"
             style={{ borderBottom: '1px solid #F3F4F6', color: '#111827' }}
           >
             <span className="col-span-7">
-              Oda kirası — {res.rooms?.room_types?.name ?? 'Oda'}<br />
+              {t('lineItems.roomRent')}{res.rooms?.room_types?.name ?? t('reservationFields.room')}<br />
               <span className="text-xs" style={{ color: '#9CA3AF' }}>
-                {formatUZS(res.room_rate)} × {res.nights} gece
+                {t('lineItems.priceFormula', { price: formatUZS(res.room_rate), nights: res.nights })}
               </span>
             </span>
             <span className="col-span-2 text-center">{res.nights}</span>
@@ -257,13 +279,13 @@ export default async function InvoicePage({
             </span>
           </div>
 
-          {/* İndirim (varsa) */}
+          {/* Discount (if any) */}
           {res.discount > 0 && (
             <div
               className="grid grid-cols-12 px-4 py-3 text-sm"
               style={{ borderBottom: '1px solid #F3F4F6', color: '#111827' }}
             >
-              <span className="col-span-7">İndirim</span>
+              <span className="col-span-7">{t('lineItems.discount')}</span>
               <span className="col-span-2 text-center">—</span>
               <span className="col-span-3 text-right" style={{ color: '#DC2626' }}>
                 -{formatUZS(res.discount)}
@@ -271,21 +293,21 @@ export default async function InvoicePage({
             </div>
           )}
 
-          {/* Toplam */}
+          {/* Total */}
           <div
             className="grid grid-cols-12 px-4 py-3 text-sm font-bold"
             style={{ backgroundColor: '#F9FAFB', color: '#111827' }}
           >
-            <span className="col-span-9">TOPLAM / JAMI</span>
+            <span className="col-span-9">{t('total')}</span>
             <span className="col-span-3 text-right">{formatUZS(res.total_amount)}</span>
           </div>
         </div>
 
-        {/* ── Ödemeler ─────────────────────────────────────────────────── */}
+        {/* ── Payments ─────────────────────────────────────────────────── */}
         {completedPayments.length > 0 && (
           <div style={{ marginBottom: '20px' }}>
             <p className="text-xs font-semibold uppercase tracking-widest mb-2" style={{ color: '#9CA3AF' }}>
-              Alınan Ödemeler / To'lovlar
+              {t('paymentsSection')}
             </p>
             <div style={{ border: '1px solid #E5E7EB', borderRadius: '8px', overflow: 'hidden' }}>
               {completedPayments.map((p, i) => (
@@ -298,7 +320,7 @@ export default async function InvoicePage({
                   }}
                 >
                   <span>
-                    {METHOD_LABELS[p.method] ?? p.method}
+                    {methodLabel(p.method)}
                     {p.paid_at && (
                       <span className="ml-2 text-xs" style={{ color: '#9CA3AF' }}>
                         {formatDate(p.paid_at)}
@@ -312,7 +334,7 @@ export default async function InvoicePage({
           </div>
         )}
 
-        {/* ── Bakiye ───────────────────────────────────────────────────── */}
+        {/* ── Balance ───────────────────────────────────────────────────── */}
         <div
           className="flex justify-between items-center px-4 py-3 rounded-lg"
           style={{
@@ -321,25 +343,25 @@ export default async function InvoicePage({
           }}
         >
           <span className="text-sm font-bold" style={{ color: remaining > 0 ? '#92400E' : '#065F46' }}>
-            {remaining > 0 ? 'KALAN BAKIYE / QOLDIQ' : 'TAM ÖDENDİ / TO\'LIQ TO\'LANGAN'}
+            {remaining > 0 ? t('remaining') : t('fullyPaid')}
           </span>
           <span className="text-base font-bold" style={{ color: remaining > 0 ? '#92400E' : '#065F46' }}>
             {remaining > 0 ? formatUZS(remaining) : formatUZS(res.total_amount)}
           </span>
         </div>
 
-        {/* Özel istek */}
+        {/* Special request */}
         {res.special_requests && (
           <div className="mt-4 p-3 rounded-lg text-xs" style={{ backgroundColor: '#F9FAFB', color: '#6B7280', border: '1px solid #E5E7EB' }}>
-            <span className="font-semibold">Özel İstek:</span> {res.special_requests}
+            <span className="font-semibold">{t('specialRequest')}</span> {res.special_requests}
           </div>
         )}
 
-        {/* ── Alt Bilgi ────────────────────────────────────────────────── */}
+        {/* ── Footer ────────────────────────────────────────────────── */}
         <div className="mt-8" style={{ borderTop: '1px solid #E5E7EB', paddingTop: '16px' }}>
           <p className="text-xs text-center" style={{ color: '#9CA3AF' }}>
-            Bu belge {hotel.hotel_name} tarafından {todayStr} tarihinde düzenlenmiştir.<br />
-            {[hotel.address, hotel.phone ? `Tel: ${hotel.phone}` : null].filter(Boolean).join(' · ')}
+            {t('footer', { hotel: hotel.hotel_name, date: todayStr })}<br />
+            {[hotel.address, hotel.phone ? `${t('guestFields.phone')}${hotel.phone}` : null].filter(Boolean).join(' · ')}
           </p>
         </div>
       </div>

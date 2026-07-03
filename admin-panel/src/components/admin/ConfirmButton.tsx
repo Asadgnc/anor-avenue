@@ -1,5 +1,6 @@
 'use client'
 
+import { useTranslations } from 'next-intl'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,11 +27,12 @@ export default function ConfirmButton({
   trigger,
   title,
   description,
-  confirmLabel = 'Onayla',
-  cancelLabel = 'Vazgeç',
+  confirmLabel,
+  cancelLabel,
   destructive = true,
   onConfirm,
 }: ConfirmButtonProps) {
+  const tc = useTranslations('common')
   return (
     <AlertDialog>
       <AlertDialogTrigger render={trigger} />
@@ -40,9 +42,9 @@ export default function ConfirmButton({
           {description && <AlertDialogDescription>{description}</AlertDialogDescription>}
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>{cancelLabel}</AlertDialogCancel>
+          <AlertDialogCancel>{cancelLabel ?? tc('cancel')}</AlertDialogCancel>
           <AlertDialogAction variant={destructive ? 'destructive' : 'default'} onClick={onConfirm}>
-            {confirmLabel}
+            {confirmLabel ?? tc('confirm')}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

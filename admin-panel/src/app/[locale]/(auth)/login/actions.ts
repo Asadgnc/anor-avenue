@@ -2,11 +2,12 @@
 
 import { z } from 'zod'
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import { createClient } from '@/lib/supabase-server'
 
 const loginSchema = z.object({
-  email: z.string().email('Geçerli bir e-posta adresi girin'),
-  password: z.string().min(1, 'Şifre boş olamaz'),
+  email: z.string().email(),
+  password: z.string().min(1),
 })
 
 export type LoginState = {
@@ -17,13 +18,14 @@ export async function loginAction(
   _prev: LoginState,
   formData: FormData
 ): Promise<LoginState> {
+  const t = await getTranslations('errors')
   const parsed = loginSchema.safeParse({
     email: formData.get('email'),
     password: formData.get('password'),
   })
 
   if (!parsed.success) {
-    return { error: parsed.error.issues[0].message }
+    return { error: t('invalidCredentials') }
   }
 
   const supabase = await createClient()
@@ -34,7 +36,7 @@ export async function loginAction(
   })
 
   if (error) {
-    return { error: 'E-posta veya şifre hatalı.' }
+    return { error: t('invalidCredentials') }
   }
 
   redirect('/dashboard')

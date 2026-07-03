@@ -1,3 +1,4 @@
+import { getTranslations } from 'next-intl/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 
@@ -14,27 +15,28 @@ interface MonthSummaryCardProps {
   monthLabel: string
 }
 
-export default function MonthSummaryCard({
+export default async function MonthSummaryCard({
   occupancyRate,
   collectionRate,
   cancellationRate,
   avgNights,
   monthLabel,
 }: MonthSummaryCardProps) {
+  const t = await getTranslations('monthSummary')
   const rows: SummaryRow[] = [
-    { label: 'Doluluk Oranı', percent: occupancyRate },
-    { label: 'Ödeme Tahsilat Oranı', percent: collectionRate },
-    { label: 'İptal Oranı', percent: cancellationRate },
+    { label: t('occupancy'), percent: occupancyRate },
+    { label: t('collection'), percent: collectionRate },
+    { label: t('cancellation'), percent: cancellationRate },
   ]
 
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between">
         <div>
-          <CardTitle>Bu Ay Özet</CardTitle>
+          <CardTitle>{t('title')}</CardTitle>
           <p className="text-xs text-muted-foreground mt-0.5">{monthLabel}</p>
         </div>
-        <Badge variant="secondary">{avgNights.toFixed(1)} gece ort.</Badge>
+        <Badge variant="secondary">{t('avgNights', { n: avgNights.toFixed(1) })}</Badge>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {rows.map((r) => (

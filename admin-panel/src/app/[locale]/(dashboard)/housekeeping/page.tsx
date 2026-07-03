@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import HousekeepingBoard from '@/components/admin/HousekeepingBoard'
 import type { Room } from '@/types/hotel'
 
@@ -22,6 +23,7 @@ export default async function HousekeepingPage() {
   if (!user) redirect('/login')
 
   const role = (user.user_metadata?.role as string | undefined) ?? 'receptionist'
+  const t = await getTranslations('housekeeping')
 
   const [roomsResult, tasksResult] = await Promise.all([
     supabase
@@ -44,9 +46,9 @@ export default async function HousekeepingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Temizlik Yönetimi</h1>
+        <h1 className="text-2xl font-semibold text-foreground">{t('title')}</h1>
         <p className="mt-1 text-sm" style={{ color: 'var(--color-admin-muted)' }}>
-          {rooms.length} oda · {tasks.length} aktif görev
+          {t('subtitle', { rooms: rooms.length, tasks: tasks.length })}
         </p>
       </div>
 

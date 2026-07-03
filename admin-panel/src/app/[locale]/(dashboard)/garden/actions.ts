@@ -3,22 +3,24 @@
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase'
 import { revalidatePath } from 'next/cache'
+import { getTranslations } from 'next-intl/server'
 import { z } from 'zod'
 
 export async function addGardenTaskAction(
   _prev: { error?: string; success?: boolean },
   formData: FormData
 ): Promise<{ error?: string; success?: boolean }> {
+  const t = await getTranslations('errors')
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Oturum geçersiz.' }
+  if (!user) return { error: t('sessionInvalid') }
 
   const schema = z.object({
-    title: z.string().min(1, 'Görev adı zorunlu'),
+    title: z.string().min(1),
     note: z.string().optional(),
   })
   const parsed = schema.safeParse(Object.fromEntries(formData))
-  if (!parsed.success) return { error: parsed.error.issues[0].message }
+  if (!parsed.success) return { error: t('taskNameRequired') }
 
   const service = createServiceClient()
   const { error } = await service.from('garden_tasks').insert({
@@ -38,8 +40,9 @@ export async function toggleGardenTaskAction(
 ): Promise<void> {
   const validId = z.string().uuid().parse(taskId)
   const supabase = await createClient()
+  const t = await getTranslations('errors')
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) throw new Error('Oturum geçersiz.')
+  if (!user) throw new Error(t('sessionInvalid'))
 
   const newStatus = currentStatus === 'done' ? 'pending' : 'done'
   const service = createServiceClient()

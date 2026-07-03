@@ -17,7 +17,8 @@
     "showAll": "Все ({n})",
     "visibleCount": "{visible} / {total} записей",
     "noFilterResult": "По заданным фильтрам записей нет.",
-    "redirecting": "Перенаправление…"
+    "redirecting": "Перенаправление…",
+    "confirm": "Подтвердить"
   },
   "nav": {
     "title": "Панель управления",
@@ -771,7 +772,7 @@
   "invoice": {
     "title": "Квитанция — Anor Avenue",
     "previewTitle": "Предпросмотр квитанции",
-    "invoiceLabel": "Квитанция / Фatura",
+    "invoiceLabel": "Квитанция",
     "dateLabel": "Дата: ",
     "guestSection": "Гость / Mehmon",
     "guestFields": {

@@ -1,8 +1,15 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { getLocale, getTranslations } from 'next-intl/server'
 import RegistrationStatusButtons from './RegistrationStatusButtons'
 import { dash } from '@/lib/dashboardTheme'
+
+const LOCALE_BCP47: Record<string, string> = {
+  ru: 'ru-RU',
+  uz: 'uz-UZ',
+  'uz-cyrl': 'uz-Cyrl-UZ',
+}
 
 interface RegistrationRow {
   id: string
@@ -26,14 +33,10 @@ interface RegistrationRow {
   } | null
 }
 
-const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  pending:   { label: 'Bekliyor',   color: dash.orange, bg: dash.orangeLight },
-  submitted: { label: 'Gönderildi', color: dash.blue,   bg: dash.blueLight },
-  confirmed: { label: 'Onaylandı',  color: dash.green,  bg: dash.greenLight },
-}
-
-function formatDate(d: string) {
-  return new Date(d).toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+const STATUS_TONE: Record<string, { color: string; bg: string }> = {
+  pending:   { color: dash.orange, bg: dash.orangeLight },
+  submitted: { color: dash.blue,   bg: dash.blueLight },
+  confirmed: { color: dash.green,  bg: dash.greenLight },
 }
 
 export default async function RegistrationsPage({
@@ -44,6 +47,12 @@ export default async function RegistrationsPage({
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  const locale = await getLocale()
+  const dateLocale = LOCALE_BCP47[locale] ?? 'ru-RU'
+  const t = await getTranslations('registrations')
+  const formatDate = (d: string) =>
+    new Date(d).toLocaleDateString(dateLocale, { day: '2-digit', month: '2-digit', year: 'numeric' })
 
   const params = await searchParams
   const statusFilter = params.status ?? 'all'
@@ -59,7 +68,7 @@ export default async function RegistrationsPage({
 
   const allRows = (data ?? []) as unknown as RegistrationRow[]
 
-  // Küçük otel — JS'de filtrelemek yeterli
+  // Small hotel — filtering in JS is sufficient
   const rows = statusFilter === 'all' ? allRows : allRows.filter((r) => r.status === statusFilter)
 
   const counts = {
@@ -71,19 +80,19 @@ export default async function RegistrationsPage({
 
   return (
     <div className="space-y-6 max-w-5xl">
-      {/* Başlık */}
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Misafir Kayıt (Registratsiya)</h1>
+          <h1 className="text-2xl font-semibold text-foreground">{t('title')}</h1>
           <p className="mt-1 text-sm" style={{ color: 'var(--color-admin-muted)' }}>
-            Yabancı misafir bildirimi — Özbekistan yasal zorunluluğu
+            {t('subtitle')}
           </p>
         </div>
       </div>
 
-      {/* Durum Filtreleri */}
+      {/* Status filters */}
       <div className="flex gap-2 flex-wrap">
-        {([['all', 'Tümü'], ['pending', 'Bekliyor'], ['submitted', 'Gönderildi'], ['confirmed', 'Onaylandı']] as const).map(([val, label]) => {
+        {([['all', t('filters.all')], ['pending', t('filters.pending')], ['submitted', t('filters.submitted')], ['confirmed', t('filters.confirmed')]] as const).map(([val, label]) => {
           const active = statusFilter === val
           const count = counts[val]
           return (
@@ -116,15 +125,15 @@ export default async function RegistrationsPage({
       >
         {error ? (
           <p className="px-5 py-4 text-sm" style={{ color: dash.red }}>
-            Kayıtlar yüklenemedi: {error.message}
+            {t('loadError')}{error.message}
           </p>
         ) : rows.length === 0 ? (
           <div className="px-5 py-12 text-center">
             <p className="text-sm" style={{ color: 'var(--color-admin-muted)' }}>
-              {statusFilter === 'all' ? 'Henüz kayıt yok.' : 'Bu durumda kayıt yok.'}
+              {statusFilter === 'all' ? t('emptyAll') : t('emptyStatus')}
             </p>
             <p className="text-xs mt-2" style={{ color: 'var(--color-admin-muted)' }}>
-              Rezervasyon detay sayfasından yabancı misafir için kayıt oluşturabilirsiniz.
+              {t('emptyHint')}
             </p>
           </div>
         ) : (
@@ -132,9 +141,9 @@ export default async function RegistrationsPage({
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
-                  {['Misafir', 'Pasaport', 'Milliyet', 'Rezervasyon', 'Tarihler', 'Oda', 'Kayıt Tarihi', 'Durum', ''].map((h) => (
+                  {[t('headers.guest'), t('headers.passport'), t('headers.nationality'), t('headers.reservation'), t('headers.dates'), t('headers.room'), t('headers.registeredAt'), t('headers.status'), ''].map((h, i) => (
                     <th
-                      key={h}
+                      key={i}
                       className="text-left py-3 px-4 text-xs font-semibold uppercase tracking-widest whitespace-nowrap"
                       style={{ color: 'var(--color-admin-muted)' }}
                     >
@@ -145,7 +154,8 @@ export default async function RegistrationsPage({
               </thead>
               <tbody>
                 {rows.map((row) => {
-                  const cfg = STATUS_CONFIG[row.status] ?? STATUS_CONFIG['pending']
+                  const cfg = STATUS_TONE[row.status] ?? STATUS_TONE['pending']
+                  const statusLabel = t(`statuses.${row.status}` as 'statuses.pending')
                   return (
                     <tr key={row.id} style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
                       <td className="py-3 px-4">
@@ -158,7 +168,7 @@ export default async function RegistrationsPage({
                         </Link>
                         {row.guests?.date_of_birth && (
                           <p className="text-xs mt-0.5" style={{ color: 'var(--color-admin-muted)' }}>
-                            D: {formatDate(row.guests.date_of_birth)}
+                            {t('birthDatePrefix')}{formatDate(row.guests.date_of_birth)}
                           </p>
                         )}
                       </td>
@@ -196,7 +206,7 @@ export default async function RegistrationsPage({
                           className="text-xs font-bold px-2 py-1 rounded-full whitespace-nowrap"
                           style={{ backgroundColor: cfg.bg, color: cfg.color }}
                         >
-                          {cfg.label}
+                          {statusLabel}
                         </span>
                       </td>
                       <td className="py-3 px-4">
@@ -211,14 +221,14 @@ export default async function RegistrationsPage({
         )}
       </div>
 
-      {/* Bilgi notu */}
+      {/* Info note */}
       <div
         className="rounded-2xl px-4 py-3 text-xs"
         style={{ backgroundColor: dash.zoneBlue, color: 'var(--color-admin-muted)' }}
       >
-        <strong style={{ color: dash.text }}>Registratsiya nedir?</strong>{' '}
-        Özbekistan'da yabancı uyruklu misafirlerin otel girişinden itibaren 3 gün içinde Göç İdaresi (OVIR) sistemine bildirilmesi yasal zorunluluktur.
-        Kayıt durumunu <strong style={{ color: dash.text }}>Bekliyor → Gönderildi → Onaylandı</strong> olarak takip edin.
+        <strong style={{ color: dash.text }}>{t('infoTitle')}</strong>{' '}
+        {t('infoText')}{' '}
+        <strong style={{ color: dash.text }}>{t('infoBoldText')}</strong>{t('infoTextEnd')}
       </div>
     </div>
   )

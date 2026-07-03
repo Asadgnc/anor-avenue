@@ -1,8 +1,8 @@
 'use client'
 
 // Dashboard layout'una bir kez mount edilir.
-// reservations ve rooms tablolarını dinler;
-// değişiklik olunca tüm açık sayfa server component'larını yeniler.
+// Listens to the reservations and rooms tables;
+// refreshes all open page server components on any change.
 
 import { useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'

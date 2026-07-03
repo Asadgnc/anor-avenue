@@ -1,17 +1,24 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
+import { getLocale, getTranslations } from 'next-intl/server'
 import { dash } from '@/lib/dashboardTheme'
 
-// ─── Yardımcılar ─────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+const LOCALE_BCP47: Record<string, string> = {
+  ru: 'ru-RU',
+  uz: 'uz-UZ',
+  'uz-cyrl': 'uz-Cyrl-UZ',
+}
 
 function toDateStr(d: Date): string {
   return d.toISOString().split('T')[0]
 }
 
-function getLocalityLabel(nationality: string | null | undefined): string {
-  if (!nationality) return '—'
+function isLocalNationality(nationality: string | null | undefined): boolean {
+  if (!nationality) return false
   const n = nationality.toLowerCase()
-  return n === 'özbekistan' || n === 'uzbekistan' ? 'Mahalliy' : 'Xorijiy'
+  return n === 'özbekistan' || n === 'uzbekistan' || n === 'узбекистан' || n === 'oʻzbekiston' || n === 'o‘zbekiston'
 }
 
 function formatTime(t: string | null | undefined): string {
@@ -19,7 +26,7 @@ function formatTime(t: string | null | undefined): string {
   return t.slice(0, 5)
 }
 
-// ─── Tipler ───────────────────────────────────────────────────────────────────
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 interface GuestInfo {
   first_name: string
@@ -60,9 +67,9 @@ interface OccupiedRow {
   guests: GuestInfo | null
 }
 
-// ─── Alt bileşenler ───────────────────────────────────────────────────────────
+// ─── Sub-components ───────────────────────────────────────────────────────────
 
-function StatBox({ value, label, color, bg }: { value: number | string; label: string; color: string; bg: string }) {
+function StatBox({ value, label, color }: { value: number | string; label: string; color: string }) {
   return (
     <div
       className="rounded-xl px-4 py-4 text-center"
@@ -91,9 +98,8 @@ function SectionHeader({ title, count, accent }: { title: string; count: number;
   )
 }
 
-function LocalityBadge({ nationality }: { nationality: string | null | undefined }) {
-  const label = getLocalityLabel(nationality)
-  const isLocal = label === 'Mahalliy'
+function LocalityBadge({ nationality, localLabel, foreignLabel }: { nationality: string | null | undefined; localLabel: string; foreignLabel: string }) {
+  const isLocal = isLocalNationality(nationality)
   return (
     <span
       className="px-1.5 py-0.5 rounded text-[10px] font-semibold"
@@ -102,18 +108,18 @@ function LocalityBadge({ nationality }: { nationality: string | null | undefined
         color: isLocal ? dash.green : dash.orange,
       }}
     >
-      {label}
+      {isLocal ? localLabel : foreignLabel}
     </span>
   )
 }
 
-function BreakfastBadge() {
+function BreakfastBadge({ label }: { label: string }) {
   return (
     <span
       className="text-xs font-medium px-2 py-0.5 rounded-full shrink-0"
       style={{ backgroundColor: dash.greenLight, color: dash.green }}
     >
-      Kahvaltı ✓
+      {label}
     </span>
   )
 }
@@ -124,12 +130,16 @@ function EmptyRow({ text }: { text: string }) {
   )
 }
 
-// ─── Sayfa ────────────────────────────────────────────────────────────────────
+// ─── Page ────────────────────────────────────────────────────────────────────
 
 export default async function HousekeepingOverviewPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  const locale = await getLocale()
+  const t = await getTranslations('housekeeping.overview')
+  const dateLocale = LOCALE_BCP47[locale] ?? 'ru-RU'
 
   const today = new Date()
   const todayStr = toDateStr(today)
@@ -160,38 +170,41 @@ export default async function HousekeepingOverviewPage() {
   const checkOuts = (checkOutsRes.data ?? []) as unknown as CheckOutRow[]
   const occupied = (occupiedRes.data ?? []) as unknown as OccupiedRow[]
 
-  // Yarın sabah kahvaltısı: şu an otelde olan (check_out >= yarın) + kahvaltı dahil
+  // Tomorrow's breakfast: currently in hotel (check_out >= tomorrow) + breakfast included
   const breakfastCount = occupied
     .filter(r => r.check_out >= tomorrowStr && r.breakfast_included)
     .reduce((sum, r) => sum + r.adults + (r.children ?? 0), 0)
 
-  const todayDisplay = today.toLocaleDateString('tr-TR', {
+  const todayDisplay = today.toLocaleDateString(dateLocale, {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
   })
-  const tomorrowDisplay = tomorrow.toLocaleDateString('tr-TR', {
+  const tomorrowDisplay = tomorrow.toLocaleDateString(dateLocale, {
     weekday: 'long', day: 'numeric', month: 'long',
   })
 
+  const localLabel = t('local')
+  const foreignLabel = t('foreign')
+
   return (
     <div className="space-y-6 max-w-3xl">
-      {/* Başlık */}
+      {/* Header */}
       <div>
-        <h1 className="text-2xl font-semibold" style={{ color: dash.text }}>Günlük Özet</h1>
+        <h1 className="text-2xl font-semibold" style={{ color: dash.text }}>{t('title')}</h1>
         <p className="text-sm mt-1" style={{ color: dash.muted }}>{todayDisplay}</p>
       </div>
 
-      {/* Hızlı istatistikler */}
+      {/* Quick stats */}
       <div className="grid grid-cols-3 gap-3">
-        <StatBox value={checkIns.length} label={`${tomorrowDisplay} girişleri`} color={dash.blue} bg={dash.blueLight} />
-        <StatBox value={checkOuts.length} label="Bugünkü çıkışlar" color={dash.orange} bg={dash.orangeLight} />
-        <StatBox value={`${breakfastCount} kişi`} label="Yarın sabah kahvaltı" color={dash.green} bg={dash.greenLight} />
+        <StatBox value={checkIns.length} label={t('tomorrowCheckIns')} color={dash.blue} />
+        <StatBox value={checkOuts.length} label={t('todayCheckOuts')} color={dash.orange} />
+        <StatBox value={t('persons', { n: breakfastCount })} label={t('tomorrowBreakfast')} color={dash.green} />
       </div>
 
-      {/* Yarınki Girişler */}
+      {/* Tomorrow's check-ins */}
       <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}>
-        <SectionHeader title={`Yarınki Girişler — ${tomorrowDisplay}`} count={checkIns.length} accent={dash.blue} />
+        <SectionHeader title={t('sections.checkIns', { date: tomorrowDisplay })} count={checkIns.length} accent={dash.blue} />
         {checkIns.length === 0 ? (
-          <EmptyRow text="Yarın giriş beklentisi yok." />
+          <EmptyRow text={t('empty.checkIns')} />
         ) : (
           <div className="divide-y" style={{ borderColor: 'var(--color-admin-border)' }}>
             {checkIns.map(r => {
@@ -212,14 +225,14 @@ export default async function HousekeepingOverviewPage() {
                       {r.guests?.first_name} {r.guests?.last_name}
                     </p>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs" style={{ color: dash.muted }}>{total} kişi</span>
-                      <LocalityBadge nationality={r.guests?.nationality} />
+                      <span className="text-xs" style={{ color: dash.muted }}>{t('persons', { n: total })}</span>
+                      <LocalityBadge nationality={r.guests?.nationality} localLabel={localLabel} foreignLabel={foreignLabel} />
                       {time && (
                         <span className="text-xs" style={{ color: dash.muted }}>⏰ {time}</span>
                       )}
                     </div>
                   </div>
-                  {r.breakfast_included && <BreakfastBadge />}
+                  {r.breakfast_included && <BreakfastBadge label={t('breakfastBadge')} />}
                 </div>
               )
             })}
@@ -227,11 +240,11 @@ export default async function HousekeepingOverviewPage() {
         )}
       </div>
 
-      {/* Bugünkü Çıkışlar */}
+      {/* Today's check-outs */}
       <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}>
-        <SectionHeader title="Bugünkü Çıkışlar" count={checkOuts.length} accent={dash.orange} />
+        <SectionHeader title={t('sections.checkOuts')} count={checkOuts.length} accent={dash.orange} />
         {checkOuts.length === 0 ? (
-          <EmptyRow text="Bugün çıkış beklentisi yok." />
+          <EmptyRow text={t('empty.checkOuts')} />
         ) : (
           <div className="divide-y" style={{ borderColor: 'var(--color-admin-border)' }}>
             {checkOuts.map(r => {
@@ -251,8 +264,8 @@ export default async function HousekeepingOverviewPage() {
                       {r.guests?.first_name} {r.guests?.last_name}
                     </p>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs" style={{ color: dash.muted }}>{total} kişi</span>
-                      <LocalityBadge nationality={r.guests?.nationality} />
+                      <span className="text-xs" style={{ color: dash.muted }}>{t('persons', { n: total })}</span>
+                      <LocalityBadge nationality={r.guests?.nationality} localLabel={localLabel} foreignLabel={foreignLabel} />
                     </div>
                   </div>
                 </div>
@@ -262,11 +275,11 @@ export default async function HousekeepingOverviewPage() {
         )}
       </div>
 
-      {/* Şu An Dolu Odalar */}
+      {/* Currently occupied rooms */}
       <div className="rounded-2xl overflow-hidden" style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}>
-        <SectionHeader title="Şu An Dolu Odalar" count={occupied.length} accent={dash.primary} />
+        <SectionHeader title={t('sections.occupiedRooms')} count={occupied.length} accent={dash.primary} />
         {occupied.length === 0 ? (
-          <EmptyRow text="Şu an dolu oda yok." />
+          <EmptyRow text={t('empty.occupied')} />
         ) : (
           <div className="divide-y" style={{ borderColor: 'var(--color-admin-border)' }}>
             {occupied.map(r => {
@@ -286,12 +299,12 @@ export default async function HousekeepingOverviewPage() {
                       {r.guests?.first_name} {r.guests?.last_name}
                     </p>
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-xs" style={{ color: dash.muted }}>{total} kişi</span>
-                      <LocalityBadge nationality={r.guests?.nationality} />
-                      <span className="text-xs" style={{ color: dash.muted }}>Çıkış: {r.check_out}</span>
+                      <span className="text-xs" style={{ color: dash.muted }}>{t('persons', { n: total })}</span>
+                      <LocalityBadge nationality={r.guests?.nationality} localLabel={localLabel} foreignLabel={foreignLabel} />
+                      <span className="text-xs" style={{ color: dash.muted }}>{t('checkOutLabel', { date: r.check_out })}</span>
                     </div>
                   </div>
-                  {r.breakfast_included && <BreakfastBadge />}
+                  {r.breakfast_included && <BreakfastBadge label={t('breakfastBadge')} />}
                 </div>
               )
             })}

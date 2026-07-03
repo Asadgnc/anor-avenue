@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase'
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import RoomTypePriceForm from './RoomTypePriceForm'
 import HotelProfileForm from './HotelProfileForm'
 
@@ -27,6 +28,8 @@ export default async function SettingsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  const t = await getTranslations('settings')
+
   const service = createServiceClient()
 
   const [{ data: roomTypes }, { data: hotelRow }] = await Promise.all([
@@ -50,21 +53,21 @@ export default async function SettingsPage() {
   return (
     <div className="space-y-8 max-w-2xl">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Ayarlar</h1>
+        <h1 className="text-2xl font-semibold text-foreground">{t('title')}</h1>
         <p className="text-sm mt-1" style={{ color: 'var(--color-admin-muted)' }}>
-          Otel profili, oda fiyatları ve bildirim konfigürasyonu
+          {t('subtitle')}
         </p>
       </div>
 
-      {/* Otel Profili */}
+      {/* Hotel profile */}
       <div
         className="rounded-2xl"
         style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
       >
         <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
-          <h2 className="text-sm font-semibold text-foreground">Otel Profili</h2>
+          <h2 className="text-sm font-semibold text-foreground">{t('hotelProfile.title')}</h2>
           <p className="text-xs mt-0.5" style={{ color: 'var(--color-admin-muted)' }}>
-            Fatura ve onay e-postalarında kullanılır
+            {t('hotelProfile.subtitle')}
           </p>
         </div>
         <div className="px-5 py-4">
@@ -80,15 +83,15 @@ export default async function SettingsPage() {
         </div>
       </div>
 
-      {/* Oda Tipi Fiyatları */}
+      {/* Room type prices */}
       <div
         className="rounded-2xl"
         style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
       >
         <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
-          <h2 className="text-sm font-semibold text-foreground">Oda Tipi Fiyatları</h2>
+          <h2 className="text-sm font-semibold text-foreground">{t('roomTypePrices.title')}</h2>
           <p className="text-xs mt-0.5" style={{ color: 'var(--color-admin-muted)' }}>
-            Değişiklik anında aktif olur — yeni rezervasyonlara yansır
+            {t('roomTypePrices.subtitle')}
           </p>
         </div>
         <div className="px-5 py-4 space-y-4">
@@ -97,42 +100,42 @@ export default async function SettingsPage() {
           ))}
           {types.length === 0 && (
             <p className="text-sm" style={{ color: 'var(--color-admin-muted)' }}>
-              Oda tipi bulunamadı. Veritabanı seed verisi eksik olabilir.
+              {t('roomTypePrices.empty')}
             </p>
           )}
         </div>
       </div>
 
-      {/* Email Bildirim Ayarları */}
+      {/* Email notification settings */}
       <div
         className="rounded-2xl"
         style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
       >
         <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
-          <h2 className="text-sm font-semibold text-foreground">Email Bildirimleri</h2>
+          <h2 className="text-sm font-semibold text-foreground">{t('emailNotifications.title')}</h2>
           <p className="text-xs mt-0.5" style={{ color: 'var(--color-admin-muted)' }}>
-            Vercel ortam değişkenlerinden okunur
+            {t('emailNotifications.subtitle')}
           </p>
         </div>
         <div className="px-5 py-4 space-y-3 text-sm">
           <div className="flex justify-between">
-            <span style={{ color: 'var(--color-admin-muted)' }}>Admin bildirim e-postası</span>
+            <span style={{ color: 'var(--color-admin-muted)' }}>{t('emailNotifications.adminEmail')}</span>
             <span className="font-mono text-xs text-foreground">{ADMIN_EMAIL}</span>
           </div>
           <div className="flex justify-between">
-            <span style={{ color: 'var(--color-admin-muted)' }}>Resend API</span>
+            <span style={{ color: 'var(--color-admin-muted)' }}>{t('emailNotifications.resendApi')}</span>
             <span
               className="text-xs font-semibold"
               style={{ color: process.env.RESEND_API_KEY ? '#22C55E' : '#EF4444' }}
             >
-              {process.env.RESEND_API_KEY ? 'Bağlı ✓' : 'Ayarlanmamış — email gönderilmez'}
+              {process.env.RESEND_API_KEY ? t('emailNotifications.connected') : t('emailNotifications.notSet')}
             </span>
           </div>
           <div
             className="mt-2 p-3 rounded-lg text-xs space-y-1"
             style={{ backgroundColor: 'var(--color-admin-bg)', color: 'var(--color-admin-muted)' }}
           >
-            <p className="font-semibold text-foreground">Vercel ortam değişkenlerine şunları ekle:</p>
+            <p className="font-semibold text-foreground">{t('emailNotifications.envVarsNote')}</p>
             <p className="font-mono">RESEND_API_KEY=re_xxxxxxxxxxxx</p>
             <p className="font-mono">ADMIN_NOTIFICATION_EMAIL=a.kenja3683@gmail.com</p>
             <p className="font-mono">EMAIL_FROM=Anor Avenue Hotel &lt;noreply@seninadresi.com&gt;</p>

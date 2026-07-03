@@ -1,6 +1,6 @@
-// Bölüm sarmalayıcı — pastel zemin yerine dashboard tarzı
-// büyük harfli bölüm başlığı + şeffaf zemin kullanır.
-// Prop arayüzü korunmuştur; `tone` görsel olarak artık kullanılmaz.
+// Section wrapper — dashboard-style uppercase heading + transparent
+// background instead of a pastel background.
+// The prop interface is preserved; `tone` is no longer used visually.
 
 type Tone = 'purple' | 'green' | 'orange' | 'blue' | 'neutral'
 

@@ -8,7 +8,7 @@ export async function sendEmail({
   html: string
 }): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY
-  if (!apiKey) return // RESEND_API_KEY ayarlanmamışsa email gönderilmez
+  if (!apiKey) return // If RESEND_API_KEY is not set, no email is sent
 
   const from = process.env.EMAIL_FROM ?? 'Anor Avenue Hotel <onboarding@resend.dev>'
 
@@ -22,7 +22,7 @@ export async function sendEmail({
       body: JSON.stringify({ from, to, subject, html }),
     })
   } catch {
-    // Email hatası rezervasyonu engellememeli
+    // An email error must not block the reservation
   }
 }
 
@@ -39,22 +39,22 @@ export function newBookingAdminEmail(data: {
 }): string {
   return `
   <div style="font-family:sans-serif;max-width:560px;margin:0 auto;background:#0F0F1A;color:#E8E8F0;padding:32px;border-radius:12px">
-    <h1 style="color:#C9A96E;font-size:20px;margin-bottom:4px">Yeni Rezervasyon</h1>
-    <p style="color:#888;font-size:14px;margin-bottom:24px">Misafir sitesinden yeni bir talep geldi</p>
+    <h1 style="color:#C9A96E;font-size:20px;margin-bottom:4px">Новое бронирование</h1>
+    <p style="color:#888;font-size:14px;margin-bottom:24px">Поступил новый запрос с сайта для гостей</p>
 
     <table style="width:100%;border-collapse:collapse;font-size:14px">
-      <tr><td style="padding:8px 0;color:#888;border-bottom:1px solid #1E1E3A">Misafir</td><td style="padding:8px 0;border-bottom:1px solid #1E1E3A;text-align:right">${data.guestName}</td></tr>
-      <tr><td style="padding:8px 0;color:#888;border-bottom:1px solid #1E1E3A">Telefon</td><td style="padding:8px 0;border-bottom:1px solid #1E1E3A;text-align:right">${data.phone}</td></tr>
-      ${data.email ? `<tr><td style="padding:8px 0;color:#888;border-bottom:1px solid #1E1E3A">E-posta</td><td style="padding:8px 0;border-bottom:1px solid #1E1E3A;text-align:right">${data.email}</td></tr>` : ''}
-      <tr><td style="padding:8px 0;color:#888;border-bottom:1px solid #1E1E3A">Oda Tipi</td><td style="padding:8px 0;border-bottom:1px solid #1E1E3A;text-align:right">${data.roomType}</td></tr>
-      <tr><td style="padding:8px 0;color:#888;border-bottom:1px solid #1E1E3A">Giriş</td><td style="padding:8px 0;border-bottom:1px solid #1E1E3A;text-align:right">${data.checkIn}</td></tr>
-      <tr><td style="padding:8px 0;color:#888;border-bottom:1px solid #1E1E3A">Çıkış</td><td style="padding:8px 0;border-bottom:1px solid #1E1E3A;text-align:right">${data.checkOut}</td></tr>
-      <tr><td style="padding:8px 0;color:#888;border-bottom:1px solid #1E1E3A">Gece</td><td style="padding:8px 0;border-bottom:1px solid #1E1E3A;text-align:right">${data.nights}</td></tr>
-      <tr><td style="padding:8px 0;color:#888">Toplam</td><td style="padding:8px 0;text-align:right;color:#C9A96E;font-weight:700">${new Intl.NumberFormat('uz-UZ').format(data.total)} UZS</td></tr>
+      <tr><td style="padding:8px 0;color:#888;border-bottom:1px solid #1E1E3A">Гость</td><td style="padding:8px 0;border-bottom:1px solid #1E1E3A;text-align:right">${data.guestName}</td></tr>
+      <tr><td style="padding:8px 0;color:#888;border-bottom:1px solid #1E1E3A">Телефон</td><td style="padding:8px 0;border-bottom:1px solid #1E1E3A;text-align:right">${data.phone}</td></tr>
+      ${data.email ? `<tr><td style="padding:8px 0;color:#888;border-bottom:1px solid #1E1E3A">E-mail</td><td style="padding:8px 0;border-bottom:1px solid #1E1E3A;text-align:right">${data.email}</td></tr>` : ''}
+      <tr><td style="padding:8px 0;color:#888;border-bottom:1px solid #1E1E3A">Тип номера</td><td style="padding:8px 0;border-bottom:1px solid #1E1E3A;text-align:right">${data.roomType}</td></tr>
+      <tr><td style="padding:8px 0;color:#888;border-bottom:1px solid #1E1E3A">Заезд</td><td style="padding:8px 0;border-bottom:1px solid #1E1E3A;text-align:right">${data.checkIn}</td></tr>
+      <tr><td style="padding:8px 0;color:#888;border-bottom:1px solid #1E1E3A">Выезд</td><td style="padding:8px 0;border-bottom:1px solid #1E1E3A;text-align:right">${data.checkOut}</td></tr>
+      <tr><td style="padding:8px 0;color:#888;border-bottom:1px solid #1E1E3A">Ночей</td><td style="padding:8px 0;border-bottom:1px solid #1E1E3A;text-align:right">${data.nights}</td></tr>
+      <tr><td style="padding:8px 0;color:#888">Итого</td><td style="padding:8px 0;text-align:right;color:#C9A96E;font-weight:700">${new Intl.NumberFormat('uz-UZ').format(data.total)} UZS</td></tr>
     </table>
 
     <div style="margin-top:24px;padding:16px;background:#1E1E3A;border-radius:8px;text-align:center">
-      <p style="color:#888;font-size:12px;margin:0 0 4px">Rezervasyon Kodu</p>
+      <p style="color:#888;font-size:12px;margin:0 0 4px">Код бронирования</p>
       <p style="color:#C9A96E;font-size:22px;font-weight:800;font-family:monospace;margin:0">${data.code}</p>
     </div>
 
