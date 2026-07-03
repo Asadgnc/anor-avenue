@@ -9,5 +9,6 @@
     "test": "pnpm -r test",
     "lint": "pnpm -r lint"
   },
-  "devDependencies": {}
+  "devDependencies": {},
+  "packageManager": "pnpm@11.9.0"
 }
