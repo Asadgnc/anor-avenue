@@ -846,7 +846,8 @@
     "roomNumberRequired": "Номер комнаты обязателен",
     "roomTypeRequired": "Выберите тип номера",
     "roomExists": "Номер «{number}» уже существует.",
-    "itemNameRequired": "Название предмета обязательно"
+    "itemNameRequired": "Название предмета обязательно",
+    "invalidEmail": "Неверный e-mail"
   },
   "roomItems": {
     "title": "Номер #{number} — Инвентарь",

@@ -846,7 +846,8 @@
     "roomNumberRequired": "Хона рақами мажбурий",
     "roomTypeRequired": "Хона турини танланг",
     "roomExists": "«{number}» рақамли хона аллақачон мавжуд.",
-    "itemNameRequired": "Буюм номи мажбурий"
+    "itemNameRequired": "Буюм номи мажбурий",
+    "invalidEmail": "Нотўғри e-mail"
   },
   "roomItems": {
     "title": "Хона #{number} — Буюмлар",

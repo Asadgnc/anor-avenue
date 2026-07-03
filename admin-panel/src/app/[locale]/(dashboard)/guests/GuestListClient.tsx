@@ -2,6 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
+import { useTranslations } from 'next-intl'
 import type { Guest } from '@/types/hotel'
 
 interface Props {
@@ -9,6 +10,8 @@ interface Props {
 }
 
 export default function GuestListClient({ guests }: Props) {
+  const t = useTranslations('guests')
+  const th = useTranslations('guests.headers')
   const [search, setSearch] = useState('')
 
   const filtered = useMemo(() => {
@@ -26,12 +29,14 @@ export default function GuestListClient({ guests }: Props) {
     })
   }, [guests, search])
 
+  const headers = [th('name'), th('phone'), th('email'), th('nationality'), th('passport'), th('actions')]
+
   return (
     <div className="space-y-4">
-      {/* Arama */}
+      {/* Search */}
       <input
         type="text"
-        placeholder="Ad, telefon, e-posta veya pasaport ara…"
+        placeholder={t('searchPlaceholder')}
         value={search}
         onChange={(e) => setSearch(e.target.value)}
         className="w-full max-w-md rounded-lg px-3 py-2 text-sm outline-none"
@@ -44,11 +49,11 @@ export default function GuestListClient({ guests }: Props) {
 
       {search && (
         <p className="text-xs" style={{ color: 'var(--color-admin-muted)' }}>
-          {filtered.length} sonuç
+          {t('resultCount', { n: filtered.length })}
         </p>
       )}
 
-      {/* Tablo */}
+      {/* Table */}
       <div
         style={{
           backgroundColor: 'var(--color-admin-card)',
@@ -60,9 +65,9 @@ export default function GuestListClient({ guests }: Props) {
         {filtered.length === 0 ? (
           <div className="py-16 text-center" style={{ color: 'var(--color-admin-muted)' }}>
             <p className="text-4xl mb-3">👤</p>
-            <p>{search ? 'Sonuç bulunamadı.' : 'Henüz misafir kaydı yok.'}</p>
+            <p>{search ? t('noResult') : t('emptyState')}</p>
             {!search && (
-              <p className="text-xs mt-1">Rezervasyon oluşturulduğunda misafirler otomatik eklenir.</p>
+              <p className="text-xs mt-1">{t('emptyHint')}</p>
             )}
           </div>
         ) : (
@@ -70,9 +75,9 @@ export default function GuestListClient({ guests }: Props) {
             <table className="w-full text-sm">
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
-                  {['Ad Soyad', 'Telefon', 'E-posta', 'Milliyet', 'Pasaport', 'İşlem'].map((h) => (
+                  {headers.map((h, i) => (
                     <th
-                      key={h}
+                      key={`${h}-${i}`}
                       className="text-left px-5 py-3 text-xs font-semibold uppercase tracking-widest"
                       style={{ color: 'var(--color-admin-muted)' }}
                     >
@@ -109,7 +114,7 @@ export default function GuestListClient({ guests }: Props) {
                         className="text-xs font-medium hover:opacity-80 transition-opacity"
                         style={{ color: 'var(--color-accent)' }}
                       >
-                        Detay →
+                        {t('detailLink')}
                       </Link>
                     </td>
                   </tr>

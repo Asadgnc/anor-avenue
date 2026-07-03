@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import GuestListClient from './GuestListClient'
 import type { Guest } from '@/types/hotel'
 
@@ -8,6 +9,8 @@ export default async function GuestsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
+
+  const t = await getTranslations('guests')
 
   const { data: guests } = await supabase
     .from('guests')
@@ -22,9 +25,9 @@ export default async function GuestsPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Misafirler</h1>
+          <h1 className="text-2xl font-semibold text-foreground">{t('title')}</h1>
           <p className="mt-1 text-sm" style={{ color: 'var(--color-admin-muted)' }}>
-            {rows.length} kayıt
+            {t('count', { n: rows.length })}
           </p>
         </div>
         <Link
@@ -32,7 +35,7 @@ export default async function GuestsPage() {
           className="px-4 py-2 rounded-lg text-sm font-semibold transition-opacity hover:opacity-90"
           style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
         >
-          + Yeni Misafir
+          {t('newButton')}
         </Link>
       </div>
 

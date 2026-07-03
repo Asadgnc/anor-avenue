@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useLocale, useTranslations } from 'next-intl'
 import { updateGuestAction } from '@/app/[locale]/(dashboard)/guests/actions'
 
 interface GuestDetail {
@@ -17,6 +18,12 @@ interface GuestDetail {
   address: string | null
   notes: string | null
   created_at: string
+}
+
+const LOCALE_BCP47: Record<string, string> = {
+  ru: 'ru-RU',
+  uz: 'uz-UZ',
+  'uz-cyrl': 'uz-Cyrl-UZ',
 }
 
 const inputCls = 'w-full px-3 py-2 rounded-lg text-sm border outline-none'
@@ -56,6 +63,9 @@ function Row({ label, value }: { label: string; value: string }) {
 
 export default function EditGuestFormClient({ guest }: { guest: GuestDetail }) {
   const router = useRouter()
+  const locale = useLocale()
+  const t = useTranslations('guests.editForm')
+  const tf = useTranslations('guests.editForm.fields')
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -76,10 +86,10 @@ export default function EditGuestFormClient({ guest }: { guest: GuestDetail }) {
 
   return (
     <div className="rounded-2xl" style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}>
-      {/* Başlık */}
+      {/* Header */}
       <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
         <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-admin-muted)' }}>
-          Kişisel Bilgiler
+          {t('sectionTitle')}
         </p>
         {!editing && (
           <button
@@ -87,28 +97,28 @@ export default function EditGuestFormClient({ guest }: { guest: GuestDetail }) {
             className="text-xs px-3 py-1.5 rounded-lg border transition-opacity hover:opacity-80"
             style={{ color: 'var(--color-accent)', borderColor: 'var(--color-admin-border)' }}
           >
-            Düzenle
+            {t('editButton')}
           </button>
         )}
       </div>
 
-      {/* Görüntüleme modu */}
+      {/* View mode */}
       {!editing && (
         <div className="px-5 pb-2">
-          <Row label="Ad Soyad" value={`${guest.first_name} ${guest.last_name}`} />
-          <Row label="Telefon" value={guest.phone ?? ''} />
-          <Row label="E-posta" value={guest.email ?? ''} />
-          <Row label="Milliyet" value={guest.nationality ?? ''} />
-          <Row label="Pasaport No" value={guest.passport_number ?? ''} />
-          <Row label="Pasaport Serisi" value={guest.passport_series ?? ''} />
-          <Row label="Doğum Tarihi" value={guest.date_of_birth ?? ''} />
-          <Row label="Adres" value={guest.address ?? ''} />
-          {guest.notes && <Row label="Notlar" value={guest.notes} />}
-          <Row label="Kayıt Tarihi" value={new Date(guest.created_at).toLocaleDateString('tr-TR')} />
+          <Row label={tf('fullName')} value={`${guest.first_name} ${guest.last_name}`} />
+          <Row label={tf('phone')} value={guest.phone ?? ''} />
+          <Row label={tf('email')} value={guest.email ?? ''} />
+          <Row label={tf('nationality')} value={guest.nationality ?? ''} />
+          <Row label={tf('passportNo')} value={guest.passport_number ?? ''} />
+          <Row label={tf('passportSeries')} value={guest.passport_series ?? ''} />
+          <Row label={tf('dob')} value={guest.date_of_birth ?? ''} />
+          <Row label={tf('address')} value={guest.address ?? ''} />
+          {guest.notes && <Row label={tf('notes')} value={guest.notes} />}
+          <Row label={tf('registeredAt')} value={new Date(guest.created_at).toLocaleDateString(LOCALE_BCP47[locale] ?? 'ru-RU')} />
         </div>
       )}
 
-      {/* Düzenleme modu */}
+      {/* Edit mode */}
       {editing && (
         <form onSubmit={handleSubmit} className="px-5 py-4">
           {error && (
@@ -118,16 +128,16 @@ export default function EditGuestFormClient({ guest }: { guest: GuestDetail }) {
           )}
 
           <div className="grid grid-cols-2 gap-3">
-            <Field label="Ad *" name="firstName" defaultValue={guest.first_name} half />
-            <Field label="Soyad *" name="lastName" defaultValue={guest.last_name} half />
-            <Field label="Telefon" name="phone" defaultValue={guest.phone} half />
-            <Field label="E-posta" name="email" type="email" defaultValue={guest.email} half />
-            <Field label="Milliyet" name="nationality" defaultValue={guest.nationality} half />
-            <Field label="Pasaport No" name="passportNumber" defaultValue={guest.passport_number} half />
-            <Field label="Pasaport Serisi" name="passportSeries" defaultValue={guest.passport_series} half />
-            <Field label="Doğum Tarihi" name="dateOfBirth" type="date" defaultValue={guest.date_of_birth} half />
-            <Field label="Adres" name="address" defaultValue={guest.address} />
-            <Field label="Notlar" name="notes" defaultValue={guest.notes} />
+            <Field label={tf('firstNameRequired')} name="firstName" defaultValue={guest.first_name} half />
+            <Field label={tf('lastNameRequired')} name="lastName" defaultValue={guest.last_name} half />
+            <Field label={tf('phone')} name="phone" defaultValue={guest.phone} half />
+            <Field label={tf('email')} name="email" type="email" defaultValue={guest.email} half />
+            <Field label={tf('nationality')} name="nationality" defaultValue={guest.nationality} half />
+            <Field label={tf('passportNo')} name="passportNumber" defaultValue={guest.passport_number} half />
+            <Field label={tf('passportSeries')} name="passportSeries" defaultValue={guest.passport_series} half />
+            <Field label={tf('dob')} name="dateOfBirth" type="date" defaultValue={guest.date_of_birth} half />
+            <Field label={tf('address')} name="address" defaultValue={guest.address} />
+            <Field label={tf('notes')} name="notes" defaultValue={guest.notes} />
           </div>
 
           <div className="flex gap-3 mt-4">
@@ -137,7 +147,7 @@ export default function EditGuestFormClient({ guest }: { guest: GuestDetail }) {
               className="px-4 py-2 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-50"
               style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
             >
-              {saving ? 'Kaydediliyor…' : 'Kaydet'}
+              {saving ? t('savingButton') : t('saveButton')}
             </button>
             <button
               type="button"
@@ -145,7 +155,7 @@ export default function EditGuestFormClient({ guest }: { guest: GuestDetail }) {
               className="px-4 py-2 rounded-lg text-sm border transition-opacity hover:opacity-80"
               style={{ color: 'var(--color-admin-muted)', borderColor: 'var(--color-admin-border)' }}
             >
-              İptal
+              {t('cancelButton')}
             </button>
           </div>
         </form>

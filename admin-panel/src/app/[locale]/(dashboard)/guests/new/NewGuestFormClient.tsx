@@ -2,13 +2,15 @@
 
 import { useActionState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createGuestAction, type GuestFormState } from './actions'
 
 export default function NewGuestFormClient() {
   const router = useRouter()
+  const t = useTranslations('guests.form')
   const [state, action, isPending] = useActionState<GuestFormState, FormData>(createGuestAction, {})
 
-  // Başarı → misafir detay sayfasına yönlendir
+  // On success → redirect to guest detail page
   useEffect(() => {
     if (state.guestId) {
       router.push(`/guests/${state.guestId}`)
@@ -55,26 +57,26 @@ export default function NewGuestFormClient() {
   return (
     <form action={action} className="flex flex-col gap-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {field('firstName', 'Ad', 'text', true)}
-        {field('lastName', 'Soyad', 'text', true)}
+        {field('firstName', t('firstName'), 'text', true)}
+        {field('lastName', t('lastName'), 'text', true)}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {field('phone', 'Telefon', 'tel')}
-        {field('email', 'E-posta', 'email')}
+        {field('phone', t('phone'), 'tel')}
+        {field('email', t('email'), 'email')}
       </div>
 
-      {field('nationality', 'Milliyet')}
+      {field('nationality', t('nationality'))}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {field('passportNumber', 'Pasaport No')}
-        {field('passportSeries', 'Pasaport Serisi')}
+        {field('passportNumber', t('passportNo'))}
+        {field('passportSeries', t('passportSeries'))}
       </div>
 
-      {field('dateOfBirth', 'Doğum Tarihi', 'date')}
+      {field('dateOfBirth', t('dob'), 'date')}
 
       <div>
-        <label style={labelStyle}>Adres</label>
+        <label style={labelStyle}>{t('address')}</label>
         <textarea
           name="address"
           disabled={isPending}
@@ -85,7 +87,7 @@ export default function NewGuestFormClient() {
       </div>
 
       <div>
-        <label style={labelStyle}>Notlar</label>
+        <label style={labelStyle}>{t('notes')}</label>
         <textarea
           name="notes"
           disabled={isPending}
@@ -110,7 +112,7 @@ export default function NewGuestFormClient() {
         className="py-2.5 rounded-lg text-sm font-semibold transition-opacity hover:opacity-80 disabled:opacity-50"
         style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
       >
-        {isPending ? 'Kaydediliyor…' : state.guestId ? 'Yönlendiriliyor…' : 'Misafiri Kaydet'}
+        {isPending ? t('savingButton') : state.guestId ? t('redirectingButton') : t('saveButton')}
       </button>
     </form>
   )

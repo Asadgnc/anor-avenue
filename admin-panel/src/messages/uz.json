@@ -846,7 +846,8 @@
     "roomNumberRequired": "Xona raqami majburiy",
     "roomTypeRequired": "Xona turini tanlang",
     "roomExists": "«{number}» raqamli xona allaqachon mavjud.",
-    "itemNameRequired": "Buyum nomi majburiy"
+    "itemNameRequired": "Buyum nomi majburiy",
+    "invalidEmail": "Notoʻgʻri e-mail"
   },
   "roomItems": {
     "title": "Xona #{number} — Buyumlar",
