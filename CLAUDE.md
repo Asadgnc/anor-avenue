@@ -405,6 +405,18 @@ Mert "nar çarpışması" konsepti önerdi. Konsept henüz karara bağlanmadı �
   - pnpm build başarılı ✓
   - ⚠️ Ekran görüntüsü alınamadı — kullanıcı tarayıcıda doğrulayacak
 
+- [x] Admin panel: TAM çok dillilik — Rusça (varsayılan) + Özbekçe Latin + Özbekçe Kiril (3-4 Temmuz 2026)
+  - next-intl kurulumu: `[locale]` routing, `locales: ['ru','uz','uz-cyrl']`, `defaultLocale: 'ru'`
+  - Tüm sayfa/form/bileşen/hata mesajı/yorum satırı Türkçeden arındırıldı — kodda dahi Türkçe yok
+  - 3 sözlük dosyası (`src/messages/{ru,uz,uz-cyrl}.json`), her biri 736 anahtar, yapı birebir eşit
+  - Copilot regresyon düzeltmesi: Copilot mekanik translit ile uz-cyrl'de 227 değeri bozmuştu
+    (ў→о', Сўнги→Со'нгги, йўқ→ё'қ) — doğru Kiril imlaya geri getirildi; `commit cff0ffc`
+  - invoice.invoiceLabel'daki Türkçe "Fatura" kalıntısı 3 dilden de temizlendi → "Квитанция/Kvitansiya"
+  - Kullanılmayan ölü grafik bileşenleri silindi (MetricCharts, RevenueAreaChart — hiçbir yerde import edilmiyordu, içlerinde Türkçe vardı)
+  - ConfirmButton çeviriye bağlandı (common.confirm/cancel)
+  - `next build` başarılı (63 sayfa, 3 dil prerender) ✓
+  - ⚠️ Ekran görüntüsü alınamadı — kullanıcı tarayıcıda 3 dilde doğrulayacak; commit yapıldı, henüz PUSH edilmedi (kullanıcı onayı bekleniyor)
+
 ## Sonraki Adımlar (Kalan — sadece merchant hesabı sonrası)
 1. Payme/Click/Uzum gerçek entegrasyon — UI + endpoint hazır, sadece merchant credentials bekleniyor
 
