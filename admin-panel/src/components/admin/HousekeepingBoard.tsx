@@ -1,7 +1,7 @@
 'use client'
 
 import { useTransition } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 import { updateCleaningStatus } from '@/app/[locale]/(dashboard)/housekeeping/actions'
 import type { Room, CleaningStatus } from '@/types/hotel'

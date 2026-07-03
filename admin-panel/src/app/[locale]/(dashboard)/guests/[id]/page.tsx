@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect, notFound } from 'next/navigation'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { getTranslations } from 'next-intl/server'
 import type { ReservationStatus } from '@/types/hotel'
 import EditGuestFormClient from './EditGuestFormClient'

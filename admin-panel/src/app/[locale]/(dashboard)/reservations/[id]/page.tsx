@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react'
 import { createClient } from '@/lib/supabase-server'
 import { redirect, notFound } from 'next/navigation'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { getTranslations } from 'next-intl/server'
 import ReservationActions from './ReservationActions'
 import AddPaymentFormClient from './AddPaymentFormClient'

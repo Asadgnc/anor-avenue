@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react'
 import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/navigation'
 import { createRegistrationAction } from '@/app/[locale]/(dashboard)/registrations/actions'
 import { dash } from '@/lib/dashboardTheme'
 
@@ -17,7 +18,7 @@ export default function CreateRegistrationForm({ guestId, reservationId }: Props
   if (state.success) {
     return (
       <p className="text-sm" style={{ color: dash.green }}>
-        {t('success')} <a href="/registrations" style={{ color: 'var(--color-accent)' }}>{t('goToList')}</a>
+        {t('success')} <Link href="/registrations" style={{ color: 'var(--color-accent)' }}>{t('goToList')}</Link>
       </p>
     )
   }
@@ -37,13 +38,13 @@ export default function CreateRegistrationForm({ guestId, reservationId }: Props
       >
         {isPending ? t('creating') : t('createButton')}
       </button>
-      <a
+      <Link
         href="/registrations"
         className="text-xs"
         style={{ color: 'var(--color-admin-muted)' }}
       >
         {t('goToList')}
-      </a>
+      </Link>
     </form>
   )
 }

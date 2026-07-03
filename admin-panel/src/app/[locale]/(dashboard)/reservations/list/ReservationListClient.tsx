@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { Link, useRouter } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 import { Search } from 'lucide-react'
 import type { ReservationStatus, Channel } from '@/types/hotel'

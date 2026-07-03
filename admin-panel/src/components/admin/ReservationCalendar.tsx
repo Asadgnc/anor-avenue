@@ -1,7 +1,7 @@
 'use client'
 
 import { Fragment, useMemo, useState } from 'react'
-import Link from 'next/link'
+import { Link } from '@/i18n/navigation'
 import { useLocale, useTranslations } from 'next-intl'
 import type { Room, Reservation, ReservationStatus } from '@/types/hotel'
 import { dash } from '@/lib/dashboardTheme'
