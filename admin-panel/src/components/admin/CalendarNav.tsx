@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import { useLocale, useTranslations } from 'next-intl'
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react'
 
 interface Props {
@@ -12,9 +13,17 @@ interface Props {
   endDate: string
 }
 
+const LOCALE_BCP47: Record<string, string> = {
+  ru: 'ru-RU',
+  uz: 'uz-UZ',
+  'uz-cyrl': 'uz-Cyrl-UZ',
+}
+
 export default function CalendarNav({ prevStart, nextStart, isToday, today, startDate, endDate }: Props) {
+  const locale = useLocale()
+  const t = useTranslations('reservations.calendar.nav')
   const fmt = (d: string) =>
-    new Date(d + 'T00:00:00').toLocaleDateString('tr-TR', { day: 'numeric', month: 'short' })
+    new Date(d + 'T00:00:00').toLocaleDateString(LOCALE_BCP47[locale] ?? 'ru-RU', { day: 'numeric', month: 'short' })
 
   return (
     <div className="flex items-center gap-2">
@@ -24,7 +33,7 @@ export default function CalendarNav({ prevStart, nextStart, isToday, today, star
         style={{ backgroundColor: 'var(--color-admin-card)', color: 'var(--color-admin-muted)', boxShadow: 'var(--shadow-card)' }}
       >
         <ChevronLeft size={14} />
-        Önceki
+        {t('prev')}
       </Link>
 
       {!isToday && (
@@ -34,7 +43,7 @@ export default function CalendarNav({ prevStart, nextStart, isToday, today, star
           style={{ backgroundColor: 'var(--color-admin-card)', color: 'var(--color-accent)', boxShadow: 'var(--shadow-card)' }}
         >
           <Calendar size={14} />
-          Bugün
+          {t('today')}
         </Link>
       )}
 
@@ -47,7 +56,7 @@ export default function CalendarNav({ prevStart, nextStart, isToday, today, star
         className="flex items-center gap-1 px-3 py-2 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
         style={{ backgroundColor: 'var(--color-admin-card)', color: 'var(--color-admin-muted)', boxShadow: 'var(--shadow-card)' }}
       >
-        Sonraki
+        {t('next')}
         <ChevronRight size={14} />
       </Link>
     </div>

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import ReservationListClient from './ReservationListClient'
 import type { ReservationStatus, Channel } from '@/types/hotel'
 import { dash } from '@/lib/dashboardTheme'
@@ -39,6 +40,7 @@ export default async function ReservationListPage({ searchParams }: Props) {
   if (!user) redirect('/login')
 
   const { status, channel, createdOn, checkIn, checkOut } = await searchParams
+  const t = await getTranslations('reservations.list')
   const filterStatus = (VALID_STATUSES.includes(status as ReservationStatus) ? status : 'all') as ReservationStatus | 'all'
   const filterChannel = (VALID_CHANNELS.includes(channel as Channel) ? channel : 'all') as Channel | 'all'
 
@@ -62,11 +64,11 @@ export default async function ReservationListPage({ searchParams }: Props) {
   const reservations = (data ?? []) as unknown as ReservationRow[]
 
   const activeDateFilter = createdOn
-    ? { label: `Oluşturulma: ${createdOn}`, clearHref: '/reservations/list' }
+    ? { label: t('createdOnFilter', { date: createdOn }), clearHref: '/reservations/list' }
     : checkIn
-      ? { label: `Giriş: ${checkIn}`, clearHref: '/reservations/list' }
+      ? { label: t('checkInFilter', { date: checkIn }), clearHref: '/reservations/list' }
       : checkOut
-        ? { label: `Çıkış: ${checkOut}`, clearHref: '/reservations/list' }
+        ? { label: t('checkOutFilter', { date: checkOut }), clearHref: '/reservations/list' }
         : null
 
   return (
@@ -74,10 +76,10 @@ export default async function ReservationListPage({ searchParams }: Props) {
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: dash.text }}>
-            Rezervasyon Listesi
+            {t('pageTitle')}
           </h1>
           <p className="mt-1 text-sm" style={{ color: dash.muted }}>
-            {reservations.length} kayıt
+            {t('recordCount', { n: reservations.length })}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -86,14 +88,14 @@ export default async function ReservationListPage({ searchParams }: Props) {
             className="px-3 py-2 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
             style={{ backgroundColor: dash.card, color: dash.muted, boxShadow: dash.cardShadow }}
           >
-            Takvim
+            {t('calendarButton')}
           </Link>
           <Link
             href="/reservations/new"
             className="px-4 py-2 rounded-lg text-sm font-semibold transition-opacity hover:opacity-90 text-white"
             style={{ backgroundColor: dash.primary }}
           >
-            + Yeni Rezervasyon
+            {t('newButton')}
           </Link>
         </div>
       </div>
@@ -107,7 +109,7 @@ export default async function ReservationListPage({ searchParams }: Props) {
             {activeDateFilter.label}
           </span>
           <Link href={activeDateFilter.clearHref} className="text-xs" style={{ color: dash.muted }}>
-            Filtreyi temizle ×
+            {t('clearFilter')}
           </Link>
         </div>
       )}

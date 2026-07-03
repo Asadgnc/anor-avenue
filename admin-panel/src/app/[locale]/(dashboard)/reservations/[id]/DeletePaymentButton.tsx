@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { deletePaymentAction } from './actions'
 import { dash } from '@/lib/dashboardTheme'
 
@@ -13,10 +14,11 @@ export default function DeletePaymentButton({
   reservationId: string
 }) {
   const router = useRouter()
+  const t = useTranslations('reservations.deletePayment')
   const [pending, setPending] = useState(false)
 
   async function handleDelete() {
-    if (!confirm('Bu ödeme kaydını silmek istediğinize emin misiniz?')) return
+    if (!confirm(t('confirmDialog'))) return
     setPending(true)
     await deletePaymentAction(paymentId, reservationId)
     setPending(false)
@@ -30,7 +32,7 @@ export default function DeletePaymentButton({
       className="text-xs px-2 py-1 rounded-lg border transition-opacity hover:opacity-80 disabled:opacity-40"
       style={{ color: dash.red, borderColor: dash.redLight }}
     >
-      {pending ? '…' : 'Sil'}
+      {pending ? '…' : t('deleteButton')}
     </button>
   )
 }

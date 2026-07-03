@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { updateReservationAction } from './actions'
 import { dash } from '@/lib/dashboardTheme'
 
@@ -26,6 +27,9 @@ const inputStyle = {
 
 export default function EditReservationFormClient(props: ReservationEditProps) {
   const router = useRouter()
+  const t = useTranslations('reservations.edit')
+  const tf = useTranslations('reservations.edit.fields')
+  const tc = useTranslations('common')
   const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -51,7 +55,7 @@ export default function EditReservationFormClient(props: ReservationEditProps) {
         className="text-xs px-3 py-1.5 rounded-lg border transition-opacity hover:opacity-80"
         style={{ color: 'var(--color-accent)', borderColor: 'var(--color-admin-border)' }}
       >
-        Rezervasyonu Düzenle
+        {t('toggleButton')}
       </button>
     )
   }
@@ -63,7 +67,7 @@ export default function EditReservationFormClient(props: ReservationEditProps) {
     >
       <div className="flex items-center justify-between">
         <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-accent)' }}>
-          Rezervasyon Düzenle
+          {t('title')}
         </p>
         <button
           onClick={() => { setEditing(false); setError(null) }}
@@ -84,25 +88,25 @@ export default function EditReservationFormClient(props: ReservationEditProps) {
         <div className="grid grid-cols-2 gap-3">
           <div>
             <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-admin-muted)' }}>
-              Giriş Tarihi
+              {tf('checkIn')}
             </label>
             <input name="checkIn" type="date" defaultValue={props.checkIn} required className={inputCls} style={inputStyle} />
           </div>
           <div>
             <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-admin-muted)' }}>
-              Çıkış Tarihi
+              {tf('checkOut')}
             </label>
             <input name="checkOut" type="date" defaultValue={props.checkOut} required className={inputCls} style={inputStyle} />
           </div>
           <div>
             <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-admin-muted)' }}>
-              Yetişkin Sayısı
+              {tf('adults')}
             </label>
             <input name="adults" type="number" min={1} max={10} defaultValue={props.adults} required className={inputCls} style={inputStyle} />
           </div>
           <div>
             <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-admin-muted)' }}>
-              Gecelik Fiyat (UZS)
+              {tf('pricePerNight')}
             </label>
             <input name="roomRate" type="number" min={1} defaultValue={props.roomRate} required className={inputCls} style={inputStyle} />
           </div>
@@ -110,7 +114,7 @@ export default function EditReservationFormClient(props: ReservationEditProps) {
 
         <div>
           <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-admin-muted)' }}>
-            Beklenen Giriş Saati
+            {tf('expectedCheckIn')}
           </label>
           <input
             name="expectedCheckInTime"
@@ -129,13 +133,13 @@ export default function EditReservationFormClient(props: ReservationEditProps) {
               defaultChecked={props.breakfastIncluded}
               className="w-4 h-4 rounded"
             />
-            <span className="text-sm" style={{ color: dash.text }}>Kahvaltı dahil</span>
+            <span className="text-sm" style={{ color: dash.text }}>{tf('breakfastIncluded')}</span>
           </label>
         </div>
 
         <div>
           <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-admin-muted)' }}>
-            Özel İstekler
+            {tf('specialRequests')}
           </label>
           <textarea
             name="specialRequests"
@@ -148,7 +152,7 @@ export default function EditReservationFormClient(props: ReservationEditProps) {
 
         <div>
           <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-admin-muted)' }}>
-            Notlar (dahili)
+            {tf('internalNotes')}
           </label>
           <textarea
             name="notes"
@@ -166,7 +170,7 @@ export default function EditReservationFormClient(props: ReservationEditProps) {
             className="px-4 py-2 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-50"
             style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
           >
-            {saving ? 'Kaydediliyor…' : 'Kaydet'}
+            {saving ? tc('saving') : tc('save')}
           </button>
           <button
             type="button"
@@ -174,7 +178,7 @@ export default function EditReservationFormClient(props: ReservationEditProps) {
             className="px-4 py-2 rounded-lg text-sm border transition-opacity hover:opacity-80"
             style={{ color: 'var(--color-admin-muted)', borderColor: 'var(--color-admin-border)' }}
           >
-            İptal
+            {tc('cancel')}
           </button>
         </div>
       </form>

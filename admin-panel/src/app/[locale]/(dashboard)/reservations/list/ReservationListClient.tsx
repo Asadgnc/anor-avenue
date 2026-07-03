@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { Search } from 'lucide-react'
 import type { ReservationStatus, Channel } from '@/types/hotel'
 import SectionZone from '@/components/admin/SectionZone'
@@ -24,37 +25,17 @@ interface ReservationRow {
   rooms: { room_number: string; room_types: { name: string } | null } | null
 }
 
-const STATUS_CONFIG: Record<ReservationStatus, { label: string; tone: StatusTone }> = {
-  pending:     { label: 'Bekliyor', tone: 'warning' },
-  confirmed:   { label: 'Onaylı',   tone: 'info' },
-  checked_in:  { label: 'Girişte',  tone: 'success' },
-  checked_out: { label: 'Çıktı',    tone: 'neutral' },
-  cancelled:   { label: 'İptal',    tone: 'neutral' },
-  no_show:     { label: 'Gelmedi',  tone: 'error' },
+const STATUS_TONE: Record<ReservationStatus, StatusTone> = {
+  pending: 'warning',
+  confirmed: 'info',
+  checked_in: 'success',
+  checked_out: 'neutral',
+  cancelled: 'neutral',
+  no_show: 'error',
 }
 
 const ALL_STATUSES: (ReservationStatus | 'all')[] = ['all', 'pending', 'confirmed', 'checked_in', 'checked_out', 'cancelled', 'no_show']
-
-const STATUS_LABELS: Record<ReservationStatus | 'all', string> = {
-  all: 'Tümü',
-  pending: 'Bekliyor',
-  confirmed: 'Onaylı',
-  checked_in: 'Girişte',
-  checked_out: 'Çıktı',
-  cancelled: 'İptal',
-  no_show: 'Gelmedi',
-}
-
 const ALL_CHANNELS: (Channel | 'all')[] = ['all', 'direct', 'walk_in', 'phone', 'booking_com', 'agoda']
-
-const CHANNEL_LABELS: Record<Channel | 'all', string> = {
-  all: 'Tüm Kanallar',
-  direct: 'Kendi Sitemiz',
-  walk_in: 'Yüz Yüze',
-  phone: 'Telefon',
-  booking_com: 'Booking.com',
-  agoda: 'Agoda',
-}
 
 function formatUZS(n: number) {
   return new Intl.NumberFormat('uz-UZ', { maximumFractionDigits: 0 }).format(n) + ' UZS'
@@ -69,9 +50,28 @@ interface Props {
 
 export default function ReservationListClient({ reservations, initialStatus, initialChannel, dateParams }: Props) {
   const router = useRouter()
+  const t = useTranslations('reservations.list')
+  const th = useTranslations('reservations.list.headers')
+  const tStatus = useTranslations('status.reservation')
+  const tChannel = useTranslations('reservations.channels')
+  const tc = useTranslations('common')
+
   const [search, setSearch] = useState('')
   const [status, setStatus] = useState<ReservationStatus | 'all'>(initialStatus)
   const [channel, setChannel] = useState<Channel | 'all'>(initialChannel)
+
+  const statusLabel = (s: ReservationStatus | 'all') => (s === 'all' ? tc('all') : tStatus(s))
+  const channelLabel = (c: Channel | 'all'): string => {
+    switch (c) {
+      case 'all': return tChannel('all')
+      case 'direct': return tChannel('website')
+      case 'walk_in': return tChannel('walkin')
+      case 'phone': return tChannel('phone')
+      case 'booking_com': return 'Booking.com'
+      case 'agoda': return 'Agoda'
+      default: return c
+    }
+  }
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim()
@@ -109,21 +109,23 @@ export default function ReservationListClient({ reservations, initialStatus, ini
     navigate(status, c)
   }
 
+  const headers = [th('code'), th('guest'), th('room'), th('channel'), th('checkIn'), th('checkOut'), th('nights'), th('amount'), th('status'), '']
+
   return (
     <div className="space-y-4">
-      {/* Filtreler */}
-      <SectionZone tone="blue" title="Filtrele" icon={<Search size={16} />}>
+      {/* Filters */}
+      <SectionZone tone="blue" title={t('filterSection')} icon={<Search size={16} />}>
         <div className="flex flex-col gap-3">
-          {/* Arama */}
+          {/* Search */}
           <input
             type="text"
-            placeholder="Misafir adı, tel, kod veya oda ara…"
+            placeholder={t('searchPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full max-w-md rounded-lg px-3.5 py-2.5 text-sm bg-card ring-1 ring-foreground/10 text-foreground placeholder:text-muted-foreground outline-none focus:ring-2 focus:ring-ring transition-shadow duration-150"
           />
 
-          {/* Durum filtresi */}
+          {/* Status filter */}
           <div className="flex flex-wrap gap-1.5">
             {ALL_STATUSES.map((s) => {
               const active = s === status
@@ -138,7 +140,7 @@ export default function ReservationListClient({ reservations, initialStatus, ini
                       : 'bg-card ring-1 ring-foreground/10 text-muted-foreground hover:text-foreground'
                   )}
                 >
-                  {STATUS_LABELS[s]}
+                  {statusLabel(s)}
                   {s !== 'all' && (
                     <span className="ml-1.5 opacity-70 tabular-nums">{reservations.filter((r) => r.status === s).length}</span>
                   )}
@@ -147,7 +149,7 @@ export default function ReservationListClient({ reservations, initialStatus, ini
             })}
           </div>
 
-          {/* Kanal filtresi */}
+          {/* Channel filter */}
           <div className="flex flex-wrap gap-1.5">
             {ALL_CHANNELS.map((c) => {
               const active = c === channel
@@ -162,7 +164,7 @@ export default function ReservationListClient({ reservations, initialStatus, ini
                       : 'bg-card ring-1 ring-foreground/10 text-muted-foreground hover:text-foreground'
                   )}
                 >
-                  {CHANNEL_LABELS[c]}
+                  {channelLabel(c)}
                   {c !== 'all' && (
                     <span className="ml-1.5 opacity-70 tabular-nums">{reservations.filter((r) => r.channel === c).length}</span>
                   )}
@@ -174,22 +176,22 @@ export default function ReservationListClient({ reservations, initialStatus, ini
       </SectionZone>
 
       <p className="text-xs text-muted-foreground">
-        {filtered.length} rezervasyon gösteriliyor
-        {search && ` · "${search}" araması`}
+        {t('resultCount', { n: filtered.length })}
+        {search && ` ${t('searchSuffix', { search })}`}
       </p>
 
-      {/* Tablo */}
+      {/* Table */}
       <div className="rounded-xl bg-card ring-1 ring-foreground/10 overflow-hidden">
         {filtered.length === 0 ? (
           <div className="py-16 text-center text-muted-foreground">
-            <p>Sonuç bulunamadı</p>
+            <p>{t('noResult')}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border">
-                  {['Kod', 'Misafir', 'Oda', 'Kanal', 'Giriş', 'Çıkış', 'Gece', 'Tutar', 'Durum', ''].map((h, i) => (
+                  {headers.map((h, i) => (
                     <th
                       key={`${h}-${i}`}
                       className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
@@ -200,45 +202,42 @@ export default function ReservationListClient({ reservations, initialStatus, ini
                 </tr>
               </thead>
               <tbody>
-                {filtered.map((r) => {
-                  const cfg = STATUS_CONFIG[r.status]
-                  return (
-                    <tr key={r.id} className="border-b border-border hover:bg-muted/50 transition-colors duration-150">
-                      <td className="px-4 py-3 font-mono text-xs text-primary">
-                        {r.reservation_code}
-                      </td>
-                      <td className="px-4 py-3">
-                        <p className="font-medium text-foreground">
-                          {r.guests?.first_name} {r.guests?.last_name}
+                {filtered.map((r) => (
+                  <tr key={r.id} className="border-b border-border hover:bg-muted/50 transition-colors duration-150">
+                    <td className="px-4 py-3 font-mono text-xs text-primary">
+                      {r.reservation_code}
+                    </td>
+                    <td className="px-4 py-3">
+                      <p className="font-medium text-foreground">
+                        {r.guests?.first_name} {r.guests?.last_name}
+                      </p>
+                      {r.guests?.phone && (
+                        <p className="text-xs mt-0.5 tabular-nums text-muted-foreground">
+                          {r.guests.phone}
                         </p>
-                        {r.guests?.phone && (
-                          <p className="text-xs mt-0.5 tabular-nums text-muted-foreground">
-                            {r.guests.phone}
-                          </p>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <p className="text-foreground">{r.rooms?.room_number ?? '—'}</p>
-                        <p className="text-xs text-muted-foreground">{r.rooms?.room_types?.name ?? ''}</p>
-                      </td>
-                      <td className="px-4 py-3 text-xs text-muted-foreground">
-                        {CHANNEL_LABELS[r.channel] ?? r.channel}
-                      </td>
-                      <td className="px-4 py-3 whitespace-nowrap tabular-nums text-foreground">{r.check_in}</td>
-                      <td className="px-4 py-3 whitespace-nowrap tabular-nums text-foreground">{r.check_out}</td>
-                      <td className="px-4 py-3 tabular-nums text-muted-foreground">{r.nights ?? '—'}</td>
-                      <td className="px-4 py-3 font-semibold tabular-nums text-foreground">{formatUZS(r.total_amount)}</td>
-                      <td className="px-4 py-3">
-                        <StatusBadge tone={cfg.tone}>{cfg.label}</StatusBadge>
-                      </td>
-                      <td className="px-4 py-3">
-                        <Link href={`/reservations/${r.id}`} className="text-xs font-medium text-primary hover:underline whitespace-nowrap">
-                          Detay →
-                        </Link>
-                      </td>
-                    </tr>
-                  )
-                })}
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <p className="text-foreground">{r.rooms?.room_number ?? '—'}</p>
+                      <p className="text-xs text-muted-foreground">{r.rooms?.room_types?.name ?? ''}</p>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-muted-foreground">
+                      {channelLabel(r.channel)}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap tabular-nums text-foreground">{r.check_in}</td>
+                    <td className="px-4 py-3 whitespace-nowrap tabular-nums text-foreground">{r.check_out}</td>
+                    <td className="px-4 py-3 tabular-nums text-muted-foreground">{r.nights ?? '—'}</td>
+                    <td className="px-4 py-3 font-semibold tabular-nums text-foreground">{formatUZS(r.total_amount)}</td>
+                    <td className="px-4 py-3">
+                      <StatusBadge tone={STATUS_TONE[r.status]}>{tStatus(r.status)}</StatusBadge>
+                    </td>
+                    <td className="px-4 py-3">
+                      <Link href={`/reservations/${r.id}`} className="text-xs font-medium text-primary hover:underline whitespace-nowrap">
+                        {t('detailLink')}
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>

@@ -2,21 +2,25 @@
 
 import { useActionState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { addPaymentAction, type AddPaymentState } from './actions'
 import { dash } from '@/lib/dashboardTheme'
 
-const METHODS = [
-  { value: 'cash', label: 'Nakit' },
-  { value: 'payme', label: 'Payme' },
-  { value: 'click', label: 'Click' },
-  { value: 'uzum', label: 'Uzum' },
-  { value: 'transfer', label: 'Banka Havalesi' },
-] as const
-
 export default function AddPaymentFormClient({ reservationId }: { reservationId: string }) {
   const router = useRouter()
+  const t = useTranslations('reservations.addPayment')
+  const tm = useTranslations('reservations.methods')
+  const tc = useTranslations('common')
   const boundAction = addPaymentAction.bind(null, reservationId)
   const [state, action, isPending] = useActionState<AddPaymentState, FormData>(boundAction, {})
+
+  const methods = [
+    { value: 'cash', label: tm('cash') },
+    { value: 'payme', label: 'Payme' },
+    { value: 'click', label: 'Click' },
+    { value: 'uzum', label: 'Uzum' },
+    { value: 'transfer', label: tm('transfer') },
+  ] as const
 
   useEffect(() => {
     if (state.success) {
@@ -34,16 +38,16 @@ export default function AddPaymentFormClient({ reservationId }: { reservationId:
   if (state.success) {
     return (
       <p className="text-sm font-medium" style={{ color: dash.green }}>
-        ✓ Ödeme kaydedildi, liste güncelleniyor…
+        {t('successMessage')}
       </p>
     )
   }
 
   return (
     <form action={action} className="flex flex-wrap gap-3 items-end">
-      {/* Tutar */}
+      {/* Amount */}
       <div className="w-36">
-        <label className="block text-xs mb-1" style={{ color: 'var(--color-admin-muted)' }}>Tutar (UZS)</label>
+        <label className="block text-xs mb-1" style={{ color: 'var(--color-admin-muted)' }}>{t('amountLabel')}</label>
         <input
           name="amount"
           type="number"
@@ -60,9 +64,9 @@ export default function AddPaymentFormClient({ reservationId }: { reservationId:
         )}
       </div>
 
-      {/* Yöntem */}
+      {/* Method */}
       <div className="w-40">
-        <label className="block text-xs mb-1" style={{ color: 'var(--color-admin-muted)' }}>Yöntem</label>
+        <label className="block text-xs mb-1" style={{ color: 'var(--color-admin-muted)' }}>{t('methodLabel')}</label>
         <select
           name="method"
           required
@@ -70,15 +74,15 @@ export default function AddPaymentFormClient({ reservationId }: { reservationId:
           className={inputClass}
           style={inputStyle}
         >
-          {METHODS.map((m) => (
+          {methods.map((m) => (
             <option key={m.value} value={m.value}>{m.label}</option>
           ))}
         </select>
       </div>
 
-      {/* Not */}
+      {/* Note */}
       <div className="flex-1 min-w-32">
-        <label className="block text-xs mb-1" style={{ color: 'var(--color-admin-muted)' }}>Not (isteğe bağlı)</label>
+        <label className="block text-xs mb-1" style={{ color: 'var(--color-admin-muted)' }}>{t('noteLabel')}</label>
         <input
           name="notes"
           type="text"
@@ -88,14 +92,14 @@ export default function AddPaymentFormClient({ reservationId }: { reservationId:
         />
       </div>
 
-      {/* Kaydet */}
+      {/* Save */}
       <button
         type="submit"
         disabled={isPending}
         className="px-4 py-2 rounded-lg text-sm font-semibold transition-opacity hover:opacity-80 disabled:opacity-50 shrink-0"
         style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
       >
-        {isPending ? '…' : 'Kaydet'}
+        {isPending ? '…' : tc('save')}
       </button>
 
       {state.error && (

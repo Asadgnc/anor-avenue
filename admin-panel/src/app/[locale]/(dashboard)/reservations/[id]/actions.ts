@@ -2,17 +2,24 @@
 
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
+import { getTranslations } from 'next-intl/server'
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase'
 import type { ReservationStatus } from '@/types/hotel'
 
-// ─── Rezervasyon Düzenleme ────────────────────────────────────────────────────
+// ─── Edit reservation ────────────────────────────────────────────────────────
+
+const ISSUE_KEY: Record<string, string> = {
+  checkIn: 'invalidDate',
+  checkOut: 'invalidDate',
+  roomRate: 'pricePositive',
+}
 
 const updateResSchema = z.object({
-  checkIn:              z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Geçersiz tarih'),
-  checkOut:             z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Geçersiz tarih'),
+  checkIn:              z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+  checkOut:             z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   adults:               z.coerce.number().int().min(1).max(10),
-  roomRate:             z.coerce.number().positive('Fiyat 0\'dan büyük olmalı'),
+  roomRate:             z.coerce.number().positive(),
   specialRequests:      z.string().max(1000).optional(),
   notes:                z.string().max(1000).optional(),
   breakfastIncluded:    z.string().optional().transform(v => v === 'on'),
@@ -25,15 +32,19 @@ export async function updateReservationAction(
   reservationId: string,
   formData: FormData
 ): Promise<UpdateResState> {
+  const te = await getTranslations('errors')
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Oturum geçersiz.' }
+  if (!user) return { error: te('sessionInvalid') }
 
   const parsed = updateResSchema.safeParse(Object.fromEntries(formData))
-  if (!parsed.success) return { error: parsed.error.issues[0].message }
+  if (!parsed.success) {
+    const key = parsed.error.issues[0].path[0]?.toString()
+    return { error: te(ISSUE_KEY[key ?? ''] ?? 'invalidDate') }
+  }
 
   const d = parsed.data
-  if (d.checkOut <= d.checkIn) return { error: 'Çıkış tarihi girişten sonra olmalı.' }
+  if (d.checkOut <= d.checkIn) return { error: te('checkOutAfterCheckIn') }
 
   const nights = Math.round(
     (new Date(d.checkOut).getTime() - new Date(d.checkIn).getTime()) / 86400000
@@ -47,7 +58,7 @@ export async function updateReservationAction(
       check_in:                d.checkIn,
       check_out:               d.checkOut,
       adults:                  d.adults,
-      // nights: GENERATED ALWAYS AS (check_out - check_in) STORED — buraya yazılmaz
+      // nights: GENERATED ALWAYS AS (check_out - check_in) STORED — not written here
       room_rate:               d.roomRate,
       total_amount:            totalAmount,
       special_requests:        d.specialRequests || null,
@@ -65,15 +76,16 @@ export async function updateReservationAction(
   return { success: true }
 }
 
-// ─── Ödeme Silme ──────────────────────────────────────────────────────────────
+// ─── Delete payment ──────────────────────────────────────────────────────────
 
 export async function deletePaymentAction(
   paymentId: string,
   reservationId: string
 ): Promise<{ error?: string }> {
+  const te = await getTranslations('errors')
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Oturum geçersiz.' }
+  if (!user) return { error: te('sessionInvalid') }
 
   const service = createServiceClient()
   const { error } = await service.from('payments').delete().eq('id', paymentId)
@@ -84,15 +96,16 @@ export async function deletePaymentAction(
   return {}
 }
 
-// ─── Durum Güncelleme ─────────────────────────────────────────────────────────
+// ─── Update status ───────────────────────────────────────────────────────────
 
 export async function updateReservationStatusAction(
   reservationId: string,
   newStatus: ReservationStatus
 ): Promise<{ error?: string }> {
+  const te = await getTranslations('errors')
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Oturum geçersiz.' }
+  if (!user) return { error: te('sessionInvalid') }
 
   const service = createServiceClient()
 
@@ -107,7 +120,7 @@ export async function updateReservationStatusAction(
 
   if (error) return { error: error.message }
 
-  // Oda durumunu güncelle
+  // Update room status
   const { data: res } = await service
     .from('reservations')
     .select('room_id')
@@ -130,10 +143,10 @@ export async function updateReservationStatusAction(
   return {}
 }
 
-// ─── Ödeme Kaydetme ───────────────────────────────────────────────────────────
+// ─── Save payment ────────────────────────────────────────────────────────────
 
 const paymentSchema = z.object({
-  amount: z.coerce.number().positive('Tutar 0\'dan büyük olmalı'),
+  amount: z.coerce.number().positive(),
   method: z.enum(['payme', 'click', 'uzum', 'cash', 'transfer']),
   notes: z.string().optional(),
 })
@@ -145,23 +158,24 @@ export async function addPaymentAction(
   _prev: AddPaymentState,
   formData: FormData
 ): Promise<AddPaymentState> {
+  const te = await getTranslations('errors')
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: 'Oturum geçersiz.' }
+  if (!user) return { error: te('sessionInvalid') }
 
   const parsed = paymentSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) {
     const fieldErrors: Record<string, string> = {}
     for (const issue of parsed.error.issues) {
       const key = issue.path[0]?.toString()
-      if (key) fieldErrors[key] = issue.message
+      if (key) fieldErrors[key] = te('amountPositive')
     }
     return { fieldErrors }
   }
 
   const service = createServiceClient()
 
-  // Kullanıcının profili varsa received_by olarak kaydet (yoksa null)
+  // If the user has a profile, record received_by (otherwise null)
   const { data: profile } = await service.from('profiles').select('id').eq('id', user.id).single()
 
   const { error } = await service.from('payments').insert({

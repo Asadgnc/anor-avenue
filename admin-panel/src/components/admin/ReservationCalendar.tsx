@@ -2,32 +2,32 @@
 
 import { Fragment, useMemo, useState } from 'react'
 import Link from 'next/link'
+import { useLocale, useTranslations } from 'next-intl'
 import type { Room, Reservation, ReservationStatus } from '@/types/hotel'
 import { dash } from '@/lib/dashboardTheme'
 import { cn } from '@/lib/utils'
 
-// ─── Renk / Durum Tablosu ────────────────────────────────────────────────────
+// ─── Color / status table ────────────────────────────────────────────────────
 
-const STATUS_CONFIG: Record<
+const STATUS_COLORS: Record<
   ReservationStatus,
-  { bg: string; border: string; text: string; label: string }
+  { bg: string; border: string; text: string }
 > = {
-  confirmed:   { bg: dash.blueLight,   border: dash.blue,   text: dash.blue,   label: 'Onaylı' },
-  checked_in:  { bg: dash.greenLight,  border: dash.green,  text: dash.green,  label: 'Girişte' },
-  pending:     { bg: dash.orangeLight, border: dash.orange, text: dash.orange, label: 'Bekliyor' },
-  checked_out: { bg: dash.border,      border: dash.muted,  text: dash.muted,  label: 'Çıktı' },
-  cancelled:   { bg: dash.border,      border: dash.muted,  text: dash.muted,  label: 'İptal' },
-  no_show:     { bg: dash.redLight,    border: dash.red,    text: dash.red,    label: 'Gelmedi' },
+  confirmed:   { bg: dash.blueLight,   border: dash.blue,   text: dash.blue },
+  checked_in:  { bg: dash.greenLight,  border: dash.green,  text: dash.green },
+  pending:     { bg: dash.orangeLight, border: dash.orange, text: dash.orange },
+  checked_out: { bg: dash.border,      border: dash.muted,  text: dash.muted },
+  cancelled:   { bg: dash.border,      border: dash.muted,  text: dash.muted },
+  no_show:     { bg: dash.redLight,    border: dash.red,    text: dash.red },
 }
 
-const FLOOR_LABEL: Record<number, string> = {
-  [-1]: 'Bodrum Kat',
-  2: '2. Kat',
-  3: '3. Kat',
-  4: '4. Kat · Mansard',
+const LOCALE_BCP47: Record<string, string> = {
+  ru: 'ru-RU',
+  uz: 'uz-UZ',
+  'uz-cyrl': 'uz-Cyrl-UZ',
 }
 
-// ─── Yardımcı Fonksiyonlar ───────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function addDays(dateStr: string, n: number): string {
   const d = new Date(dateStr + 'T00:00:00')
@@ -37,14 +37,6 @@ function addDays(dateStr: string, n: number): string {
 
 function generateDates(start: string, count: number): string[] {
   return Array.from({ length: count }, (_, i) => addDays(start, i))
-}
-
-function formatDayHeader(dateStr: string): { day: string; weekday: string } {
-  const d = new Date(dateStr + 'T00:00:00')
-  return {
-    day: d.getDate().toString(),
-    weekday: d.toLocaleDateString('tr-TR', { weekday: 'short' }),
-  }
 }
 
 function isWeekend(dateStr: string): boolean {
@@ -69,22 +61,19 @@ function buildLookup(reservations: Reservation[]): Map<string, Map<string, Reser
   return lookup
 }
 
-function guestFullName(res: Reservation): string {
-  return res.guests ? `${res.guests.first_name} ${res.guests.last_name}` : 'Misafir'
-}
-
 function formatUZS(amount: number): string {
   return new Intl.NumberFormat('uz-UZ', { maximumFractionDigits: 0 }).format(amount) + ' UZS'
 }
 
-// ─── Renk Açıklaması (Legend) ─────────────────────────────────────────────────
+// ─── Legend ──────────────────────────────────────────────────────────────────
 
 function Legend() {
+  const tStatus = useTranslations('status.reservation')
   const entries: ReservationStatus[] = ['confirmed', 'checked_in', 'pending', 'checked_out']
   return (
     <div className="flex flex-wrap gap-4 mb-4">
       {entries.map((status) => {
-        const cfg = STATUS_CONFIG[status]
+        const cfg = STATUS_COLORS[status]
         return (
           <div key={status} className="flex items-center gap-1.5">
             <div
@@ -92,7 +81,7 @@ function Legend() {
               style={{ backgroundColor: cfg.bg, borderColor: cfg.border }}
             />
             <span className="text-xs text-muted-foreground">
-              {cfg.label}
+              {tStatus(status)}
             </span>
           </div>
         )
@@ -101,7 +90,7 @@ function Legend() {
   )
 }
 
-// ─── Rezervasyon Detay Overlay ────────────────────────────────────────────────
+// ─── Reservation detail overlay ───────────────────────────────────────────────
 
 function ReservationDetail({
   reservation,
@@ -110,7 +99,13 @@ function ReservationDetail({
   reservation: Reservation
   onClose: () => void
 }) {
-  const cfg = STATUS_CONFIG[reservation.status]
+  const tStatus = useTranslations('status.reservation')
+  const tf = useTranslations('reservations.detail.fields')
+  const tv = useTranslations('reservations.calendarView')
+  const cfg = STATUS_COLORS[reservation.status]
+  const guestName = reservation.guests
+    ? `${reservation.guests.first_name} ${reservation.guests.last_name}`
+    : tv('guestFallback')
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
@@ -122,10 +117,10 @@ function ReservationDetail({
         style={{ borderColor: cfg.border }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Başlık */}
+        {/* Header */}
         <div className="flex items-start justify-between mb-5">
           <div>
-            <p className="font-semibold text-foreground text-lg">{guestFullName(reservation)}</p>
+            <p className="font-semibold text-foreground text-lg">{guestName}</p>
             <p className="text-xs mt-0.5 font-mono" style={{ color: cfg.text }}>
               {reservation.reservation_code}
             </p>
@@ -138,34 +133,34 @@ function ReservationDetail({
           </button>
         </div>
 
-        {/* Detaylar */}
+        {/* Details */}
         <div className="space-y-2.5">
-          <DetailRow label="Durum">
+          <DetailRow label={tv('statusLabel')}>
             <span
               className="px-2 py-0.5 rounded text-xs font-medium"
               style={{ backgroundColor: cfg.bg, color: cfg.text }}
             >
-              {cfg.label}
+              {tStatus(reservation.status)}
             </span>
           </DetailRow>
-          <DetailRow label="Giriş" value={reservation.check_in} />
-          <DetailRow label="Çıkış" value={reservation.check_out} />
-          <DetailRow label="Gece" value={String(reservation.nights ?? '')} />
-          <DetailRow label="Yetişkin" value={String(reservation.adults)} />
-          <DetailRow label="Oda Fiyatı" value={formatUZS(reservation.room_rate) + '/gece'} />
-          <DetailRow label="Toplam" value={formatUZS(reservation.total_amount)} />
+          <DetailRow label={tf('checkIn')} value={reservation.check_in} />
+          <DetailRow label={tf('checkOut')} value={reservation.check_out} />
+          <DetailRow label={tf('nights')} value={String(reservation.nights ?? '')} />
+          <DetailRow label={tf('adults')} value={String(reservation.adults)} />
+          <DetailRow label={tf('roomPrice')} value={formatUZS(reservation.room_rate) + tv('perNight')} />
+          <DetailRow label={tf('totalAmount')} value={formatUZS(reservation.total_amount)} />
           {reservation.special_requests && (
-            <DetailRow label="İstek" value={reservation.special_requests} />
+            <DetailRow label={tf('specialRequest')} value={reservation.special_requests} />
           )}
         </div>
 
-        {/* Detay sayfasına git */}
+        {/* Go to detail page */}
         <Link
           href={`/reservations/${reservation.id}`}
           onClick={onClose}
           className="block mt-5 text-center py-2 rounded-lg text-sm font-semibold transition-opacity hover:opacity-90 duration-150 bg-primary text-primary-foreground"
         >
-          Detay & İşlemler →
+          {tv('detailLink')}
         </Link>
       </div>
     </div>
@@ -189,7 +184,7 @@ function DetailRow({
   )
 }
 
-// ─── Ana Bileşen ─────────────────────────────────────────────────────────────
+// ─── Main component ──────────────────────────────────────────────────────────
 
 interface Props {
   rooms: Room[]
@@ -200,12 +195,36 @@ interface Props {
 const DAYS = 15
 
 export default function ReservationCalendar({ rooms, reservations, startDate }: Props) {
+  const locale = useLocale()
+  const tv = useTranslations('reservations.calendarView')
+  const tFloor = useTranslations('rooms.floors')
   const [selected, setSelected] = useState<Reservation | null>(null)
+
+  const dateLocale = LOCALE_BCP47[locale] ?? 'ru-RU'
+
+  const floorLabel = (floor: number): string => {
+    if (floor === -1) return tFloor('basement')
+    if (floor === 2) return tFloor('floor2')
+    if (floor === 3) return tFloor('floor3')
+    if (floor === 4) return tFloor('floor4')
+    return tFloor('floorN', { floor })
+  }
+
+  const guestFirstName = (res: Reservation): string =>
+    res.guests ? res.guests.first_name : tv('guestFallback')
+
+  const formatDayHeader = (dateStr: string): { day: string; weekday: string } => {
+    const d = new Date(dateStr + 'T00:00:00')
+    return {
+      day: d.getDate().toString(),
+      weekday: d.toLocaleDateString(dateLocale, { weekday: 'short' }),
+    }
+  }
 
   const dates = useMemo(() => generateDates(startDate, DAYS), [startDate])
   const lookup = useMemo(() => buildLookup(reservations), [reservations])
 
-  // Odaları kata göre grupla
+  // Group rooms by floor
   const floorGroups = useMemo(() => {
     const map = new Map<number, Room[]>()
     for (const room of rooms) {
@@ -218,11 +237,8 @@ export default function ReservationCalendar({ rooms, reservations, startDate }: 
   if (rooms.length === 0) {
     return (
       <div className="rounded-xl p-16 text-center bg-card ring-1 ring-foreground/10">
-        <p className="text-foreground font-medium mb-2">Henüz oda kaydı yok</p>
-        <p className="text-sm text-muted-foreground">
-          Supabase SQL Editor&apos;de <code className="font-mono">docs/schema.sql</code> çalıştırıldıktan
-          sonra odalar burada görünecek.
-        </p>
+        <p className="text-foreground font-medium mb-2">{tv('noRooms')}</p>
+        <p className="text-sm text-muted-foreground">{tv('noRoomsHint')}</p>
       </div>
     )
   }
@@ -233,11 +249,11 @@ export default function ReservationCalendar({ rooms, reservations, startDate }: 
 
       <div className="rounded-xl overflow-x-auto bg-card ring-1 ring-foreground/10">
         <table className="border-collapse text-sm" style={{ minWidth: '860px', width: '100%' }}>
-          {/* ─ Başlık ─ */}
+          {/* Header */}
           <thead>
             <tr>
               <th className="sticky left-0 z-10 w-40 min-w-40 px-4 py-3 text-left text-xs font-medium bg-card text-muted-foreground border-b border-border">
-                Oda
+                {tv('roomHeader')}
               </th>
               {dates.map((dateStr) => {
                 const { day, weekday } = formatDayHeader(dateStr)
@@ -263,26 +279,26 @@ export default function ReservationCalendar({ rooms, reservations, startDate }: 
             </tr>
           </thead>
 
-          {/* ─ Gövde ─ */}
+          {/* Body */}
           <tbody>
             {floorGroups.map(([floor, floorRooms]) => (
               <Fragment key={`floor-${floor}`}>
-                {/* Kat Başlığı */}
+                {/* Floor header */}
                 <tr>
                   <td
                     colSpan={dates.length + 1}
                     className="px-4 py-1.5 text-xs font-semibold uppercase tracking-wide text-primary bg-accent border-y border-border"
                   >
-                    {FLOOR_LABEL[floor] ?? `${floor}. Kat`}
+                    {floorLabel(floor)}
                   </td>
                 </tr>
 
-                {/* Oda Satırları */}
+                {/* Room rows */}
                 {floorRooms.map((room) => {
                   const roomMap = lookup.get(room.id) ?? new Map<string, Reservation>()
                   return (
                     <tr key={room.id}>
-                      {/* Oda Etiketi */}
+                      {/* Room label */}
                       <td className="sticky left-0 z-10 px-4 py-2 bg-card border-b border-border">
                         <div className="font-semibold text-foreground leading-tight">
                           {room.room_number}
@@ -292,7 +308,7 @@ export default function ReservationCalendar({ rooms, reservations, startDate }: 
                         </div>
                       </td>
 
-                      {/* Gün Hücreleri */}
+                      {/* Day cells */}
                       {dates.map((dateStr) => {
                         const res = roomMap.get(dateStr) ?? null
                         const prevRes = roomMap.get(addDays(dateStr, -1)) ?? null
@@ -301,7 +317,7 @@ export default function ReservationCalendar({ rooms, reservations, startDate }: 
                         const isFirst = res !== null && prevRes?.id !== res.id
                         const isLast = res !== null && nextRes?.id !== res.id
                         const isToday = dateStr === startDate
-                        const cfg = res ? STATUS_CONFIG[res.status] : null
+                        const cfg = res ? STATUS_COLORS[res.status] : null
 
                         let borderRadius = '0'
                         if (isFirst && isLast) borderRadius = '4px'
@@ -323,9 +339,9 @@ export default function ReservationCalendar({ rooms, reservations, startDate }: 
                                   borderRadius,
                                   borderLeft: isFirst ? `2px solid ${cfg.border}` : undefined,
                                 }}
-                                title={guestFullName(res)}
+                                title={res.guests ? `${res.guests.first_name} ${res.guests.last_name}` : tv('guestFallback')}
                               >
-                                {isFirst ? guestFullName(res).split(' ')[0] : ''}
+                                {isFirst ? guestFirstName(res) : ''}
                               </button>
                             ) : (
                               <div className="w-full h-7" />
@@ -342,7 +358,7 @@ export default function ReservationCalendar({ rooms, reservations, startDate }: 
         </table>
       </div>
 
-      {/* Rezervasyon Detay */}
+      {/* Reservation detail */}
       {selected && (
         <ReservationDetail reservation={selected} onClose={() => setSelected(null)} />
       )}

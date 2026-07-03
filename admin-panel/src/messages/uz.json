@@ -123,7 +123,14 @@
     "calendar": {
       "title": "Bronlar kalendari",
       "listButton": "☰ Ro'yxat",
-      "newButton": "+ Yangi bron"
+      "newButton": "+ Yangi bron",
+      "roomCount": "{n} xona",
+      "backLink": "← Kalendar",
+      "nav": {
+        "prev": "Oldingi",
+        "today": "Bugun",
+        "next": "Keyingi"
+      }
     },
     "list": {
       "searchPlaceholder": "Mehmon ismi, tel., kod yoki xona…",
@@ -142,7 +149,15 @@
         "amount": "Summa",
         "status": "Holat"
       },
-      "filterSection": "Filtrlar"
+      "filterSection": "Filtrlar",
+      "pageTitle": "Bronlar roʻyxati",
+      "recordCount": "{n} ta yozuv",
+      "calendarButton": "Kalendar",
+      "newButton": "+ Yangi bron",
+      "createdOnFilter": "Yaratilgan: {date}",
+      "checkInFilter": "Kirish: {date}",
+      "checkOutFilter": "Chiqish: {date}",
+      "clearFilter": "Filtrni tozalash ×"
     },
     "new": {
       "backLink": "← Kalendar",
@@ -232,6 +247,15 @@
     "methods": {
       "cash": "Naqd",
       "transfer": "O'tkazma"
+    },
+    "calendarView": {
+      "roomHeader": "Xona",
+      "guestFallback": "Mehmon",
+      "statusLabel": "Holat",
+      "detailLink": "Tafsilot va amallar →",
+      "noRooms": "Hozircha xona yoʻq",
+      "noRoomsHint": "Xonalar rooms jadvaliga qoʻshilgach shu yerda koʻrinadi.",
+      "perNight": "/kecha"
     }
   },
   "rooms": {
@@ -474,6 +498,12 @@
     "buttons": {
       "markSubmitted": "Yuborildi deb belgilash",
       "markConfirmed": "Tasdiqlandi deb belgilash"
+    },
+    "createForm": {
+      "success": "✓ Roʻyxatdan oʻtkazish yaratildi.",
+      "goToList": "Roʻyxatga oʻtish →",
+      "creating": "Yaratilmoqda…",
+      "createButton": "+ Roʻyxat yaratish"
     }
   },
   "staff": {
@@ -786,5 +816,26 @@
     "redirectingButton": "Yo'naltirilmoqda…",
     "submitButton": "Bron yaratish",
     "cancelLink": "Bekor"
+  },
+  "errors": {
+    "sessionInvalid": "Sessiya yaroqsiz, qaytadan kiring.",
+    "invalidDate": "Notoʻgʻri sana",
+    "checkOutAfterCheckIn": "Chiqish sanasi kirish sanasidan keyin boʻlishi kerak.",
+    "roomNotFound": "Xona topilmadi yoki faol emas.",
+    "roomConflict": "Bu xona tanlangan sanalarga band ({code}). Boshqa sana yoki xona tanlang.",
+    "guestCreateFailed": "Mehmon yaratib boʻlmadi: {msg}",
+    "reservationCreateFailed": "Bron yaratib boʻlmadi: {msg}",
+    "unknownError": "Nomaʼlum xato",
+    "pricePositive": "Narx 0 dan katta boʻlishi kerak",
+    "amountPositive": "Summa 0 dan katta boʻlishi kerak",
+    "firstNameRequired": "Ism majburiy",
+    "lastNameRequired": "Familiya majburiy",
+    "roomRequired": "Xonani tanlang",
+    "checkInRequired": "Kirish sanasi majburiy",
+    "checkOutRequired": "Chiqish sanasi majburiy",
+    "adultsMin": "Kamida 1 katta yosh",
+    "saveFailed": "Saqlab boʻlmadi: {msg}",
+    "deleteFailed": "Oʻchirib boʻlmadi: {msg}",
+    "permissionDenied": "Bu amal uchun ruxsat yoʻq."
   }
 }

@@ -123,7 +123,14 @@
     "calendar": {
       "title": "Календарь броней",
       "listButton": "☰ Список",
-      "newButton": "+ Новая бронь"
+      "newButton": "+ Новая бронь",
+      "roomCount": "{n} номеров",
+      "backLink": "← Календарь",
+      "nav": {
+        "prev": "Назад",
+        "today": "Сегодня",
+        "next": "Вперёд"
+      }
     },
     "list": {
       "searchPlaceholder": "Имя гостя, тел., код или номер…",
@@ -142,7 +149,15 @@
         "amount": "Сумма",
         "status": "Статус"
       },
-      "filterSection": "Фильтры"
+      "filterSection": "Фильтры",
+      "pageTitle": "Список броней",
+      "recordCount": "{n} записей",
+      "calendarButton": "Календарь",
+      "newButton": "+ Новая бронь",
+      "createdOnFilter": "Создано: {date}",
+      "checkInFilter": "Заезд: {date}",
+      "checkOutFilter": "Выезд: {date}",
+      "clearFilter": "Сбросить фильтр ×"
     },
     "new": {
       "backLink": "← Календарь",
@@ -232,6 +247,15 @@
     "methods": {
       "cash": "Наличные",
       "transfer": "Перевод"
+    },
+    "calendarView": {
+      "roomHeader": "Номер",
+      "guestFallback": "Гость",
+      "statusLabel": "Статус",
+      "detailLink": "Детали и действия →",
+      "noRooms": "Номеров пока нет",
+      "noRoomsHint": "Номера появятся здесь после добавления в таблицу rooms.",
+      "perNight": "/ночь"
     }
   },
   "rooms": {
@@ -474,6 +498,12 @@
     "buttons": {
       "markSubmitted": "Отметить как поданную",
       "markConfirmed": "Отметить как подтверждённую"
+    },
+    "createForm": {
+      "success": "✓ Регистрация создана.",
+      "goToList": "Открыть список регистраций →",
+      "creating": "Создание…",
+      "createButton": "+ Создать регистрацию"
     }
   },
   "staff": {
@@ -786,5 +816,26 @@
     "redirectingButton": "Перенаправление…",
     "submitButton": "Создать бронь",
     "cancelLink": "Отмена"
+  },
+  "errors": {
+    "sessionInvalid": "Сессия недействительна, войдите снова.",
+    "invalidDate": "Неверная дата",
+    "checkOutAfterCheckIn": "Дата выезда должна быть позже даты заезда.",
+    "roomNotFound": "Номер не найден или неактивен.",
+    "roomConflict": "Этот номер занят на выбранные даты ({code}). Выберите другие даты или номер.",
+    "guestCreateFailed": "Не удалось создать гостя: {msg}",
+    "reservationCreateFailed": "Не удалось создать бронь: {msg}",
+    "unknownError": "Неизвестная ошибка",
+    "pricePositive": "Цена должна быть больше 0",
+    "amountPositive": "Сумма должна быть больше 0",
+    "firstNameRequired": "Имя обязательно",
+    "lastNameRequired": "Фамилия обязательна",
+    "roomRequired": "Выберите номер",
+    "checkInRequired": "Дата заезда обязательна",
+    "checkOutRequired": "Дата выезда обязательна",
+    "adultsMin": "Минимум 1 взрослый",
+    "saveFailed": "Не удалось сохранить: {msg}",
+    "deleteFailed": "Не удалось удалить: {msg}",
+    "permissionDenied": "Нет прав для этого действия."
   }
 }

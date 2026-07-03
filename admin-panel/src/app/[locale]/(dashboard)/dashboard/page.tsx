@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import {
   TrendingUp,
   LogIn,
@@ -22,7 +23,13 @@ import StatCard from '@/components/admin/StatCard'
 import RoomStatusGrid, { type RoomStatusRow } from '@/components/admin/RoomStatusGrid'
 import RecentBookingsList, { type RecentBooking } from '@/components/admin/RecentBookingsList'
 
-// ─── Sabitler ───────────────────────────────────────────────────────────────
+// ─── Helpers ───────────────────────────────────────────────────────────────
+
+const LOCALE_BCP47: Record<string, string> = {
+  ru: 'ru-RU',
+  uz: 'uz-UZ',
+  'uz-cyrl': 'uz-Cyrl-UZ',
+}
 
 function toDateStr(d: Date): string {
   return d.toISOString().split('T')[0]
@@ -33,7 +40,7 @@ function delta(curr: number, prev: number): number {
   return ((curr - prev) / prev) * 100
 }
 
-// ─── Veri çekme ───────────────────────────────────────────────────────────────
+// ─── Data fetching ───────────────────────────────────────────────────────────
 
 async function fetchUserName(userId: string, fallback: string): Promise<string> {
   const supabase = await createClient()
@@ -134,7 +141,7 @@ async function fetchRoomOccupancy() {
   return { totalRooms, occupiedRooms, availableRooms: totalRooms - occupiedRooms, guestCount }
 }
 
-async function fetchRecentBookings(): Promise<RecentBooking[]> {
+async function fetchRecentBookings(guestFallback: string): Promise<RecentBooking[]> {
   const supabase = await createClient()
   const { data } = await supabase
     .from('reservations')
@@ -154,7 +161,7 @@ async function fetchRecentBookings(): Promise<RecentBooking[]> {
   return ((data ?? []) as unknown as Row[]).map((r) => ({
     id: r.id,
     reservation_code: r.reservation_code,
-    guest_name: r.guests ? `${r.guests.first_name} ${r.guests.last_name}` : 'Misafir',
+    guest_name: r.guests ? `${r.guests.first_name} ${r.guests.last_name}` : guestFallback,
     check_in: r.check_in,
     adults: r.adults,
     room_number: r.rooms?.room_number ?? null,
@@ -179,11 +186,13 @@ async function fetchPendingReservations(): Promise<PendingRow[]> {
   return (data ?? []) as unknown as PendingRow[]
 }
 
-// ─── Sayfa ─────────────────────────────────────────────────────────────────────
+// ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function DashboardPage({
+  params,
   searchParams,
 }: {
+  params: Promise<{ locale: string }>
   searchParams: Promise<{ blocked?: string }>
 }) {
   const supabase = await createClient()
@@ -193,19 +202,21 @@ export default async function DashboardPage({
 
   if (!user) redirect('/login')
 
+  const { locale } = await params
   const { blocked } = await searchParams
+  const t = await getTranslations('dashboard')
 
   const [stats, roomStatusList, cleaning, recentBookings, pendingReservations, userName, occupancy] = await Promise.all([
     fetchStatCardsData(),
     fetchRoomStatusList(),
     fetchCleaningStatus(),
-    fetchRecentBookings(),
+    fetchRecentBookings(t('guestFallback')),
     fetchPendingReservations(),
-    fetchUserName(user.id, user.email ?? 'Kullanıcı'),
+    fetchUserName(user.id, user.email ?? t('userFallback')),
     fetchRoomOccupancy(),
   ])
 
-  const todayLabel = new Date().toLocaleDateString('uz-UZ', {
+  const todayLabel = new Date().toLocaleDateString(LOCALE_BCP47[locale] ?? 'ru-RU', {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -216,7 +227,7 @@ export default async function DashboardPage({
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-          Hoş geldin, {userName}
+          {t('greeting', { name: userName })}
         </h1>
         <p className="text-sm mt-0.5 capitalize text-muted-foreground">{todayLabel}</p>
       </div>
@@ -224,9 +235,7 @@ export default async function DashboardPage({
       {blocked === '1' && (
         <div className="rounded-lg p-4 flex items-center gap-3 bg-destructive/10">
           <AlertCircle size={18} className="text-destructive shrink-0" />
-          <p className="text-sm text-destructive">
-            Bu sayfaya erişim yetkiniz yok. Rolünüze uygun sayfaları sol menüden seçebilirsiniz.
-          </p>
+          <p className="text-sm text-destructive">{t('accessDenied')}</p>
         </div>
       )}
 
@@ -236,7 +245,7 @@ export default async function DashboardPage({
             <AlertCircle size={18} className="text-amber-700 dark:text-amber-400 shrink-0 mt-px" />
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-foreground">
-                {pendingReservations.length} onay bekleyen rezervasyon var
+                {t('pendingReservations', { n: pendingReservations.length })}
               </p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {pendingReservations.slice(0, 5).map((r) => (
@@ -258,7 +267,7 @@ export default async function DashboardPage({
                     href="/reservations/list?status=pending"
                     className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium text-amber-700 dark:text-amber-400"
                   >
-                    +{pendingReservations.length - 5} daha →
+                    {t('morePending', { n: pendingReservations.length - 5 })}
                   </Link>
                 )}
               </div>
@@ -267,65 +276,65 @@ export default async function DashboardPage({
         </div>
       )}
 
-      {/* Genel Bakış — oda & kişi sayıları (tıklanamaz, rozetsiz) */}
+      {/* Overview — room & guest counts (non-clickable, no badges) */}
       <section className="space-y-3">
         <h2 className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          <LayoutGrid size={14} /> Genel Bakış
+          <LayoutGrid size={14} /> {t('overview')}
         </h2>
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             icon={<BedDouble size={16} />}
-            label="Toplam Oda"
+            label={t('totalRooms')}
             value={String(occupancy.totalRooms)}
           />
           <StatCard
             icon={<DoorClosed size={16} />}
-            label="Dolu Oda"
+            label={t('occupiedRooms')}
             value={String(occupancy.occupiedRooms)}
           />
           <StatCard
             icon={<DoorOpen size={16} />}
-            label="Boş Oda"
+            label={t('availableRooms')}
             value={String(occupancy.availableRooms)}
           />
           <StatCard
             icon={<Users size={16} />}
-            label="Konaklayan Kişi"
+            label={t('guestsStaying')}
             value={String(occupancy.guestCount)}
           />
         </div>
       </section>
 
-      {/* Bugünkü Hareket */}
+      {/* Today's movement */}
       <section className="space-y-3">
         <h2 className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          <CalendarPlus size={14} /> Bugünkü Hareket
+          <CalendarPlus size={14} /> {t('todayMovement')}
         </h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             icon={<CalendarPlus size={16} />}
-            label="Yeni Rezervasyon (bugün)"
+            label={t('newReservations')}
             value={String(stats.newToday)}
             deltaPercent={delta(stats.newToday, stats.newYesterday)}
             href={`/reservations/list?createdOn=${stats.todayStr}`}
           />
           <StatCard
             icon={<TrendingUp size={16} />}
-            label="Yarın Planlanan Giriş"
+            label={t('tomorrowCheckIn')}
             value={String(stats.scheduledTomorrow)}
             deltaPercent={delta(stats.scheduledTomorrow, stats.scheduledToday)}
             href={`/reservations/list?checkIn=${stats.tomorrowStr}`}
           />
           <StatCard
             icon={<LogIn size={16} />}
-            label="Bugün Check-in"
+            label={t('todayCheckIn')}
             value={String(stats.checkinToday)}
             deltaPercent={delta(stats.checkinToday, stats.checkinYesterday)}
             href={`/reservations/list?checkIn=${stats.todayStr}&status=checked_in`}
           />
           <StatCard
             icon={<LogOut size={16} />}
-            label="Bugün Check-out"
+            label={t('todayCheckOut')}
             value={String(stats.checkoutToday)}
             deltaPercent={delta(stats.checkoutToday, stats.checkoutYesterday)}
             href={`/reservations/list?checkOut=${stats.todayStr}&status=checked_out`}
@@ -333,40 +342,54 @@ export default async function DashboardPage({
         </div>
       </section>
 
-      {/* Operasyon */}
+      {/* Operation */}
       <section className="space-y-3">
         <h2 className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          <BedDouble size={14} /> Operasyon
+          <BedDouble size={14} /> {t('operation')}
         </h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <RoomStatusGrid rooms={roomStatusList} />
           <Card>
             <CardHeader>
-              <CardTitle>Oda Temizlik Durumu</CardTitle>
+              <CardTitle>{t('cleaningStatus')}</CardTitle>
             </CardHeader>
             <CardContent className="grid grid-cols-2 gap-3">
-              {[
-                { label: 'Temiz', count: cleaning.clean, color: 'text-green-600', icon: <CheckCircle2 size={16} /> },
-                { label: 'Kirli', count: cleaning.dirty, color: 'text-red-600', icon: <Wind size={16} /> },
-                { label: 'Temizleniyor', count: cleaning.in_progress, color: 'text-amber-600', icon: <Clock size={16} /> },
-                { label: 'Temizlendi · Denetim bekliyor', count: cleaning.cleaned, color: 'text-sky-600', icon: <Sparkles size={16} /> },
-                { label: 'Denetlendi', count: cleaning.inspected, color: 'text-primary', icon: <CheckCircle2 size={16} /> },
-              ].map((c) => (
-                <div key={c.label} className="rounded-lg border border-border p-3 flex items-center gap-2.5">
-                  <span className={c.color}>{c.icon}</span>
-                  <div>
-                    <p className="text-lg font-semibold leading-none text-foreground">{c.count}</p>
-                    <p className="text-[11px] mt-0.5 text-muted-foreground">{c.label}</p>
-                  </div>
-                </div>
-              ))}
+              <CleaningLegend cleaning={cleaning} />
             </CardContent>
           </Card>
         </div>
       </section>
 
-      {/* Son rezervasyonlar */}
+      {/* Recent reservations */}
       <RecentBookingsList bookings={recentBookings} />
     </div>
+  )
+}
+
+async function CleaningLegend({
+  cleaning,
+}: {
+  cleaning: { clean: number; dirty: number; in_progress: number; cleaned: number; inspected: number }
+}) {
+  const ts = await getTranslations('status.cleaning')
+  const items = [
+    { label: ts('clean'), count: cleaning.clean, color: 'text-green-600', icon: <CheckCircle2 size={16} /> },
+    { label: ts('dirty'), count: cleaning.dirty, color: 'text-red-600', icon: <Wind size={16} /> },
+    { label: ts('in_progress'), count: cleaning.in_progress, color: 'text-amber-600', icon: <Clock size={16} /> },
+    { label: ts('cleaned'), count: cleaning.cleaned, color: 'text-sky-600', icon: <Sparkles size={16} /> },
+    { label: ts('inspected'), count: cleaning.inspected, color: 'text-primary', icon: <CheckCircle2 size={16} /> },
+  ]
+  return (
+    <>
+      {items.map((c) => (
+        <div key={c.label} className="rounded-lg border border-border p-3 flex items-center gap-2.5">
+          <span className={c.color}>{c.icon}</span>
+          <div>
+            <p className="text-lg font-semibold leading-none text-foreground">{c.count}</p>
+            <p className="text-[11px] mt-0.5 text-muted-foreground">{c.label}</p>
+          </div>
+        </div>
+      ))}
+    </>
   )
 }

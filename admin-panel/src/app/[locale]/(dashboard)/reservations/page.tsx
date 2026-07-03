@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import ReservationCalendar from '@/components/admin/ReservationCalendar'
 import CalendarNav from '@/components/admin/CalendarNav'
 import type { Room, Reservation } from '@/types/hotel'
@@ -23,9 +24,10 @@ export default async function ReservationsPage({ searchParams }: Props) {
   if (!user) redirect('/login')
 
   const { start } = await searchParams
+  const t = await getTranslations('reservations.calendar')
   const today = new Date().toISOString().split('T')[0]
 
-  // start parametresi yoksa bugün, geçmişe gidemez (3 ay öncesine kadar izin ver)
+  // If no start param, use today; cannot go into the past (allow up to 3 months back)
   const minDate = addDays(today, -90)
   const startDate = start && start >= minDate ? start : today
   const endDate = addDays(startDate, 14)
@@ -59,9 +61,9 @@ export default async function ReservationsPage({ searchParams }: Props) {
       {/* Başlık */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold text-foreground">Rezervasyon Takvimi</h1>
+          <h1 className="text-2xl font-semibold text-foreground">{t('title')}</h1>
           <p className="mt-1 text-sm" style={{ color: 'var(--color-admin-muted)' }}>
-            {startDate} — {endDate} · {rooms.length} oda
+            {startDate} — {endDate} · {t('roomCount', { n: rooms.length })}
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -71,14 +73,14 @@ export default async function ReservationsPage({ searchParams }: Props) {
             className="px-3 py-2 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
             style={{ backgroundColor: 'var(--color-admin-card)', color: 'var(--color-admin-muted)', boxShadow: 'var(--shadow-card)' }}
           >
-            ☰ Liste
+            {t('listButton')}
           </Link>
           <Link
             href="/reservations/new"
             className="px-4 py-2 rounded-lg text-sm font-semibold transition-opacity hover:opacity-90"
             style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
           >
-            + Yeni Rezervasyon
+            {t('newButton')}
           </Link>
         </div>
       </div>

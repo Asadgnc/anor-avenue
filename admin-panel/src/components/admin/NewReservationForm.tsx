@@ -2,28 +2,12 @@
 
 import { useActionState, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import { createReservationAction, type ReservationFormState } from '@/app/[locale]/(dashboard)/reservations/new/actions'
 import type { Room } from '@/types/hotel'
 import { dash } from '@/lib/dashboardTheme'
 
-// ─── Sabitler ─────────────────────────────────────────────────────────────────
-
-const PAYMENT_METHODS = [
-  { value: 'cash', label: 'Nakit' },
-  { value: 'payme', label: 'Payme' },
-  { value: 'click', label: 'Click' },
-  { value: 'uzum', label: 'Uzum' },
-  { value: 'transfer', label: 'Banka Transferi' },
-] as const
-
-const FLOOR_LABEL: Record<number, string> = {
-  [-1]: 'Bodrum',
-  2: '2. Kat',
-  3: '3. Kat',
-  4: '4. Kat (Mansard)',
-}
-
-// ─── Yardımcı ─────────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function formatUZS(n: number): string {
   return new Intl.NumberFormat('uz-UZ', { maximumFractionDigits: 0 }).format(n)
@@ -35,7 +19,7 @@ function nightsBetween(checkIn: string, checkOut: string): number {
   return Math.max(0, Math.round(diff / 86400000))
 }
 
-// ─── Form Elemanları ──────────────────────────────────────────────────────────
+// ─── Form elements ──────────────────────────────────────────────────────────
 
 function Field({
   label,
@@ -107,7 +91,7 @@ function SectionTitle({ children }: { children: React.ReactNode }) {
   )
 }
 
-// ─── Ana Bileşen ──────────────────────────────────────────────────────────────
+// ─── Main component ──────────────────────────────────────────────────────────
 
 interface Props {
   rooms: Room[]
@@ -117,9 +101,31 @@ const initial: ReservationFormState = {}
 
 export default function NewReservationForm({ rooms }: Props) {
   const router = useRouter()
+  const t = useTranslations('newReservation')
+  const ts = useTranslations('newReservation.sections')
+  const tf = useTranslations('newReservation.fields')
+  const tp = useTranslations('newReservation.placeholders')
+  const tFloor = useTranslations('rooms.floors')
+  const tm = useTranslations('reservations.methods')
   const [state, action, pending] = useActionState(createReservationAction, initial)
 
-  // Başarı → rezervasyon detay sayfasına yönlendir
+  const paymentMethods = [
+    { value: 'cash', label: tm('cash') },
+    { value: 'payme', label: 'Payme' },
+    { value: 'click', label: 'Click' },
+    { value: 'uzum', label: 'Uzum' },
+    { value: 'transfer', label: tm('transfer') },
+  ] as const
+
+  const floorLabel = (floor: number): string => {
+    if (floor === -1) return tFloor('basement')
+    if (floor === 2) return tFloor('floor2')
+    if (floor === 3) return tFloor('floor3')
+    if (floor === 4) return tFloor('floor4')
+    return tFloor('floorN', { floor })
+  }
+
+  // On success → redirect to reservation detail page
   useEffect(() => {
     if (state.reservationId) {
       router.push(`/reservations/${state.reservationId}`)
@@ -132,7 +138,7 @@ export default function NewReservationForm({ rooms }: Props) {
   const [advanceAmount, setAdvanceAmount] = useState('')
   const [showPayment, setShowPayment] = useState(false)
 
-  // Seçili odanın fiyatı
+  // Selected room price
   const selectedRoom = useMemo(
     () => rooms.find((r) => r.id === selectedRoomId) ?? null,
     [rooms, selectedRoomId]
@@ -141,13 +147,12 @@ export default function NewReservationForm({ rooms }: Props) {
   const nights = nightsBetween(checkIn, checkOut)
   const totalAmount = pricePerNight * nights
 
-  // Hata kısayolları
   const fe = state.fieldErrors ?? {}
   const today = new Date().toISOString().split('T')[0]
 
   return (
     <form action={action} className="space-y-6 max-w-2xl">
-      {/* Genel hata */}
+      {/* General error */}
       {state.error && (
         <div
           className="px-4 py-3 rounded-lg text-sm border"
@@ -157,56 +162,56 @@ export default function NewReservationForm({ rooms }: Props) {
         </div>
       )}
 
-      {/* ── Misafir Bilgileri ────────────────────────────────────────────── */}
+      {/* Guest info */}
       <div
         className="rounded-2xl p-5 space-y-4"
         style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
       >
-        <SectionTitle>Misafir Bilgileri</SectionTitle>
+        <SectionTitle>{ts('guestInfo')}</SectionTitle>
 
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Ad" required error={fe.firstName}>
+          <Field label={tf('firstName')} required error={fe.firstName}>
             <Input name="firstName" placeholder="Alisher" hasError={!!fe.firstName} />
           </Field>
-          <Field label="Soyad" required error={fe.lastName}>
+          <Field label={tf('lastName')} required error={fe.lastName}>
             <Input name="lastName" placeholder="Karimov" hasError={!!fe.lastName} />
           </Field>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Telefon" error={fe.phone}>
+          <Field label={tf('phone')} error={fe.phone}>
             <Input name="phone" type="tel" placeholder="+998 90 123 45 67" />
           </Field>
-          <Field label="E-posta" error={fe.email}>
-            <Input name="email" type="email" placeholder="misafir@email.com" />
+          <Field label={tf('email')} error={fe.email}>
+            <Input name="email" type="email" placeholder={tp('email')} />
           </Field>
         </div>
 
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Uyruk" error={fe.nationality}>
-            <Input name="nationality" placeholder="Özbekistan" />
+          <Field label={tf('nationality')} error={fe.nationality}>
+            <Input name="nationality" placeholder={tp('nationality')} />
           </Field>
-          <Field label="Pasaport / Kimlik No" error={fe.passportNumber}>
+          <Field label={tf('passportId')} error={fe.passportNumber}>
             <Input name="passportNumber" placeholder="AA1234567" />
           </Field>
         </div>
       </div>
 
-      {/* ── Rezervasyon Detayları ─────────────────────────────────────────── */}
+      {/* Reservation details */}
       <div
         className="rounded-2xl p-5 space-y-4"
         style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
       >
-        <SectionTitle>Rezervasyon Detayları</SectionTitle>
+        <SectionTitle>{ts('reservationDetails')}</SectionTitle>
 
-        <Field label="Oda" required error={fe.roomId}>
+        <Field label={tf('room')} required error={fe.roomId}>
           <Select
             name="roomId"
             hasError={!!fe.roomId}
             value={selectedRoomId}
             onChange={(e) => setSelectedRoomId(e.target.value)}
           >
-            <option value="">— Oda seçin —</option>
+            <option value="">{t('roomSelect')}</option>
             {Object.entries(
               rooms.reduce<Record<number, Room[]>>((acc, r) => {
                 if (!acc[r.floor]) acc[r.floor] = []
@@ -216,11 +221,11 @@ export default function NewReservationForm({ rooms }: Props) {
             )
               .sort(([a], [b]) => Number(a) - Number(b))
               .map(([floor, floorRooms]) => (
-                <optgroup key={floor} label={FLOOR_LABEL[Number(floor)] ?? `${floor}. Kat`}>
+                <optgroup key={floor} label={floorLabel(Number(floor))}>
                   {floorRooms.map((room) => (
                     <option key={room.id} value={room.id}>
                       {room.room_number} — {room.room_types?.name ?? '?'} (
-                      {formatUZS(room.room_types?.base_price ?? 0)} UZS/gece)
+                      {formatUZS(room.room_types?.base_price ?? 0)} UZS)
                     </option>
                   ))}
                 </optgroup>
@@ -229,7 +234,7 @@ export default function NewReservationForm({ rooms }: Props) {
         </Field>
 
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Giriş Tarihi" required error={fe.checkIn}>
+          <Field label={tf('checkIn')} required error={fe.checkIn}>
             <Input
               name="checkIn"
               type="date"
@@ -239,7 +244,7 @@ export default function NewReservationForm({ rooms }: Props) {
               onChange={(e) => setCheckIn(e.target.value)}
             />
           </Field>
-          <Field label="Çıkış Tarihi" required error={fe.checkOut}>
+          <Field label={tf('checkOut')} required error={fe.checkOut}>
             <Input
               name="checkOut"
               type="date"
@@ -251,37 +256,37 @@ export default function NewReservationForm({ rooms }: Props) {
           </Field>
         </div>
 
-        <Field label="Yetişkin Sayısı" required error={fe.adults}>
+        <Field label={tf('adults')} required error={fe.adults}>
           <Select name="adults" defaultValue="1">
             {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
               <option key={n} value={n}>
-                {n} Yetişkin
+                {t('adultsOption', { n })}
               </option>
             ))}
           </Select>
         </Field>
 
         <div className="grid grid-cols-2 gap-4">
-          <Field label="Beklenen Giriş Saati (opsiyonel)">
+          <Field label={tf('expectedCheckIn')}>
             <Input name="expectedCheckInTime" type="time" />
           </Field>
-          <Field label="Kahvaltı">
+          <Field label={tf('breakfast')}>
             <label className="flex items-center gap-2.5 cursor-pointer mt-1">
               <input
                 type="checkbox"
                 name="breakfastIncluded"
                 className="w-4 h-4 rounded accent-[var(--color-accent)]"
               />
-              <span className="text-sm" style={{ color: dash.text }}>Kahvaltı dahil</span>
+              <span className="text-sm" style={{ color: dash.text }}>{t('breakfastIncluded')}</span>
             </label>
           </Field>
         </div>
 
-        <Field label="Özel İstek">
+        <Field label={tf('specialRequest')}>
           <textarea
             name="specialRequests"
             rows={2}
-            placeholder="Erken giriş, yüksek kat tercihi..."
+            placeholder={tp('specialRequest')}
             className="w-full px-3 py-2 rounded-lg text-sm border outline-none resize-none"
             style={{
               backgroundColor: 'var(--color-admin-bg)',
@@ -291,7 +296,7 @@ export default function NewReservationForm({ rooms }: Props) {
           />
         </Field>
 
-        {/* Fiyat Özeti */}
+        {/* Price summary */}
         {nights > 0 && pricePerNight > 0 && (
           <div
             className="rounded-lg p-3 border text-sm space-y-1"
@@ -299,7 +304,7 @@ export default function NewReservationForm({ rooms }: Props) {
           >
             <div className="flex justify-between">
               <span style={{ color: 'var(--color-admin-muted)' }}>
-                {formatUZS(pricePerNight)} × {nights} gece
+                {t('priceFormula', { price: formatUZS(pricePerNight), nights })}
               </span>
               <span style={{ color: dash.text }}>{formatUZS(totalAmount)} UZS</span>
             </div>
@@ -307,26 +312,26 @@ export default function NewReservationForm({ rooms }: Props) {
         )}
       </div>
 
-      {/* ── Ön Ödeme (opsiyonel) ─────────────────────────────────────────── */}
+      {/* Prepayment (optional) */}
       <div
         className="rounded-2xl p-5 space-y-4"
         style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
       >
         <div className="flex items-center justify-between">
-          <SectionTitle>Ön Ödeme</SectionTitle>
+          <SectionTitle>{ts('prepayment')}</SectionTitle>
           <button
             type="button"
             onClick={() => setShowPayment((v) => !v)}
             className="text-xs px-3 py-1 rounded-lg transition-opacity hover:opacity-80"
             style={{ backgroundColor: 'var(--color-admin-bg)', color: 'var(--color-admin-muted)' }}
           >
-            {showPayment ? 'Kaldır' : '+ Ekle'}
+            {showPayment ? t('removePrepayment') : t('addPrepayment')}
           </button>
         </div>
 
         {showPayment && (
           <div className="grid grid-cols-2 gap-4">
-            <Field label="Tutar (UZS)" error={fe.advanceAmount}>
+            <Field label={tf('amount')} error={fe.advanceAmount}>
               <Input
                 name="advanceAmount"
                 type="number"
@@ -337,9 +342,9 @@ export default function NewReservationForm({ rooms }: Props) {
                 onChange={(e) => setAdvanceAmount(e.target.value)}
               />
             </Field>
-            <Field label="Ödeme Yöntemi" error={fe.paymentMethod}>
+            <Field label={tf('method')} error={fe.paymentMethod}>
               <Select name="paymentMethod" defaultValue="cash">
-                {PAYMENT_METHODS.map(({ value, label }) => (
+                {paymentMethods.map(({ value, label }) => (
                   <option key={value} value={value}>
                     {label}
                   </option>
@@ -351,12 +356,12 @@ export default function NewReservationForm({ rooms }: Props) {
 
         {!showPayment && (
           <p className="text-xs" style={{ color: 'var(--color-admin-muted)' }}>
-            Ön ödeme alınmadıysa boş bırakın. Check-in sırasında eklenebilir.
+            {t('prepaymentNote')}
           </p>
         )}
       </div>
 
-      {/* ── Gönder ───────────────────────────────────────────────────────── */}
+      {/* Submit */}
       <div className="flex items-center gap-4 pb-8">
         <button
           type="submit"
@@ -364,14 +369,14 @@ export default function NewReservationForm({ rooms }: Props) {
           className="px-6 py-2.5 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-50"
           style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
         >
-          {pending ? 'Kaydediliyor…' : state.reservationId ? 'Yönlendiriliyor…' : 'Rezervasyon Oluştur'}
+          {pending ? t('savingButton') : state.reservationId ? t('redirectingButton') : t('submitButton')}
         </button>
         <a
           href="/reservations"
           className="text-sm transition-opacity hover:opacity-70"
           style={{ color: 'var(--color-admin-muted)' }}
         >
-          İptal
+          {t('cancelLink')}
         </a>
       </div>
     </form>

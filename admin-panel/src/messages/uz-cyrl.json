@@ -123,7 +123,14 @@
     "calendar": {
       "title": "Бронлар календари",
       "listButton": "☰ Рўйхат",
-      "newButton": "+ Янги брон"
+      "newButton": "+ Янги брон",
+      "roomCount": "{n} хона",
+      "backLink": "← Календар",
+      "nav": {
+        "prev": "Олдинги",
+        "today": "Бугун",
+        "next": "Кейинги"
+      }
     },
     "list": {
       "searchPlaceholder": "Меҳмон исми, тел., код ёки хона…",
@@ -142,7 +149,15 @@
         "amount": "Сумма",
         "status": "Ҳолат"
       },
-      "filterSection": "Фильтрлар"
+      "filterSection": "Фильтрлар",
+      "pageTitle": "Бронлар рўйхати",
+      "recordCount": "{n} та ёзув",
+      "calendarButton": "Календар",
+      "newButton": "+ Янги брон",
+      "createdOnFilter": "Яратилган: {date}",
+      "checkInFilter": "Кириш: {date}",
+      "checkOutFilter": "Чиқиш: {date}",
+      "clearFilter": "Филтрни тозалаш ×"
     },
     "new": {
       "backLink": "← Календар",
@@ -232,6 +247,15 @@
     "methods": {
       "cash": "Нақд",
       "transfer": "Ўтказма"
+    },
+    "calendarView": {
+      "roomHeader": "Хона",
+      "guestFallback": "Меҳмон",
+      "statusLabel": "Ҳолат",
+      "detailLink": "Тафсилот ва амаллар →",
+      "noRooms": "Ҳозирча хона йўқ",
+      "noRoomsHint": "Хоналар rooms жадвалига қўшилгач шу ерда кўринади.",
+      "perNight": "/кеча"
     }
   },
   "rooms": {
@@ -474,6 +498,12 @@
     "buttons": {
       "markSubmitted": "Юборилди деб белгилаш",
       "markConfirmed": "Тасдиқланди деб белгилаш"
+    },
+    "createForm": {
+      "success": "✓ Рўйхатдан ўтказиш яратилди.",
+      "goToList": "Рўйхатга ўтиш →",
+      "creating": "Яратилмоқда…",
+      "createButton": "+ Рўйхат яратиш"
     }
   },
   "staff": {
@@ -786,5 +816,26 @@
     "redirectingButton": "Йўналтирилмоқда…",
     "submitButton": "Брон яратиш",
     "cancelLink": "Бекор"
+  },
+  "errors": {
+    "sessionInvalid": "Сессия яроқсиз, қайтадан киринг.",
+    "invalidDate": "Нотўғри сана",
+    "checkOutAfterCheckIn": "Чиқиш санаси кириш санасидан кейин бўлиши керак.",
+    "roomNotFound": "Хона топилмади ёки фаол эмас.",
+    "roomConflict": "Бу хона танланган саналарга банд ({code}). Бошқа сана ёки хона танланг.",
+    "guestCreateFailed": "Меҳмон яратиб бўлмади: {msg}",
+    "reservationCreateFailed": "Брон яратиб бўлмади: {msg}",
+    "unknownError": "Номаълум хато",
+    "pricePositive": "Нарх 0 дан катта бўлиши керак",
+    "amountPositive": "Сумма 0 дан катта бўлиши керак",
+    "firstNameRequired": "Исм мажбурий",
+    "lastNameRequired": "Фамилия мажбурий",
+    "roomRequired": "Хонани танланг",
+    "checkInRequired": "Кириш санаси мажбурий",
+    "checkOutRequired": "Чиқиш санаси мажбурий",
+    "adultsMin": "Камида 1 катта ёш",
+    "saveFailed": "Сақлаб бўлмади: {msg}",
+    "deleteFailed": "Ўчириб бўлмади: {msg}",
+    "permissionDenied": "Бу амал учун рухсат йўқ."
   }
 }

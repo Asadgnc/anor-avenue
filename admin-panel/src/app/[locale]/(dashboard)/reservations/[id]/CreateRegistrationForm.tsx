@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
+import { useTranslations } from 'next-intl'
 import { createRegistrationAction } from '@/app/[locale]/(dashboard)/registrations/actions'
 import { dash } from '@/lib/dashboardTheme'
 
@@ -10,12 +11,13 @@ interface Props {
 }
 
 export default function CreateRegistrationForm({ guestId, reservationId }: Props) {
+  const t = useTranslations('registrations.createForm')
   const [state, action, isPending] = useActionState(createRegistrationAction, {})
 
   if (state.success) {
     return (
       <p className="text-sm" style={{ color: dash.green }}>
-        ✓ Kayıt oluşturuldu. <a href="/registrations" style={{ color: 'var(--color-accent)' }}>Kayıt listesine git →</a>
+        {t('success')} <a href="/registrations" style={{ color: 'var(--color-accent)' }}>{t('goToList')}</a>
       </p>
     )
   }
@@ -33,14 +35,14 @@ export default function CreateRegistrationForm({ guestId, reservationId }: Props
         className="text-sm px-4 py-2 rounded-lg font-medium transition-opacity hover:opacity-80 disabled:opacity-50"
         style={{ backgroundColor: dash.blueLight, color: dash.blue, border: `1px solid ${dash.blue}` }}
       >
-        {isPending ? 'Oluşturuluyor…' : '+ Registratsiya Kaydı Aç'}
+        {isPending ? t('creating') : t('createButton')}
       </button>
       <a
         href="/registrations"
         className="text-xs"
         style={{ color: 'var(--color-admin-muted)' }}
       >
-        Kayıt listesine git →
+        {t('goToList')}
       </a>
     </form>
   )

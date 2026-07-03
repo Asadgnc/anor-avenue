@@ -1,11 +1,13 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import NewReservationForm from '@/components/admin/NewReservationForm'
 import type { Room } from '@/types/hotel'
 import { dash } from '@/lib/dashboardTheme'
 
 export default async function NewReservationPage() {
+  const t = await getTranslations('reservations.new')
   const supabase = await createClient()
   const {
     data: { user },
@@ -30,10 +32,10 @@ export default async function NewReservationPage() {
           className="text-sm transition-opacity hover:opacity-70"
           style={{ color: 'var(--color-admin-muted)' }}
         >
-          ← Takvim
+          {t('backLink')}
         </Link>
         <span style={{ color: 'var(--color-admin-border)' }}>/</span>
-        <h1 className="text-2xl font-semibold text-foreground">Yeni Rezervasyon</h1>
+        <h1 className="text-2xl font-semibold text-foreground">{t('title')}</h1>
       </div>
 
       {rooms.length === 0 && (
@@ -41,7 +43,7 @@ export default async function NewReservationPage() {
           className="rounded-xl border px-5 py-4 text-sm"
           style={{ backgroundColor: dash.orangeLight, borderColor: dash.orange, color: dash.orange }}
         >
-          Henüz aktif oda yok. Supabase Dashboard'dan rooms tablosuna oda ekleyin.
+          {t('noRoomsWarning')}
         </div>
       )}
 
