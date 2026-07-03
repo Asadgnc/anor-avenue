@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { getTranslations } from 'next-intl/server'
 import { ArrowUpRight, Users2, BedDouble } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 
@@ -15,18 +16,20 @@ interface RecentBookingsListProps {
   bookings: RecentBooking[]
 }
 
-export default function RecentBookingsList({ bookings }: RecentBookingsListProps) {
+export default async function RecentBookingsList({ bookings }: RecentBookingsListProps) {
+  const t = await getTranslations('dashboard')
+  const tc = await getTranslations('common')
   return (
     <Card>
       <CardHeader className="flex-row items-center justify-between">
-        <CardTitle>Yeni Rezervasyonlar</CardTitle>
+        <CardTitle>{t('recentTitle')}</CardTitle>
         <Link href="/reservations/list" className="text-xs font-medium text-primary">
-          Tümü
+          {tc('all')}
         </Link>
       </CardHeader>
       <CardContent>
         {bookings.length === 0 ? (
-          <p className="text-sm py-6 text-center text-muted-foreground">Henüz rezervasyon yok</p>
+          <p className="text-sm py-6 text-center text-muted-foreground">{t('noBookings')}</p>
         ) : (
           <div className="flex flex-col divide-y divide-border">
             {bookings.map((b) => (

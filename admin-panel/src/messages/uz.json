@@ -117,7 +117,9 @@
     "todayCheckIn": "Bugungi kirishlar",
     "todayCheckOut": "Bugungi chiqishlar",
     "guestFallback": "Mehmon",
-    "userFallback": "Foydalanuvchi"
+    "userFallback": "Foydalanuvchi",
+    "recentTitle": "Yangi bronlar",
+    "noBookings": "Hozircha bron yoʻq"
   },
   "reservations": {
     "calendar": {
@@ -298,7 +300,11 @@
     },
     "cancelButton": "Bekor",
     "editButton": "Tahrirlash",
-    "inventoryLink": "Inventar →"
+    "inventoryLink": "Inventar →",
+    "statusGrid": {
+      "title": "Xonalar holati",
+      "roomCount": "{n} xona"
+    }
   },
   "guests": {
     "title": "Mehmonlar",
@@ -836,6 +842,20 @@
     "adultsMin": "Kamida 1 katta yosh",
     "saveFailed": "Saqlab boʻlmadi: {msg}",
     "deleteFailed": "Oʻchirib boʻlmadi: {msg}",
-    "permissionDenied": "Bu amal uchun ruxsat yoʻq."
+    "permissionDenied": "Bu amal uchun ruxsat yoʻq.",
+    "roomNumberRequired": "Xona raqami majburiy",
+    "roomTypeRequired": "Xona turini tanlang",
+    "roomExists": "«{number}» raqamli xona allaqachon mavjud.",
+    "itemNameRequired": "Buyum nomi majburiy"
+  },
+  "roomItems": {
+    "title": "Xona #{number} — Buyumlar",
+    "empty": "Buyumlar hali qoʻshilmagan.",
+    "itemHeader": "Buyum",
+    "qtyHeader": "Soni",
+    "deleteTitle": "Oʻchirish",
+    "addTitle": "Buyum qoʻshish",
+    "namePlaceholder": "Buyum nomi",
+    "addButton": "Qoʻshish"
   }
 }

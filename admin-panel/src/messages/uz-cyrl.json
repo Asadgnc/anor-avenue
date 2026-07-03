@@ -117,7 +117,9 @@
     "todayCheckIn": "Бугунги киришлар",
     "todayCheckOut": "Бугунги чиқишлар",
     "guestFallback": "Меҳмон",
-    "userFallback": "Фойдаланувчи"
+    "userFallback": "Фойдаланувчи",
+    "recentTitle": "Янги бронлар",
+    "noBookings": "Ҳозирча брон йўқ"
   },
   "reservations": {
     "calendar": {
@@ -298,7 +300,11 @@
     },
     "cancelButton": "Бекор",
     "editButton": "Таҳрирлаш",
-    "inventoryLink": "Инвентар →"
+    "inventoryLink": "Инвентар →",
+    "statusGrid": {
+      "title": "Хоналар ҳолати",
+      "roomCount": "{n} хона"
+    }
   },
   "guests": {
     "title": "Меҳмонлар",
@@ -836,6 +842,20 @@
     "adultsMin": "Камида 1 катта ёш",
     "saveFailed": "Сақлаб бўлмади: {msg}",
     "deleteFailed": "Ўчириб бўлмади: {msg}",
-    "permissionDenied": "Бу амал учун рухсат йўқ."
+    "permissionDenied": "Бу амал учун рухсат йўқ.",
+    "roomNumberRequired": "Хона рақами мажбурий",
+    "roomTypeRequired": "Хона турини танланг",
+    "roomExists": "«{number}» рақамли хона аллақачон мавжуд.",
+    "itemNameRequired": "Буюм номи мажбурий"
+  },
+  "roomItems": {
+    "title": "Хона #{number} — Буюмлар",
+    "empty": "Буюмлар ҳали қўшилмаган.",
+    "itemHeader": "Буюм",
+    "qtyHeader": "Сони",
+    "deleteTitle": "Ўчириш",
+    "addTitle": "Буюм қўшиш",
+    "namePlaceholder": "Буюм номи",
+    "addButton": "Қўшиш"
   }
 }

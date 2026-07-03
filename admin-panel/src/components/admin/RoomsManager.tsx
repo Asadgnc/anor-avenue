@@ -2,6 +2,7 @@
 
 import { Fragment, useActionState, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useTranslations } from 'next-intl'
 import {
   addRoomAction,
   updateRoomAction,
@@ -12,43 +13,42 @@ import {
 import type { Room, RoomType } from '@/types/hotel'
 import { dash } from '@/lib/dashboardTheme'
 
-// ─── Sabitler ─────────────────────────────────────────────────────────────────
+// ─── Constants ────────────────────────────────────────────────────────────────
 
-const ROOM_STATUSES = [
-  { value: 'available',   label: 'Müsait',      color: dash.green,  bg: dash.greenLight },
-  { value: 'occupied',    label: 'Dolu',         color: dash.red,    bg: dash.redLight },
-  { value: 'cleaning',    label: 'Temizlikte',   color: dash.orange, bg: dash.orangeLight },
-  { value: 'maintenance', label: 'Bakımda',      color: dash.blue,   bg: dash.blueLight },
-  { value: 'blocked',     label: 'Bloke',        color: dash.muted,  bg: dash.border },
-] as const
+const ROOM_STATUS_COLORS = {
+  available:   { color: dash.green,  bg: dash.greenLight },
+  occupied:    { color: dash.red,    bg: dash.redLight },
+  cleaning:    { color: dash.orange, bg: dash.orangeLight },
+  maintenance: { color: dash.blue,   bg: dash.blueLight },
+  blocked:     { color: dash.muted,  bg: dash.border },
+} as const
 
-const CLEANING_STATUSES = [
-  { value: 'clean',       label: 'Temiz',              color: dash.green,   bg: dash.greenLight },
-  { value: 'dirty',       label: 'Kirli',              color: dash.red,     bg: dash.redLight },
-  { value: 'in_progress', label: 'Temizleniyor',       color: dash.orange,  bg: dash.orangeLight },
-  { value: 'cleaned',     label: 'Temizlendi',         color: '#0284C7',    bg: '#E0F2FE' },
-  { value: 'inspected',   label: 'Denetlendi',         color: dash.primary, bg: dash.primaryLight },
-] as const
+const CLEANING_STATUS_COLORS = {
+  clean:       { color: dash.green,   bg: dash.greenLight },
+  dirty:       { color: dash.red,     bg: dash.redLight },
+  in_progress: { color: dash.orange,  bg: dash.orangeLight },
+  cleaned:     { color: '#0284C7',    bg: '#E0F2FE' },
+  inspected:   { color: dash.primary, bg: dash.primaryLight },
+} as const
 
-const FLOOR_LABEL: Record<number, string> = {
-  [-1]: 'Bodrum Kat',
-  2: '2. Kat',
-  3: '3. Kat',
-  4: '4. Kat · Mansard',
-}
-
-const FLOOR_OPTIONS = [
-  { value: -1, label: 'Bodrum Kat (-1)' },
-  { value: 2,  label: '2. Kat' },
-  { value: 3,  label: '3. Kat' },
-  { value: 4,  label: '4. Kat (Mansard)' },
-]
+const FLOOR_OPTION_VALUES = [-1, 2, 3, 4]
 
 const inputCls = 'px-2 py-1.5 rounded-lg text-xs border outline-none w-full'
 const inputStyle = {
   backgroundColor: 'var(--color-admin-bg)',
   color: dash.text,
   borderColor: 'var(--color-admin-border)',
+}
+
+function useFloorLabel() {
+  const tFloor = useTranslations('rooms.floors')
+  return (floor: number): string => {
+    if (floor === -1) return tFloor('basement')
+    if (floor === 2) return tFloor('floor2')
+    if (floor === 3) return tFloor('floor3')
+    if (floor === 4) return tFloor('floor4')
+    return tFloor('floorN', { floor })
+  }
 }
 
 // ─── StatusPill ───────────────────────────────────────────────────────────────
@@ -100,10 +100,12 @@ function StatusPill({
   )
 }
 
-// ─── Oda Ekleme Formu ─────────────────────────────────────────────────────────
+// ─── Add room form ────────────────────────────────────────────────────────────
 
 function AddRoomForm({ roomTypes }: { roomTypes: RoomType[] }) {
   const router = useRouter()
+  const t = useTranslations('rooms.addRoom')
+  const floorLabel = useFloorLabel()
   const formRef = useRef<HTMLFormElement>(null)
   const [state, action, pending] = useActionState<RoomFormState, FormData>(addRoomAction, {})
   const [added, setAdded] = useState(false)
@@ -113,8 +115,8 @@ function AddRoomForm({ roomTypes }: { roomTypes: RoomType[] }) {
       setAdded(true)
       formRef.current?.reset()
       router.refresh()
-      const t = setTimeout(() => setAdded(false), 3000)
-      return () => clearTimeout(t)
+      const timer = setTimeout(() => setAdded(false), 3000)
+      return () => clearTimeout(timer)
     }
   }, [state.success, router])
 
@@ -126,7 +128,7 @@ function AddRoomForm({ roomTypes }: { roomTypes: RoomType[] }) {
       style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
     >
       <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-accent)' }}>
-        Yeni Oda Ekle
+        {t('title')}
       </h2>
 
       {state.error && (
@@ -136,14 +138,14 @@ function AddRoomForm({ roomTypes }: { roomTypes: RoomType[] }) {
       )}
       {added && !state.error && (
         <p className="text-xs px-3 py-2 rounded-lg" style={{ backgroundColor: dash.greenLight, color: dash.green }}>
-          Oda eklendi ✓
+          {t('success')}
         </p>
       )}
 
       <div className="grid grid-cols-3 gap-3">
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-medium" style={{ color: 'var(--color-admin-muted)' }}>
-            Oda No <span style={{ color: dash.red }}>*</span>
+            {t('numberLabel')} <span style={{ color: dash.red }}>*</span>
           </label>
           <input
             name="roomNumber"
@@ -155,7 +157,7 @@ function AddRoomForm({ roomTypes }: { roomTypes: RoomType[] }) {
 
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-medium" style={{ color: 'var(--color-admin-muted)' }}>
-            Kat <span style={{ color: dash.red }}>*</span>
+            {t('floorLabel')} <span style={{ color: dash.red }}>*</span>
           </label>
           <select
             name="floor"
@@ -163,22 +165,22 @@ function AddRoomForm({ roomTypes }: { roomTypes: RoomType[] }) {
             className="px-3 py-2 rounded-lg text-sm border outline-none appearance-none"
             style={{ backgroundColor: 'var(--color-admin-bg)', color: dash.text, borderColor: 'var(--color-admin-border)' }}
           >
-            {FLOOR_OPTIONS.map(({ value, label }) => (
-              <option key={value} value={value}>{label}</option>
+            {FLOOR_OPTION_VALUES.map((value) => (
+              <option key={value} value={value}>{floorLabel(value)}</option>
             ))}
           </select>
         </div>
 
         <div className="flex flex-col gap-1.5">
           <label className="text-xs font-medium" style={{ color: 'var(--color-admin-muted)' }}>
-            Oda Tipi <span style={{ color: dash.red }}>*</span>
+            {t('typeLabel')} <span style={{ color: dash.red }}>*</span>
           </label>
           <select
             name="roomTypeId"
             className="px-3 py-2 rounded-lg text-sm border outline-none appearance-none"
             style={{ backgroundColor: 'var(--color-admin-bg)', color: dash.text, borderColor: 'var(--color-admin-border)' }}
           >
-            <option value="">— Seçin —</option>
+            <option value="">{t('selectPlaceholder')}</option>
             {roomTypes.map((rt) => (
               <option key={rt.id} value={rt.id}>{rt.name}</option>
             ))}
@@ -192,13 +194,13 @@ function AddRoomForm({ roomTypes }: { roomTypes: RoomType[] }) {
         className="px-4 py-2 rounded-lg text-sm font-semibold transition-opacity disabled:opacity-50"
         style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
       >
-        {pending ? 'Ekleniyor…' : '+ Oda Ekle'}
+        {pending ? t('addingButton') : t('addButton')}
       </button>
     </form>
   )
 }
 
-// ─── Oda Düzenleme Satırı ─────────────────────────────────────────────────────
+// ─── Edit room row ────────────────────────────────────────────────────────────
 
 function EditRoomRow({
   room,
@@ -210,6 +212,9 @@ function EditRoomRow({
   onClose: () => void
 }) {
   const router = useRouter()
+  const t = useTranslations('rooms.editRoom')
+  const tc = useTranslations('common')
+  const floorLabel = useFloorLabel()
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -239,19 +244,19 @@ function EditRoomRow({
           )}
           <div className="grid grid-cols-2 md:grid-cols-5 gap-2 items-end">
             <div>
-              <label className="text-xs mb-1 block" style={{ color: 'var(--color-admin-muted)' }}>Oda No</label>
+              <label className="text-xs mb-1 block" style={{ color: 'var(--color-admin-muted)' }}>{t('numberLabel')}</label>
               <input name="roomNumber" defaultValue={room.room_number} required className={inputCls} style={inputStyle} />
             </div>
             <div>
-              <label className="text-xs mb-1 block" style={{ color: 'var(--color-admin-muted)' }}>Kat</label>
+              <label className="text-xs mb-1 block" style={{ color: 'var(--color-admin-muted)' }}>{t('floorLabel')}</label>
               <select name="floor" defaultValue={room.floor} className={inputCls} style={inputStyle}>
-                {FLOOR_OPTIONS.map(({ value, label }) => (
-                  <option key={value} value={value}>{label}</option>
+                {FLOOR_OPTION_VALUES.map((value) => (
+                  <option key={value} value={value}>{floorLabel(value)}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="text-xs mb-1 block" style={{ color: 'var(--color-admin-muted)' }}>Oda Tipi</label>
+              <label className="text-xs mb-1 block" style={{ color: 'var(--color-admin-muted)' }}>{t('typeLabel')}</label>
               <select name="roomTypeId" defaultValue={room.room_type_id} className={inputCls} style={inputStyle}>
                 {roomTypes.map((rt) => (
                   <option key={rt.id} value={rt.id}>{rt.name}</option>
@@ -259,14 +264,14 @@ function EditRoomRow({
               </select>
             </div>
             <div>
-              <label className="text-xs mb-1 block" style={{ color: 'var(--color-admin-muted)' }}>Notlar</label>
+              <label className="text-xs mb-1 block" style={{ color: 'var(--color-admin-muted)' }}>{t('notesLabel')}</label>
               <input name="notes" defaultValue={room.notes ?? ''} className={inputCls} style={inputStyle} />
             </div>
             <div>
-              <label className="text-xs mb-1 block" style={{ color: 'var(--color-admin-muted)' }}>Aktif</label>
+              <label className="text-xs mb-1 block" style={{ color: 'var(--color-admin-muted)' }}>{t('activeLabel')}</label>
               <select name="isActive" defaultValue={room.is_active ? 'true' : 'false'} className={inputCls} style={inputStyle}>
-                <option value="true">Aktif</option>
-                <option value="false">Pasif</option>
+                <option value="true">{t('activeOption')}</option>
+                <option value="false">{t('inactiveOption')}</option>
               </select>
             </div>
           </div>
@@ -277,7 +282,7 @@ function EditRoomRow({
               className="px-3 py-1.5 rounded-lg text-xs font-semibold disabled:opacity-50"
               style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
             >
-              {saving ? 'Kaydediliyor…' : 'Kaydet'}
+              {saving ? tc('saving') : tc('save')}
             </button>
             <button
               type="button"
@@ -285,7 +290,7 @@ function EditRoomRow({
               className="px-3 py-1.5 rounded-lg text-xs border hover:opacity-80"
               style={{ color: 'var(--color-admin-muted)', borderColor: 'var(--color-admin-border)' }}
             >
-              İptal
+              {tc('cancel')}
             </button>
           </div>
         </form>
@@ -294,7 +299,7 @@ function EditRoomRow({
   )
 }
 
-// ─── Ana Bileşen ──────────────────────────────────────────────────────────────
+// ─── Main component ───────────────────────────────────────────────────────────
 
 interface Props {
   rooms: Room[]
@@ -302,6 +307,23 @@ interface Props {
 }
 
 export default function RoomsManager({ rooms, roomTypes }: Props) {
+  const t = useTranslations('rooms')
+  const th = useTranslations('rooms.headers')
+  const tRoomStatus = useTranslations('status.room')
+  const tCleaning = useTranslations('status.cleaning')
+  const floorLabel = useFloorLabel()
+
+  const roomStatusOptions = (Object.keys(ROOM_STATUS_COLORS) as (keyof typeof ROOM_STATUS_COLORS)[]).map((k) => ({
+    value: k,
+    label: tRoomStatus(k),
+    ...ROOM_STATUS_COLORS[k],
+  }))
+  const cleaningStatusOptions = (Object.keys(CLEANING_STATUS_COLORS) as (keyof typeof CLEANING_STATUS_COLORS)[]).map((k) => ({
+    value: k,
+    label: tCleaning(k),
+    ...CLEANING_STATUS_COLORS[k],
+  }))
+
   const [roomStatuses, setRoomStatuses] = useState<Record<string, string>>(
     Object.fromEntries(rooms.map((r) => [r.id, r.status]))
   )
@@ -326,6 +348,8 @@ export default function RoomsManager({ rooms, roomTypes }: Props) {
     return acc
   }, {})
 
+  const headers = [th('number'), th('type'), th('status'), th('cleaning'), th('price'), '']
+
   return (
     <div className="space-y-6">
       <AddRoomForm roomTypes={roomTypes} />
@@ -335,8 +359,8 @@ export default function RoomsManager({ rooms, roomTypes }: Props) {
           className="rounded-2xl p-12 text-center"
           style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
         >
-          <p className="text-foreground">Henüz oda yok.</p>
-          <p className="text-sm mt-1" style={{ color: 'var(--color-admin-muted)' }}>Yukarıdan oda ekleyin.</p>
+          <p className="text-foreground">{t('empty')}</p>
+          <p className="text-sm mt-1" style={{ color: 'var(--color-admin-muted)' }}>{t('emptyHint')}</p>
         </div>
       ) : (
         Object.entries(byFloor)
@@ -347,7 +371,7 @@ export default function RoomsManager({ rooms, roomTypes }: Props) {
                 className="text-xs font-semibold uppercase tracking-widest mb-2 px-1"
                 style={{ color: 'var(--color-accent)' }}
               >
-                {FLOOR_LABEL[Number(floor)] ?? `${floor}. Kat`}
+                {floorLabel(Number(floor))}
               </p>
               <div
                 className="rounded-2xl overflow-hidden"
@@ -357,9 +381,9 @@ export default function RoomsManager({ rooms, roomTypes }: Props) {
                   <table className="w-full text-sm border-collapse" style={{ minWidth: '600px' }}>
                     <thead>
                       <tr style={{ backgroundColor: dash.bg }}>
-                        {['Oda No', 'Tip', 'Oda Durumu', 'Temizlik', 'Fiyat/Gece', ''].map((h) => (
+                        {headers.map((h, i) => (
                           <th
-                            key={h}
+                            key={`${h}-${i}`}
                             className="px-4 py-2.5 text-left text-xs font-medium"
                             style={{ color: 'var(--color-admin-muted)', borderBottom: '1px solid var(--color-admin-border)' }}
                           >
@@ -381,14 +405,14 @@ export default function RoomsManager({ rooms, roomTypes }: Props) {
                             <td className="px-4 py-3">
                               <StatusPill
                                 value={roomStatuses[room.id] ?? room.status}
-                                options={ROOM_STATUSES}
+                                options={roomStatusOptions}
                                 onSelect={(v) => handleRoomStatus(room.id, v)}
                               />
                             </td>
                             <td className="px-4 py-3">
                               <StatusPill
                                 value={cleaningStatuses[room.id] ?? room.cleaning_status}
-                                options={CLEANING_STATUSES}
+                                options={cleaningStatusOptions}
                                 onSelect={(v) => handleCleaningStatus(room.id, v)}
                               />
                             </td>
@@ -404,14 +428,14 @@ export default function RoomsManager({ rooms, roomTypes }: Props) {
                                   className="text-xs px-2 py-1 rounded-lg border transition-opacity hover:opacity-80"
                                   style={{ color: 'var(--color-accent)', borderColor: 'var(--color-admin-border)' }}
                                 >
-                                  {editingRoomId === room.id ? 'İptal' : 'Düzenle'}
+                                  {editingRoomId === room.id ? t('cancelButton') : t('editButton')}
                                 </button>
                                 <a
                                   href={`/rooms/${room.id}`}
                                   className="text-xs px-2 py-1 rounded-lg border transition-opacity hover:opacity-80"
                                   style={{ color: 'var(--color-admin-muted)', borderColor: 'var(--color-admin-border)' }}
                                 >
-                                  Eşyalar →
+                                  {t('inventoryLink')}
                                 </a>
                               </div>
                             </td>

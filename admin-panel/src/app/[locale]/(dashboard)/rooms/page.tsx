@@ -1,9 +1,11 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
+import { getTranslations } from 'next-intl/server'
 import RoomsManager from '@/components/admin/RoomsManager'
 import type { Room, RoomType } from '@/types/hotel'
 
 export default async function RoomsPage() {
+  const t = await getTranslations('rooms')
   const supabase = await createClient()
   const {
     data: { user },
@@ -29,9 +31,9 @@ export default async function RoomsPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-foreground">Oda Yönetimi</h1>
+        <h1 className="text-2xl font-semibold text-foreground">{t('title')}</h1>
         <p className="mt-1 text-sm" style={{ color: 'var(--color-admin-muted)' }}>
-          {rooms.length} aktif oda · Durumları buradan güncelleyebilirsiniz
+          {t('subtitle', { n: rooms.length })}
         </p>
       </div>
 
