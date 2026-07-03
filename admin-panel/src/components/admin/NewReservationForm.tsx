@@ -2,7 +2,7 @@
 
 import { useActionState, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { createReservationAction, type ReservationFormState } from '@/app/(dashboard)/reservations/new/actions'
+import { createReservationAction, type ReservationFormState } from '@/app/[locale]/(dashboard)/reservations/new/actions'
 import type { Room } from '@/types/hotel'
 import { dash } from '@/lib/dashboardTheme'
 

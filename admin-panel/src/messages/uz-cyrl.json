@@ -1,0 +1,790 @@
+{
+  "common": {
+    "save": "Сақлаш",
+    "saving": "Сақланмоқда…",
+    "saved": "Сақланди ✓",
+    "cancel": "Бекор қилиш",
+    "edit": "Таҳрирлаш",
+    "delete": "Ўчириш",
+    "detail": "Батафсил →",
+    "all": "Барчаси",
+    "noResult": "Натижа топилмади",
+    "loading": "Юкланмоқда…",
+    "error": "Хатолик",
+    "select": "— Танланг —",
+    "filterClear": "Фильтрларни тозалаш",
+    "showMore": "+{n} кўпроқ",
+    "showAll": "Барчаси ({n})",
+    "visibleCount": "{visible} / {total} ёзув",
+    "noFilterResult": "Фильтр бўйича ёзув йўқ.",
+    "redirecting": "Йўналтирилмоқда…"
+  },
+  "nav": {
+    "title": "Бошқарув панели",
+    "brandName": "Анор Авеню",
+    "dashboard": "Дашборд",
+    "calendar": "Календар",
+    "reservationList": "Бронлар рўйхати",
+    "newReservation": "Янги брон",
+    "rooms": "Хоналар",
+    "guests": "Меҳмонлар",
+    "registrations": "Рўйхатга олиш",
+    "housekeeping": "Тозалаш",
+    "dailyOverview": "Кунлик шарҳ",
+    "payments": "Тўловлар",
+    "reports": "Ҳисоботлар",
+    "warehouse": "Омбор",
+    "garden": "Боғ ишлари",
+    "cashFlow": "Пул оқими",
+    "staff": "Ходимлар",
+    "settings": "Созламалар",
+    "logout": "Чиқиш",
+    "openMenu": "Менюни очиш"
+  },
+  "roles": {
+    "admin": "Админ",
+    "manager": "Менежер",
+    "receptionist": "Ресепшон",
+    "housekeeper": "Тозаловчи",
+    "accountant": "Бухгалтер"
+  },
+  "topbar": {
+    "dashboard": "Дашборд",
+    "calendar": "Бронлар календари",
+    "reservationList": "Бронлар рўйхати",
+    "newReservation": "Янги брон",
+    "rooms": "Хоналар",
+    "guests": "Меҳмонлар",
+    "newGuest": "Янги меҳмон",
+    "registrations": "Меҳмонларни рўйхатга олиш",
+    "housekeeping": "Тозалаш",
+    "dailyOverview": "Кунлик шарҳ",
+    "payments": "Тўловлар",
+    "reports": "Ҳисоботлар",
+    "staff": "Ходимлар",
+    "settings": "Созламалар",
+    "reservationDetail": "Брон тафсилоти",
+    "guestDetail": "Меҳмон профили",
+    "pendingReservations": "Кутилаётган бронлар",
+    "pendingPayments": "Кутилаётган тўловлар"
+  },
+  "status": {
+    "reservation": {
+      "pending": "Кутилмоқда",
+      "confirmed": "Тасдиқланган",
+      "checked_in": "Келди",
+      "checked_out": "Кетди",
+      "cancelled": "Бекор қилинган",
+      "no_show": "Келмади"
+    },
+    "payment": {
+      "pending": "Кутилмоқда",
+      "completed": "Бажарилди",
+      "failed": "Хатолик",
+      "refunded": "Қайтарилди"
+    },
+    "room": {
+      "available": "Бўш",
+      "occupied": "Банд",
+      "cleaning": "Тозаланмоқда",
+      "maintenance": "Таъмирда",
+      "blocked": "Ёпиқ"
+    },
+    "cleaning": {
+      "clean": "Тоза",
+      "dirty": "Ифлос",
+      "in_progress": "Тозаланмоқда",
+      "cleaned": "Тозаланди · Текшируви кутилмоқда",
+      "cleaned_housekeeper": "Тоза",
+      "inspected": "Текширилди"
+    }
+  },
+  "dashboard": {
+    "greeting": "Хуш келибсиз, {name}",
+    "overview": "Умумий кўриниш",
+    "todayMovement": "Бугунги ҳаракат",
+    "operation": "Операция",
+    "cleaningStatus": "Хоналар тозалик ҳолати",
+    "accessDenied": "Сизда бу саҳифага кириш ҳуқуқи йўқ. Чап меню орқали ўз саҳифангизни танланг.",
+    "pendingReservations": "{n} та брон тасдиқланишини кутмоқда",
+    "morePending": "+{n} та →",
+    "totalRooms": "Жами хоналар",
+    "occupiedRooms": "Банд хоналар",
+    "availableRooms": "Бўш хоналар",
+    "guestsStaying": "Меҳмонлар сони",
+    "newReservations": "Янги бронлар (бугун)",
+    "tomorrowCheckIn": "Эртанги киришлар",
+    "todayCheckIn": "Бугунги киришлар",
+    "todayCheckOut": "Бугунги чиқишлар",
+    "guestFallback": "Меҳмон",
+    "userFallback": "Фойдаланувчи"
+  },
+  "reservations": {
+    "calendar": {
+      "title": "Бронлар календари",
+      "listButton": "☰ Рўйхат",
+      "newButton": "+ Янги брон"
+    },
+    "list": {
+      "searchPlaceholder": "Меҳмон исми, тел., код ёки хона…",
+      "resultCount": "{n} та брон",
+      "searchSuffix": "· «{search}» қидируви",
+      "noResult": "Натижа топилмади",
+      "detailLink": "Батафсил →",
+      "headers": {
+        "code": "Код",
+        "guest": "Меҳмон",
+        "room": "Хона",
+        "channel": "Канал",
+        "checkIn": "Кириш",
+        "checkOut": "Чиқиш",
+        "nights": "Кеча",
+        "amount": "Сумма",
+        "status": "Ҳолат"
+      },
+      "filterSection": "Фильтрлар"
+    },
+    "new": {
+      "backLink": "← Календар",
+      "title": "Янги брон",
+      "noRoomsWarning": "Фаол хоналар йўқ. Supabase'да rooms жадвалига хона қўшинг."
+    },
+    "detail": {
+      "backLink": "← Календар",
+      "printInvoice": "Квитансияни чоп этиш",
+      "sections": {
+        "reservation": "Брон",
+        "guest": "Меҳмон",
+        "payments": "Тўловлар",
+        "addPayment": "Тўлов қўшиш",
+        "registration": "Рўйхатга олиш"
+      },
+      "fields": {
+        "room": "Хона",
+        "checkIn": "Кириш",
+        "checkOut": "Чиқиш",
+        "nights": "Кечалар",
+        "adults": "Катталар",
+        "channel": "Канал",
+        "roomPrice": "Хона нарxi",
+        "totalAmount": "Жами сумма",
+        "paid": "Тўланган",
+        "remaining": "Қолдиқ",
+        "specialRequest": "Махсус сўров",
+        "notes": "Изоҳлар",
+        "expectedCheckIn": "Кутилган кириш вақти",
+        "breakfast": "Нонушта",
+        "actualCheckIn": "Ҳақиқий кириш",
+        "actualCheckOut": "Ҳақиқий чиқиш"
+      },
+      "breakfastIncluded": "Киритилган ✓",
+      "breakfastNotIncluded": "Киритилмаган",
+      "guestProfileLink": "Меҳмон профилини очиш →",
+      "noPayments": "Ҳали тўлов йўқ.",
+      "perNight": "/кеча"
+    },
+    "edit": {
+      "toggleButton": "Бронни таҳрирлаш",
+      "title": "Бронни таҳрирлаш",
+      "fields": {
+        "checkIn": "Кириш санаси",
+        "checkOut": "Чиқиш санаси",
+        "adults": "Катталар сони",
+        "pricePerNight": "Кеча нарxi (UZS)",
+        "expectedCheckIn": "Кутилган кириш вақти",
+        "specialRequests": "Махсус сўровлар",
+        "internalNotes": "Ички изоҳлар",
+        "breakfastIncluded": "Нонушта киритилган"
+      }
+    },
+    "addPayment": {
+      "amountLabel": "Сумма (UZS)",
+      "methodLabel": "Усул",
+      "noteLabel": "Изоҳ (ихтиёрий)",
+      "successMessage": "✓ Тўлов сақланди, рўйхат янгиланмоқда…"
+    },
+    "actions": {
+      "title": "Амаллар",
+      "confirm": "Тасдиқлаш",
+      "noShow": "Келмади (No-show)",
+      "cancel": "Бекор қилиш",
+      "checkIn": "Кириш",
+      "checkOut": "Чиқиш",
+      "confirmDialogs": {
+        "confirm": "Брон тасдиқланади. Давом этилсинми?",
+        "noShow": "Меҳмон келмаган деб белгиланади. Давом этилсинми?",
+        "cancel": "Брон бекор қилинади. Бу амални қайтариб бўлмайди. Давом этилсинми?",
+        "checkIn": "Кириш амалга оширилади. Давом этилсинми?",
+        "checkOut": "Чиқиш амалга оширилади. Давом этилсинми?"
+      },
+      "errorPrefix": "Хатолик: "
+    },
+    "deletePayment": {
+      "confirmDialog": "Бу тўлов ёзувини ўчиришни истайсизми?",
+      "deleteButton": "Ўчириш"
+    },
+    "channels": {
+      "all": "Барча каналлар",
+      "website": "Ўз сайтимиз",
+      "walkin": "Бевосита",
+      "phone": "Телефон"
+    },
+    "methods": {
+      "cash": "Нақд",
+      "transfer": "Ўтказма"
+    }
+  },
+  "rooms": {
+    "title": "Хоналарни бошқариш",
+    "subtitle": "{n} та фаол хона · Ҳолатларни шу ердан янгилаш мумкин",
+    "floors": {
+      "basement": "Ер ости қават",
+      "floor2": "2-қават",
+      "floor3": "3-қават",
+      "floor4": "4-қават · Мансарда",
+      "floorN": "{floor}-қават"
+    },
+    "addRoom": {
+      "title": "Янги хона қўшиш",
+      "success": "Хона қўшилди ✓",
+      "numberLabel": "Хона рақами",
+      "floorLabel": "Қават",
+      "typeLabel": "Хона тури",
+      "selectPlaceholder": "— Танланг —",
+      "addingButton": "Қўшилмоқда…",
+      "addButton": "+ Хона қўшиш"
+    },
+    "editRoom": {
+      "numberLabel": "Хона рақами",
+      "floorLabel": "Қават",
+      "typeLabel": "Хона тури",
+      "notesLabel": "Изоҳлар",
+      "activeLabel": "Фаол",
+      "activeOption": "Фаол",
+      "inactiveOption": "Нофаол"
+    },
+    "empty": "Ҳали хона йўқ.",
+    "emptyHint": "Юқоридан хона қўшинг.",
+    "headers": {
+      "number": "Хона",
+      "type": "Тур",
+      "status": "Ҳолат",
+      "cleaning": "Тозалик",
+      "price": "Нарx/кеча"
+    },
+    "cancelButton": "Бекор",
+    "editButton": "Таҳрирлаш",
+    "inventoryLink": "Инвентар →"
+  },
+  "guests": {
+    "title": "Меҳмонлар",
+    "count": "{n} та ёзув",
+    "newButton": "+ Янги меҳмон",
+    "searchPlaceholder": "Исм, телефон, e-mail ёки паспорт…",
+    "resultCount": "{n} та натижа",
+    "noResult": "Натижа топилмади.",
+    "emptyState": "Ҳали меҳмон йўқ.",
+    "emptyHint": "Брон яратилганда меҳмонлар автоматик қўшилади.",
+    "headers": {
+      "name": "Ф.И.О.",
+      "phone": "Телефон",
+      "email": "E-mail",
+      "nationality": "Фуқаролик",
+      "passport": "Паспорт",
+      "actions": "Амаллар"
+    },
+    "detailLink": "Батафсил →",
+    "detail": {
+      "backLink": "← Меҳмонлар",
+      "subtitle": "{n} та брон · жами {total}",
+      "reservationsSection": "Бронлар ({n})",
+      "noReservations": "Брон йўқ."
+    },
+    "form": {
+      "firstName": "Исм",
+      "lastName": "Фамилия",
+      "phone": "Телефон",
+      "email": "E-mail",
+      "nationality": "Фуқаролик",
+      "passportNo": "Паспорт рақами",
+      "passportSeries": "Паспорт серияси",
+      "dob": "Туғилган сана",
+      "address": "Манзил",
+      "notes": "Изоҳлар",
+      "savingButton": "Сақланмоқда…",
+      "redirectingButton": "Йўналтирилмоқда…",
+      "saveButton": "Меҳмонни сақлаш"
+    },
+    "editForm": {
+      "sectionTitle": "Шахсий маълумотлар",
+      "fields": {
+        "fullName": "Ф.И.О.",
+        "phone": "Телефон",
+        "email": "E-mail",
+        "nationality": "Фуқаролик",
+        "passportNo": "Паспорт рақами",
+        "passportSeries": "Паспорт серияси",
+        "dob": "Туғилган сана",
+        "address": "Манзил",
+        "notes": "Изоҳлар",
+        "registeredAt": "Рўйхатдан ўтган сана",
+        "firstNameRequired": "Исм *",
+        "lastNameRequired": "Фамилия *"
+      },
+      "editButton": "Таҳрирлаш",
+      "savingButton": "Сақланмоқда…",
+      "saveButton": "Сақлаш",
+      "cancelButton": "Бекор"
+    }
+  },
+  "housekeeping": {
+    "title": "Тозалашни бошқариш",
+    "subtitle": "{rooms} та хона · {tasks} та фаол вазифа",
+    "overview": {
+      "title": "Кунлик шарҳ",
+      "tomorrowCheckIns": "Эртанги киришлар",
+      "todayCheckOuts": "Бугунги чиқишлар",
+      "tomorrowBreakfast": "Эртанги нонушта",
+      "breakfastBadge": "Нонушта ✓",
+      "persons": "{n} киши",
+      "checkOutLabel": "Чиқиш: {date}",
+      "sections": {
+        "checkIns": "Эртанги киришлар — {date}",
+        "checkOuts": "Бугунги чиқишлар",
+        "occupiedRooms": "Ҳозирда банд хоналар"
+      },
+      "empty": {
+        "checkIns": "Эрта кириш кутилмаяпти.",
+        "checkOuts": "Бугун чиқиш йўқ.",
+        "occupied": "Ҳозирда банд хона йўқ."
+      }
+    },
+    "inspection": {
+      "title": "Хона #{number} — Текшируви",
+      "floorBasement": "Ер ости",
+      "floorN": "{floor}-қават",
+      "staying": "яшаяпти",
+      "pastInspections": "Ўтган текширувлар",
+      "unknown": "Номаълум",
+      "noProblem": "✓ Муаммо йўқ",
+      "hasProblem": "⚠ Муаммо бор",
+      "noDamage": "✓ Зарар йўқ",
+      "hasDamage": "⚠ Зарар бор",
+      "missingItems": "{n} та етишмаётган нарса",
+      "problemNote": "Муаммо: {note}",
+      "damageNote": "Зарар: {note}",
+      "missingNote": "Етишмайди: {list}"
+    },
+    "board": {
+      "startCleaning": "Тозалашни бошлаш",
+      "cleaned": "Тозаланди",
+      "markDirty": "Ифлос деб белгилаш",
+      "markClean": "Тоза деб белгилаш",
+      "inspect": "🔍 Текшириш",
+      "inspectionHint": "Текшируви →",
+      "floorBasement": "Ер ости ({floor}-қават)",
+      "floorN": "{floor}-қават"
+    }
+  },
+  "payments": {
+    "title": "Тўловлар",
+    "count": "{n} та ёзув",
+    "summaryTitle": "Тўловлар хулосаси",
+    "totalIncome": "Жами даромад",
+    "pendingPayment": "Кутилаётган тўловлар",
+    "totalCount": "Жами ёзувлар",
+    "empty": "Ҳали тўлов йўқ.",
+    "headers": {
+      "reservation": "Брон",
+      "guest": "Меҳмон",
+      "amount": "Сумма",
+      "method": "Усул",
+      "status": "Ҳолат",
+      "date": "Сана"
+    },
+    "methods": {
+      "cash": "Нақд",
+      "transfer": "Ўтказма"
+    },
+    "statuses": {
+      "pending": "Кутилмоқда",
+      "completed": "Бажарилди",
+      "failed": "Хатолик",
+      "refunded": "Қайтарилди"
+    }
+  },
+  "reports": {
+    "title": "Кунлик ҳисобот",
+    "errorMessage": "Ҳисобот юкланмади.",
+    "viewButton": "Кўриш",
+    "exportButton": "Excel юклаб олиш",
+    "summaryTitle": "Куннинг хулосаси",
+    "occupancy": "Тўлдирилганлик",
+    "roomsCount": "{occupied}/{total} хона",
+    "dailyIncome": "Кунлик даромад",
+    "transactions": "{n} та трансакция",
+    "checkIns": "кириш",
+    "checkOuts": "чиқиш",
+    "revenueBreakdown": "Даромад тақсимоти",
+    "checkInList": "Киришлар рўйхати ({n})",
+    "checkOutList": "Чиқишлар рўйхати ({n})",
+    "noCheckIns": "Бу кунда кириш йўқ.",
+    "noCheckOuts": "Бу кунда чиқиш йўқ.",
+    "headers": {
+      "reservation": "Брон",
+      "guest": "Меҳмон",
+      "room": "Хона",
+      "roomPrice": "Хона нарxi",
+      "total": "Жами"
+    }
+  },
+  "registrations": {
+    "title": "Меҳмонларни рўйхатга олиш",
+    "subtitle": "Хорижий меҳмонларни билдириш — Ўзбекистон қонуний талаби",
+    "statuses": {
+      "pending": "Кутилмоқда",
+      "submitted": "Юборилди",
+      "confirmed": "Тасдиқланди"
+    },
+    "filters": {
+      "all": "Барчаси",
+      "pending": "Кутилмоқда",
+      "submitted": "Юборилди",
+      "confirmed": "Тасдиқланди"
+    },
+    "loadError": "Ёзувлар юкланмади: ",
+    "emptyAll": "Ҳали ёзув йўқ.",
+    "emptyStatus": "Бу ҳолатда ёзув йўқ.",
+    "emptyHint": "Хорижий меҳмон учун брон тафсилоти саҳифасидан рўйхат яратинг.",
+    "headers": {
+      "guest": "Меҳмон",
+      "passport": "Паспорт",
+      "nationality": "Фуқаролик",
+      "reservation": "Брон",
+      "dates": "Санaлар",
+      "room": "Хона",
+      "registeredAt": "Рўйхат санаси",
+      "status": "Ҳолат"
+    },
+    "birthDatePrefix": "Т: ",
+    "infoTitle": "Рўйхатга олиш нима?",
+    "infoText": "Ўзбекистон қонунчилигига кўра, хорижий меҳмонлар жойлашгандан кейин 3 кун ичида ОВИР тизимида рўйхатдан ўтказилиши шарт. Ҳолатни кузатинг:",
+    "infoBoldText": "Кутилмоқда → Юборилди → Тасдиқланди",
+    "infoTextEnd": "",
+    "buttons": {
+      "markSubmitted": "Юборилди деб белгилаш",
+      "markConfirmed": "Тасдиқланди деб белгилаш"
+    }
+  },
+  "staff": {
+    "title": "Ходимларни бошқариш",
+    "subtitle": "Тизимга кириш ҳуқуқи бўлган ҳисоблар",
+    "inviteSection": {
+      "title": "Янги ходимни таклиф қилиш",
+      "subtitle": "Кўрсатилган e-mailга кириш ҳавола юборилади"
+    },
+    "activeAccounts": "Фаол ҳисоблар",
+    "empty": "Фойдаланувчи топилмади.",
+    "meBadge": "(мен)",
+    "lastSignIn": "Сўнги кириш: {date}",
+    "neverSignedIn": "Ҳали кирмаган",
+    "rolesSection": "Роллар бўйича кириш даражалари",
+    "roleDescriptions": {
+      "admin": "Ҳамма нарса: тизим созламалари, фойдаланувчиларни бошқариш, барча ҳисоботлар",
+      "manager": "Операция + молия + ҳисоботлар (ходимлар/созламалар чекланган)",
+      "receptionist": "Брон, кириш/чиқиш, тўлов, меҳмон, тозалаш",
+      "housekeeper": "Фақат Дашборд ва Тозалаш саҳифаси",
+      "accountant": "Дашборд, Тўловлар, Ҳисоботлар"
+    },
+    "inviteForm": {
+      "nameLabel": "Ф.И.О.",
+      "emailLabel": "E-mail манзил",
+      "roleLabel": "Рол",
+      "namePlaceholder": "Алишер Усмонов",
+      "emailPlaceholder": "xodim@misol.com",
+      "sendingButton": "Юборилмоқда…",
+      "sentButton": "Таклиф юборилди ✓",
+      "sendButton": "Таклиф юбориш"
+    },
+    "deleteConfirm": "«{email}» ҳисобини ўчиришни истайсизми?"
+  },
+  "settings": {
+    "title": "Созламалар",
+    "subtitle": "Меҳмонхона профили, хона нарxлари ва билдиришномалар",
+    "hotelProfile": {
+      "title": "Меҳмонхона профили",
+      "subtitle": "Квитансия ва e-mail тасдиқларда ишлатилади",
+      "fields": {
+        "name": "Меҳмонхона номи",
+        "address": "Манзил",
+        "phone": "Телефон",
+        "email": "E-mail",
+        "website": "Веб-сайт",
+        "checkInTime": "Кириш вақти",
+        "checkOutTime": "Чиқиш вақти"
+      },
+      "savingButton": "Сақланмоқда…",
+      "savedButton": "Сақланди ✓",
+      "saveButton": "Сақлаш"
+    },
+    "roomTypePrices": {
+      "title": "Хона тури нарxлари",
+      "subtitle": "Ўзгаришлар дарҳол кучга киради — янги бронларга акс этади",
+      "empty": "Хона тури топилмади. Маълумотлар базасида бошланғич маълумотлар йўқ бўлиши мумкин.",
+      "priceUnit": "UZS / кеча"
+    },
+    "emailNotifications": {
+      "title": "Email-билдиришномалар",
+      "subtitle": "Vercel муҳит ўзгарувчиларидан ўқилади",
+      "adminEmail": "Админ e-mail манзили",
+      "resendApi": "Resend API",
+      "connected": "Улланган ✓",
+      "notSet": "Созланмаган — email юборилмайди",
+      "envVarsNote": "Vercel муҳит ўзгарувчиларига қўшинг:"
+    }
+  },
+  "garden": {
+    "title": "Боғ ишлари",
+    "subtitle": "Вазифалар рўйхати ва боғ материаллари",
+    "tasksSection": "Вазифалар",
+    "materialsSection": "Боғ материаллари ({n})",
+    "warehouseLink": "Омбордан кўриш →",
+    "addTask": {
+      "title": "Янги вазифа қўшиш",
+      "namePlaceholder": "Вазифа номи...",
+      "notePlaceholder": "Изоҳ (ихтиёрий)...",
+      "addingButton": "Қўшилмоқда...",
+      "addButton": "+ Қўшиш"
+    },
+    "pending": "Кутилаётганлар ({n})",
+    "done": "Бажарилганлар ({n})",
+    "emptyPending": "Кутилаётган вазифа йўқ ✓",
+    "completeButton": "Бажариш",
+    "undoButton": "Қайтариш"
+  },
+  "depo": {
+    "productsTitle": "Омбордаги маҳсулотлар",
+    "purchaseHistoryTitle": "Харидлар тарихи",
+    "newPurchaseButton": "+ Янги харид",
+    "cancelButton": "Бекор",
+    "newPurchaseTitle": "Янги омбор хариди",
+    "categorySelectLabel": "Категория танланг",
+    "changeCategory": "Ўзгартириш",
+    "savedMessage": "Харид сақланди ✓",
+    "fields": {
+      "productName": "Маҳсулот номи *",
+      "place": "Харид жойи *",
+      "quantity": "Миқдор *",
+      "unitPrice": "Бирлик нарxi (ихтиёрий)",
+      "totalAmount": "Жами сумма *",
+      "currency": "Валюта *",
+      "area": "Майдон",
+      "broughtBy": "Ким олиб келди (ихтиёрий)"
+    },
+    "areas": {
+      "general": "Умумий",
+      "rooms": "Хоналар",
+      "garden": "Боғ",
+      "kitchen": "Ошхона",
+      "reception": "Ресепшон"
+    },
+    "categories": {
+      "cleaning": "Тозалаш",
+      "kitchen": "Ошхона",
+      "food": "Озиқ-овқат",
+      "beverage": "Ичимликлар",
+      "decoration": "Декорация",
+      "room_furniture": "Хона жиҳозлари",
+      "replacement": "Алмаштириш"
+    },
+    "products": {
+      "nameHeader": "Номи",
+      "quantityHeader": "Миқдор",
+      "useButton": "Ишлатиш",
+      "closeButton": "Ёпиш",
+      "useAgainButton": "Яна ишлатиш",
+      "historyButton": "Тарих",
+      "consumeSuccess": "✓ Омбордан чиқарилди",
+      "searchPlaceholder": "Маҳсулот қидириш...",
+      "allCategories": "Барча категориялар",
+      "clearFilter": "Тозалаш",
+      "noProducts": "Ҳали маҳсулот йўқ. Харид киритинг — маҳсулотлар автоматик яратилади.",
+      "noFilterResult": "Фильтр бўйича маҳсулот йўқ.",
+      "lowStockWarning": "⚠ оз",
+      "consumeForm": {
+        "quantityLabel": "Миқдор",
+        "destinationLabel": "Фойдаланиш жойи",
+        "roomLabel": "Хона рақами",
+        "noteLabel": "Изоҳ (ихтиёрий)",
+        "confirmButton": "Тасдиқлаш",
+        "savingButton": "Сақланмоқда…"
+      },
+      "history": {
+        "loadingText": "Юкланмоқда…",
+        "noHistory": "Ҳали ҳаракат йўқ.",
+        "headers": {
+          "date": "Сана",
+          "type": "Тур",
+          "quantity": "Миқдор",
+          "who": "Ким",
+          "where": "Қаерга",
+          "note": "Изоҳ"
+        },
+        "typeIn": "Кирди",
+        "typeOut": "Чиқди"
+      },
+      "destinations": {
+        "room": "Хона",
+        "garden": "Боғ",
+        "kitchen": "Ошхона",
+        "reception": "Ресепшон",
+        "general": "Умумий"
+      }
+    },
+    "purchaseList": {
+      "empty": "Ҳали харид йўқ.",
+      "filterResult": "{visible} / {total} ёзув",
+      "showMore": "+{n} кўпроқ",
+      "showAll": "Барчаси ({n})",
+      "noFilterResult": "Фильтр бўйича ёзув йўқ.",
+      "headers": {
+        "date": "Сана",
+        "product": "Маҳсулот",
+        "category": "Категория",
+        "area": "Майдон",
+        "quantity": "Миқдор",
+        "amount": "Сумма",
+        "place": "Жой",
+        "entered": "Ким киритди"
+      }
+    }
+  },
+  "finance": {
+    "title": "Пул оқими",
+    "subtitle": "Даромад ва харажатлар — UZS/USD алоҳида кўрсатилади",
+    "income": "Даромадлар",
+    "expense": "Харажатлар",
+    "net": "Соф",
+    "incomeSection": "Даромадлар ({n} та тўлов)",
+    "expenseSection": "Харажатлар — Омбор ({n} та харид)",
+    "empty": "Бажарилган тўловлар йўқ.",
+    "expenseEmpty": "Омбор харидлари йўқ.",
+    "filterClear": "Фильтрларни тозалаш",
+    "showMore": "+{n} кўпроқ",
+    "showAll": "Барчаси ({n})",
+    "noFilterResult": "Фильтр бўйича ёзув йўқ.",
+    "filterAll": "Барчаси",
+    "headers": {
+      "date": "Сана",
+      "product": "Маҳсулот",
+      "category": "Категория",
+      "area": "Майдон",
+      "place": "Жой",
+      "entered": "Ким киритди",
+      "amount": "Сумма",
+      "method": "Усул"
+    },
+    "detailFields": {
+      "dateTime": "Сана / Вақт",
+      "product": "Маҳсулот",
+      "category": "Категория",
+      "area": "Майдон",
+      "quantity": "Миқдор",
+      "unitPrice": "Бирлик нарxi",
+      "total": "Жами сумма",
+      "currency": "Валюта",
+      "place": "Харид жойи",
+      "enteredBy": "Ким киритди (тизим)",
+      "broughtBy": "Ким олиб келди (жисмоний)"
+    }
+  },
+  "login": {
+    "panelTitle": "Бошқарув панели",
+    "emailLabel": "E-mail",
+    "passwordLabel": "Парол",
+    "loggingIn": "Кириш…",
+    "loginButton": "Кириш"
+  },
+  "invoice": {
+    "title": "Квитансия — Анор Авеню",
+    "previewTitle": "Квитансия кўриниши",
+    "invoiceLabel": "Квитанция / Fatura",
+    "dateLabel": "Сана: ",
+    "guestSection": "Меҳмон / Гость",
+    "guestFields": {
+      "nationality": "Фуқаролик: ",
+      "passport": "Паспорт: ",
+      "dob": "Т.с.: ",
+      "phone": "Тел.: ",
+      "email": "E-mail: "
+    },
+    "reservationSection": "Брон / Бронь",
+    "reservationFields": {
+      "room": "Хона",
+      "floor": "Қават",
+      "floorSuffix": "-қават",
+      "checkIn": "Кириш",
+      "checkOut": "Чиқиш",
+      "nightsAdults": "Кеча / Киши",
+      "channel": "Канал"
+    },
+    "nightsAdultsValue": "{nights} кеча · {adults} катта",
+    "childrenExtra": "+ {n} бола",
+    "lineHeaders": {
+      "description": "Тавсиф",
+      "qty": "Миқдор",
+      "amount": "Сумма"
+    },
+    "lineItems": {
+      "roomRent": "Хона ижараси — ",
+      "priceFormula": "{price} × {nights} кеча",
+      "discount": "Чегирма"
+    },
+    "total": "ЖАМИ / ИТОГО",
+    "paymentsSection": "Қабул қилинган тўловлар / Тўловлар",
+    "remaining": "ҚОЛДИҚ / ОСТАТОК",
+    "fullyPaid": "ТЎЛ ТЎЛАНГАН / ОПЛАЧЕНО",
+    "specialRequest": "Махсус сўров:",
+    "footer": "Ушбу ҳужжат {hotel} томонидан {date} куни тузилган."
+  },
+  "newReservation": {
+    "sections": {
+      "guestInfo": "Меҳмон маълумотлари",
+      "reservationDetails": "Брон тафсилотлари",
+      "prepayment": "Олдиндан тўлов"
+    },
+    "fields": {
+      "firstName": "Исм",
+      "lastName": "Фамилия",
+      "phone": "Телефон",
+      "email": "E-mail",
+      "nationality": "Фуқаролик",
+      "passportId": "Паспорт / Шахсий ҳужжат",
+      "room": "Хона",
+      "checkIn": "Кириш санаси",
+      "checkOut": "Чиқиш санаси",
+      "adults": "Катталар сони",
+      "expectedCheckIn": "Кутилган кириш вақти (ихтиёрий)",
+      "breakfast": "Нонушта",
+      "specialRequest": "Махсус сўров",
+      "amount": "Сумма (UZS)",
+      "method": "Тўлов усули"
+    },
+    "placeholders": {
+      "nationality": "Ўзбекистон",
+      "specialRequest": "Эрта кириш, юқори қават...",
+      "email": "mehmon@email.com"
+    },
+    "roomSelect": "— Хона танланг —",
+    "adultsOption": "{n} катта",
+    "breakfastIncluded": "Нонушта киритилган",
+    "priceFormula": "{price} × {nights} кеча",
+    "removePrepayment": "Олиб ташлаш",
+    "addPrepayment": "+ Қўшиш",
+    "prepaymentNote": "Олдиндан тўлов олинмаган бўлса, бўш қолдиринг. Киришда қўшиш мумкин.",
+    "savingButton": "Сақланмоқда…",
+    "redirectingButton": "Йўналтирилмоқда…",
+    "submitButton": "Брон яратиш",
+    "cancelLink": "Бекор"
+  }
+}

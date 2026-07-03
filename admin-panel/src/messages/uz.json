@@ -1,0 +1,790 @@
+{
+  "common": {
+    "save": "Saqlash",
+    "saving": "Saqlanmoqda…",
+    "saved": "Saqlandi ✓",
+    "cancel": "Bekor qilish",
+    "edit": "Tahrirlash",
+    "delete": "O'chirish",
+    "detail": "Batafsil →",
+    "all": "Barchasi",
+    "noResult": "Natija topilmadi",
+    "loading": "Yuklanmoqda…",
+    "error": "Xatolik",
+    "select": "— Tanlang —",
+    "filterClear": "Filtrlarni tozalash",
+    "showMore": "+{n} ko'proq",
+    "showAll": "Barchasi ({n})",
+    "visibleCount": "{visible} / {total} yozuv",
+    "noFilterResult": "Filtr bo'yicha yozuv yo'q.",
+    "redirecting": "Yo'naltirilmoqda…"
+  },
+  "nav": {
+    "title": "Boshqaruv paneli",
+    "brandName": "Anor Avenue",
+    "dashboard": "Dashboard",
+    "calendar": "Kalendar",
+    "reservationList": "Bronlar ro'yxati",
+    "newReservation": "Yangi bron",
+    "rooms": "Xonalar",
+    "guests": "Mehmonlar",
+    "registrations": "Ro'yxatga olish",
+    "housekeeping": "Tozalash",
+    "dailyOverview": "Kunlik sharh",
+    "payments": "To'lovlar",
+    "reports": "Hisobotlar",
+    "warehouse": "Ombor",
+    "garden": "Bog' ishlari",
+    "cashFlow": "Pul oqimi",
+    "staff": "Xodimlar",
+    "settings": "Sozlamalar",
+    "logout": "Chiqish",
+    "openMenu": "Menyuni ochish"
+  },
+  "roles": {
+    "admin": "Admin",
+    "manager": "Menejer",
+    "receptionist": "Resepshon",
+    "housekeeper": "Tozalovchi",
+    "accountant": "Buxgalter"
+  },
+  "topbar": {
+    "dashboard": "Dashboard",
+    "calendar": "Bronlar kalendari",
+    "reservationList": "Bronlar ro'yxati",
+    "newReservation": "Yangi bron",
+    "rooms": "Xonalar",
+    "guests": "Mehmonlar",
+    "newGuest": "Yangi mehmon",
+    "registrations": "Mehmonlarni ro'yxatga olish",
+    "housekeeping": "Tozalash",
+    "dailyOverview": "Kunlik sharh",
+    "payments": "To'lovlar",
+    "reports": "Hisobotlar",
+    "staff": "Xodimlar",
+    "settings": "Sozlamalar",
+    "reservationDetail": "Bron tafsiloti",
+    "guestDetail": "Mehmon profili",
+    "pendingReservations": "Kutilayotgan bronlar",
+    "pendingPayments": "Kutilayotgan to'lovlar"
+  },
+  "status": {
+    "reservation": {
+      "pending": "Kutilmoqda",
+      "confirmed": "Tasdiqlangan",
+      "checked_in": "Keldi",
+      "checked_out": "Ketdi",
+      "cancelled": "Bekor qilingan",
+      "no_show": "Kelmadi"
+    },
+    "payment": {
+      "pending": "Kutilmoqda",
+      "completed": "Bajarildi",
+      "failed": "Xatolik",
+      "refunded": "Qaytarildi"
+    },
+    "room": {
+      "available": "Bo'sh",
+      "occupied": "Band",
+      "cleaning": "Tozalanmoqda",
+      "maintenance": "Ta'mirda",
+      "blocked": "Yopiq"
+    },
+    "cleaning": {
+      "clean": "Toza",
+      "dirty": "Iflos",
+      "in_progress": "Tozalanmoqda",
+      "cleaned": "Tozalandi · Tekshiruv kutilmoqda",
+      "cleaned_housekeeper": "Toza",
+      "inspected": "Tekshirildi"
+    }
+  },
+  "dashboard": {
+    "greeting": "Xush kelibsiz, {name}",
+    "overview": "Umumiy ko'rinish",
+    "todayMovement": "Bugungi harakat",
+    "operation": "Operatsiya",
+    "cleaningStatus": "Xonalar tozalik holati",
+    "accessDenied": "Sizda bu sahifaga kirish huquqi yo'q. Chap menyu orqali o'z sahifangizni tanlang.",
+    "pendingReservations": "{n} ta bron tasdiqlanishini kutmoqda",
+    "morePending": "+{n} ta →",
+    "totalRooms": "Jami xonalar",
+    "occupiedRooms": "Band xonalar",
+    "availableRooms": "Bo'sh xonalar",
+    "guestsStaying": "Mehmonlar soni",
+    "newReservations": "Yangi bronlar (bugun)",
+    "tomorrowCheckIn": "Ertangi kirishlar",
+    "todayCheckIn": "Bugungi kirishlar",
+    "todayCheckOut": "Bugungi chiqishlar",
+    "guestFallback": "Mehmon",
+    "userFallback": "Foydalanuvchi"
+  },
+  "reservations": {
+    "calendar": {
+      "title": "Bronlar kalendari",
+      "listButton": "☰ Ro'yxat",
+      "newButton": "+ Yangi bron"
+    },
+    "list": {
+      "searchPlaceholder": "Mehmon ismi, tel., kod yoki xona…",
+      "resultCount": "{n} ta bron",
+      "searchSuffix": "· «{search}» qidiruvi",
+      "noResult": "Natija topilmadi",
+      "detailLink": "Batafsil →",
+      "headers": {
+        "code": "Kod",
+        "guest": "Mehmon",
+        "room": "Xona",
+        "channel": "Kanal",
+        "checkIn": "Kirish",
+        "checkOut": "Chiqish",
+        "nights": "Kecha",
+        "amount": "Summa",
+        "status": "Holat"
+      },
+      "filterSection": "Filtrlar"
+    },
+    "new": {
+      "backLink": "← Kalendar",
+      "title": "Yangi bron",
+      "noRoomsWarning": "Faol xonalar yo'q. Supabase'da rooms jadvaliga xona qo'shing."
+    },
+    "detail": {
+      "backLink": "← Kalendar",
+      "printInvoice": "Kvitansiyani chop etish",
+      "sections": {
+        "reservation": "Bron",
+        "guest": "Mehmon",
+        "payments": "To'lovlar",
+        "addPayment": "To'lov qo'shish",
+        "registration": "Ro'yxatga olish"
+      },
+      "fields": {
+        "room": "Xona",
+        "checkIn": "Kirish",
+        "checkOut": "Chiqish",
+        "nights": "Kechalar",
+        "adults": "Kattallar",
+        "channel": "Kanal",
+        "roomPrice": "Xona narxi",
+        "totalAmount": "Jami summa",
+        "paid": "To'langan",
+        "remaining": "Qoldiq",
+        "specialRequest": "Maxsus so'rov",
+        "notes": "Izohlar",
+        "expectedCheckIn": "Kutilgan kirish vaqti",
+        "breakfast": "Nonushta",
+        "actualCheckIn": "Haqiqiy kirish",
+        "actualCheckOut": "Haqiqiy chiqish"
+      },
+      "breakfastIncluded": "Kiritilgan ✓",
+      "breakfastNotIncluded": "Kiritilmagan",
+      "guestProfileLink": "Mehmon profilini ochish →",
+      "noPayments": "Hali to'lov yo'q.",
+      "perNight": "/kecha"
+    },
+    "edit": {
+      "toggleButton": "Bronni tahrirlash",
+      "title": "Bronni tahrirlash",
+      "fields": {
+        "checkIn": "Kirish sanasi",
+        "checkOut": "Chiqish sanasi",
+        "adults": "Kattallar soni",
+        "pricePerNight": "Kecha narxi (UZS)",
+        "expectedCheckIn": "Kutilgan kirish vaqti",
+        "specialRequests": "Maxsus so'rovlar",
+        "internalNotes": "Ichki izohlar",
+        "breakfastIncluded": "Nonushta kiritilgan"
+      }
+    },
+    "addPayment": {
+      "amountLabel": "Summa (UZS)",
+      "methodLabel": "Usul",
+      "noteLabel": "Izoh (ixtiyoriy)",
+      "successMessage": "✓ To'lov saqlandi, ro'yxat yangilanmoqda…"
+    },
+    "actions": {
+      "title": "Amallar",
+      "confirm": "Tasdiqlash",
+      "noShow": "Kelmadi (No-show)",
+      "cancel": "Bekor qilish",
+      "checkIn": "Kirish",
+      "checkOut": "Chiqish",
+      "confirmDialogs": {
+        "confirm": "Bron tasdiqlanadi. Davom etilsinmi?",
+        "noShow": "Mehmon kelmagan deb belgilanadi. Davom etilsinmi?",
+        "cancel": "Bron bekor qilinadi. Bu amalni qaytarib bo'lmaydi. Davom etilsinmi?",
+        "checkIn": "Kirish amalga oshiriladi. Davom etilsinmi?",
+        "checkOut": "Chiqish amalga oshiriladi. Davom etilsinmi?"
+      },
+      "errorPrefix": "Xatolik: "
+    },
+    "deletePayment": {
+      "confirmDialog": "Bu to'lov yozuvini o'chirishni istaysizmi?",
+      "deleteButton": "O'chirish"
+    },
+    "channels": {
+      "all": "Barcha kanallar",
+      "website": "O'z saytimiz",
+      "walkin": "Bevosita",
+      "phone": "Telefon"
+    },
+    "methods": {
+      "cash": "Naqd",
+      "transfer": "O'tkazma"
+    }
+  },
+  "rooms": {
+    "title": "Xonalarni boshqarish",
+    "subtitle": "{n} ta faol xona · Holatlarni shu yerdan yangilash mumkin",
+    "floors": {
+      "basement": "Yer osti qavat",
+      "floor2": "2-qavat",
+      "floor3": "3-qavat",
+      "floor4": "4-qavat · Mansarda",
+      "floorN": "{floor}-qavat"
+    },
+    "addRoom": {
+      "title": "Yangi xona qo'shish",
+      "success": "Xona qo'shildi ✓",
+      "numberLabel": "Xona raqami",
+      "floorLabel": "Qavat",
+      "typeLabel": "Xona turi",
+      "selectPlaceholder": "— Tanlang —",
+      "addingButton": "Qo'shilmoqda…",
+      "addButton": "+ Xona qo'shish"
+    },
+    "editRoom": {
+      "numberLabel": "Xona raqami",
+      "floorLabel": "Qavat",
+      "typeLabel": "Xona turi",
+      "notesLabel": "Izohlar",
+      "activeLabel": "Faol",
+      "activeOption": "Faol",
+      "inactiveOption": "Nofaol"
+    },
+    "empty": "Hali xona yo'q.",
+    "emptyHint": "Yuqoridan xona qo'shing.",
+    "headers": {
+      "number": "Xona",
+      "type": "Tur",
+      "status": "Holat",
+      "cleaning": "Tozalik",
+      "price": "Narx/kecha"
+    },
+    "cancelButton": "Bekor",
+    "editButton": "Tahrirlash",
+    "inventoryLink": "Inventar →"
+  },
+  "guests": {
+    "title": "Mehmonlar",
+    "count": "{n} ta yozuv",
+    "newButton": "+ Yangi mehmon",
+    "searchPlaceholder": "Ism, telefon, e-mail yoki pasport…",
+    "resultCount": "{n} ta natija",
+    "noResult": "Natija topilmadi.",
+    "emptyState": "Hali mehmon yo'q.",
+    "emptyHint": "Bron yaratilganda mehmonlar avtomatik qo'shiladi.",
+    "headers": {
+      "name": "F.I.O.",
+      "phone": "Telefon",
+      "email": "E-mail",
+      "nationality": "Fuqarolik",
+      "passport": "Pasport",
+      "actions": "Amallar"
+    },
+    "detailLink": "Batafsil →",
+    "detail": {
+      "backLink": "← Mehmonlar",
+      "subtitle": "{n} ta bron · jami {total}",
+      "reservationsSection": "Bronlar ({n})",
+      "noReservations": "Bron yo'q."
+    },
+    "form": {
+      "firstName": "Ism",
+      "lastName": "Familiya",
+      "phone": "Telefon",
+      "email": "E-mail",
+      "nationality": "Fuqarolik",
+      "passportNo": "Pasport raqami",
+      "passportSeries": "Pasport seriyasi",
+      "dob": "Tug'ilgan sana",
+      "address": "Manzil",
+      "notes": "Izohlar",
+      "savingButton": "Saqlanmoqda…",
+      "redirectingButton": "Yo'naltirilmoqda…",
+      "saveButton": "Mehmonni saqlash"
+    },
+    "editForm": {
+      "sectionTitle": "Shaxsiy ma'lumotlar",
+      "fields": {
+        "fullName": "F.I.O.",
+        "phone": "Telefon",
+        "email": "E-mail",
+        "nationality": "Fuqarolik",
+        "passportNo": "Pasport raqami",
+        "passportSeries": "Pasport seriyasi",
+        "dob": "Tug'ilgan sana",
+        "address": "Manzil",
+        "notes": "Izohlar",
+        "registeredAt": "Ro'yxatdan o'tgan sana",
+        "firstNameRequired": "Ism *",
+        "lastNameRequired": "Familiya *"
+      },
+      "editButton": "Tahrirlash",
+      "savingButton": "Saqlanmoqda…",
+      "saveButton": "Saqlash",
+      "cancelButton": "Bekor"
+    }
+  },
+  "housekeeping": {
+    "title": "Tozalashni boshqarish",
+    "subtitle": "{rooms} ta xona · {tasks} ta faol vazifa",
+    "overview": {
+      "title": "Kunlik sharh",
+      "tomorrowCheckIns": "Ertangi kirishlar",
+      "todayCheckOuts": "Bugungi chiqishlar",
+      "tomorrowBreakfast": "Ertangi nonushta",
+      "breakfastBadge": "Nonushta ✓",
+      "persons": "{n} kishi",
+      "checkOutLabel": "Chiqish: {date}",
+      "sections": {
+        "checkIns": "Ertangi kirishlar — {date}",
+        "checkOuts": "Bugungi chiqishlar",
+        "occupiedRooms": "Hozirda band xonalar"
+      },
+      "empty": {
+        "checkIns": "Ertaga kirish kutilmayapti.",
+        "checkOuts": "Bugun chiqish yo'q.",
+        "occupied": "Hozirda band xona yo'q."
+      }
+    },
+    "inspection": {
+      "title": "Xona #{number} — Tekshiruv",
+      "floorBasement": "Yer osti",
+      "floorN": "{floor}-qavat",
+      "staying": "yashayapti",
+      "pastInspections": "O'tgan tekshiruvlar",
+      "unknown": "Noma'lum",
+      "noProblem": "✓ Muammo yo'q",
+      "hasProblem": "⚠ Muammo bor",
+      "noDamage": "✓ Zarar yo'q",
+      "hasDamage": "⚠ Zarar bor",
+      "missingItems": "{n} ta yetishmayotgan narsa",
+      "problemNote": "Muammo: {note}",
+      "damageNote": "Zarar: {note}",
+      "missingNote": "Yetishmaydi: {list}"
+    },
+    "board": {
+      "startCleaning": "Tozalashni boshlash",
+      "cleaned": "Tozalandi",
+      "markDirty": "Iflos deb belgilash",
+      "markClean": "Toza deb belgilash",
+      "inspect": "🔍 Tekshirish",
+      "inspectionHint": "Tekshiruv →",
+      "floorBasement": "Yer osti ({floor}-qavat)",
+      "floorN": "{floor}-qavat"
+    }
+  },
+  "payments": {
+    "title": "To'lovlar",
+    "count": "{n} ta yozuv",
+    "summaryTitle": "To'lovlar xulosasi",
+    "totalIncome": "Jami daromad",
+    "pendingPayment": "Kutilayotgan to'lovlar",
+    "totalCount": "Jami yozuvlar",
+    "empty": "Hali to'lov yo'q.",
+    "headers": {
+      "reservation": "Bron",
+      "guest": "Mehmon",
+      "amount": "Summa",
+      "method": "Usul",
+      "status": "Holat",
+      "date": "Sana"
+    },
+    "methods": {
+      "cash": "Naqd",
+      "transfer": "O'tkazma"
+    },
+    "statuses": {
+      "pending": "Kutilmoqda",
+      "completed": "Bajarildi",
+      "failed": "Xatolik",
+      "refunded": "Qaytarildi"
+    }
+  },
+  "reports": {
+    "title": "Kunlik hisobot",
+    "errorMessage": "Hisobot yuklanmadi.",
+    "viewButton": "Ko'rish",
+    "exportButton": "Excel yuklab olish",
+    "summaryTitle": "Kunning xulosasi",
+    "occupancy": "To'ldirilganlik",
+    "roomsCount": "{occupied}/{total} xona",
+    "dailyIncome": "Kunlik daromad",
+    "transactions": "{n} ta tranzaksiya",
+    "checkIns": "kirish",
+    "checkOuts": "chiqish",
+    "revenueBreakdown": "Daromad taqsimoti",
+    "checkInList": "Kirishlar ro'yxati ({n})",
+    "checkOutList": "Chiqishlar ro'yxati ({n})",
+    "noCheckIns": "Bu kunda kirish yo'q.",
+    "noCheckOuts": "Bu kunda chiqish yo'q.",
+    "headers": {
+      "reservation": "Bron",
+      "guest": "Mehmon",
+      "room": "Xona",
+      "roomPrice": "Xona narxi",
+      "total": "Jami"
+    }
+  },
+  "registrations": {
+    "title": "Mehmonlarni ro'yxatga olish",
+    "subtitle": "Xorijiy mehmonlarni bildirish — O'zbekiston qonuniy talabi",
+    "statuses": {
+      "pending": "Kutilmoqda",
+      "submitted": "Yuborildi",
+      "confirmed": "Tasdiqlandi"
+    },
+    "filters": {
+      "all": "Barchasi",
+      "pending": "Kutilmoqda",
+      "submitted": "Yuborildi",
+      "confirmed": "Tasdiqlandi"
+    },
+    "loadError": "Yozuvlar yuklanmadi: ",
+    "emptyAll": "Hali yozuv yo'q.",
+    "emptyStatus": "Bu holatda yozuv yo'q.",
+    "emptyHint": "Xorijiy mehmon uchun bron tafsiloti sahifasidan ro'yxat yarating.",
+    "headers": {
+      "guest": "Mehmon",
+      "passport": "Pasport",
+      "nationality": "Fuqarolik",
+      "reservation": "Bron",
+      "dates": "Sanalar",
+      "room": "Xona",
+      "registeredAt": "Ro'yxat sanasi",
+      "status": "Holat"
+    },
+    "birthDatePrefix": "T: ",
+    "infoTitle": "Ro'yxatga olish nima?",
+    "infoText": "O'zbekiston qonunchiligiga ko'ra, xorijiy mehmonlar joylashgandan keyin 3 kun ichida OVIR tizimida ro'yxatdan o'tkazilishi shart. Holatni kuzating:",
+    "infoBoldText": "Kutilmoqda → Yuborildi → Tasdiqlandi",
+    "infoTextEnd": "",
+    "buttons": {
+      "markSubmitted": "Yuborildi deb belgilash",
+      "markConfirmed": "Tasdiqlandi deb belgilash"
+    }
+  },
+  "staff": {
+    "title": "Xodimlarni boshqarish",
+    "subtitle": "Tizimga kirish huquqi bo'lgan hisoblar",
+    "inviteSection": {
+      "title": "Yangi xodimni taklif qilish",
+      "subtitle": "Ko'rsatilgan e-mailga kirish havolasi yuboriladi"
+    },
+    "activeAccounts": "Faol hisoblar",
+    "empty": "Foydalanuvchi topilmadi.",
+    "meBadge": "(men)",
+    "lastSignIn": "So'nggi kirish: {date}",
+    "neverSignedIn": "Hali kirmagan",
+    "rolesSection": "Rollar bo'yicha kirish darajalari",
+    "roleDescriptions": {
+      "admin": "Hamma narsa: tizim sozlamalari, foydalanuvchilarni boshqarish, barcha hisobotlar",
+      "manager": "Operatsiya + moliya + hisobotlar (xodimlar/sozlamalar cheklangan)",
+      "receptionist": "Bron, kirish/chiqish, to'lov, mehmon, tozalash",
+      "housekeeper": "Faqat Dashboard va Tozalash sahifasi",
+      "accountant": "Dashboard, To'lovlar, Hisobotlar"
+    },
+    "inviteForm": {
+      "nameLabel": "F.I.O.",
+      "emailLabel": "E-mail manzil",
+      "roleLabel": "Rol",
+      "namePlaceholder": "Alisher Usmonov",
+      "emailPlaceholder": "xodim@misol.com",
+      "sendingButton": "Yuborilmoqda…",
+      "sentButton": "Taklif yuborildi ✓",
+      "sendButton": "Taklif yuborish"
+    },
+    "deleteConfirm": "«{email}» hisobini o'chirishni istaysizmi?"
+  },
+  "settings": {
+    "title": "Sozlamalar",
+    "subtitle": "Mehmonxona profili, xona narxlari va bildirishnomalar",
+    "hotelProfile": {
+      "title": "Mehmonxona profili",
+      "subtitle": "Kvitansiya va e-mail tasdiqlarda ishlatiladi",
+      "fields": {
+        "name": "Mehmonxona nomi",
+        "address": "Manzil",
+        "phone": "Telefon",
+        "email": "E-mail",
+        "website": "Veb-sayt",
+        "checkInTime": "Kirish vaqti",
+        "checkOutTime": "Chiqish vaqti"
+      },
+      "savingButton": "Saqlanmoqda…",
+      "savedButton": "Saqlandi ✓",
+      "saveButton": "Saqlash"
+    },
+    "roomTypePrices": {
+      "title": "Xona turi narxlari",
+      "subtitle": "O'zgarishlar darhol kuchga kiradi — yangi bronlarga aks etadi",
+      "empty": "Xona turi topilmadi. Ma'lumotlar bazasida boshlang'ich ma'lumotlar yo'q bo'lishi mumkin.",
+      "priceUnit": "UZS / kecha"
+    },
+    "emailNotifications": {
+      "title": "Email-bildirishnomalar",
+      "subtitle": "Vercel muhit o'zgaruvchilaridan o'qiladi",
+      "adminEmail": "Admin e-mail manzili",
+      "resendApi": "Resend API",
+      "connected": "Ulangan ✓",
+      "notSet": "Sozlanmagan — email yuborilmaydi",
+      "envVarsNote": "Vercel muhit o'zgaruvchilariga qo'shing:"
+    }
+  },
+  "garden": {
+    "title": "Bog' ishlari",
+    "subtitle": "Vazifalar ro'yxati va bog' materiallari",
+    "tasksSection": "Vazifalar",
+    "materialsSection": "Bog' materiallari ({n})",
+    "warehouseLink": "Ombordan ko'rish →",
+    "addTask": {
+      "title": "Yangi vazifa qo'shish",
+      "namePlaceholder": "Vazifa nomi...",
+      "notePlaceholder": "Izoh (ixtiyoriy)...",
+      "addingButton": "Qo'shilmoqda...",
+      "addButton": "+ Qo'shish"
+    },
+    "pending": "Kutilayotganlar ({n})",
+    "done": "Bajarilganlar ({n})",
+    "emptyPending": "Kutilayotgan vazifa yo'q ✓",
+    "completeButton": "Bajarish",
+    "undoButton": "Qaytarish"
+  },
+  "depo": {
+    "productsTitle": "Ombordagi mahsulotlar",
+    "purchaseHistoryTitle": "Xaridlar tarixi",
+    "newPurchaseButton": "+ Yangi xarid",
+    "cancelButton": "Bekor",
+    "newPurchaseTitle": "Yangi ombor xaridi",
+    "categorySelectLabel": "Kategoriya tanlang",
+    "changeCategory": "O'zgartirish",
+    "savedMessage": "Xarid saqlandi ✓",
+    "fields": {
+      "productName": "Mahsulot nomi *",
+      "place": "Xarid joyi *",
+      "quantity": "Miqdor *",
+      "unitPrice": "Birlik narxi (ixtiyoriy)",
+      "totalAmount": "Jami summa *",
+      "currency": "Valyuta *",
+      "area": "Maydon",
+      "broughtBy": "Kim olib keldi (ixtiyoriy)"
+    },
+    "areas": {
+      "general": "Umumiy",
+      "rooms": "Xonalar",
+      "garden": "Bog'",
+      "kitchen": "Oshxona",
+      "reception": "Resepshon"
+    },
+    "categories": {
+      "cleaning": "Tozalash",
+      "kitchen": "Oshxona",
+      "food": "Oziq-ovqat",
+      "beverage": "Ichimliklar",
+      "decoration": "Dekoratsiya",
+      "room_furniture": "Xona jihozlari",
+      "replacement": "Almashtirish"
+    },
+    "products": {
+      "nameHeader": "Nomi",
+      "quantityHeader": "Miqdor",
+      "useButton": "Ishlatish",
+      "closeButton": "Yopish",
+      "useAgainButton": "Yana ishlatish",
+      "historyButton": "Tarix",
+      "consumeSuccess": "✓ Ombordan chiqarildi",
+      "searchPlaceholder": "Mahsulot qidirish...",
+      "allCategories": "Barcha kategoriyalar",
+      "clearFilter": "Tozalash",
+      "noProducts": "Hali mahsulot yo'q. Xarid kiriting — mahsulotlar avtomatik yaratiladi.",
+      "noFilterResult": "Filtr bo'yicha mahsulot yo'q.",
+      "lowStockWarning": "⚠ oz",
+      "consumeForm": {
+        "quantityLabel": "Miqdor",
+        "destinationLabel": "Foydalanish joyi",
+        "roomLabel": "Xona raqami",
+        "noteLabel": "Izoh (ixtiyoriy)",
+        "confirmButton": "Tasdiqlash",
+        "savingButton": "Saqlanmoqda…"
+      },
+      "history": {
+        "loadingText": "Yuklanmoqda…",
+        "noHistory": "Hali harakat yo'q.",
+        "headers": {
+          "date": "Sana",
+          "type": "Tur",
+          "quantity": "Miqdor",
+          "who": "Kim",
+          "where": "Qaerga",
+          "note": "Izoh"
+        },
+        "typeIn": "Kirdi",
+        "typeOut": "Chiqdi"
+      },
+      "destinations": {
+        "room": "Xona",
+        "garden": "Bog'",
+        "kitchen": "Oshxona",
+        "reception": "Resepshon",
+        "general": "Umumiy"
+      }
+    },
+    "purchaseList": {
+      "empty": "Hali xarid yo'q.",
+      "filterResult": "{visible} / {total} yozuv",
+      "showMore": "+{n} ko'proq",
+      "showAll": "Barchasi ({n})",
+      "noFilterResult": "Filtr bo'yicha yozuv yo'q.",
+      "headers": {
+        "date": "Sana",
+        "product": "Mahsulot",
+        "category": "Kategoriya",
+        "area": "Maydon",
+        "quantity": "Miqdor",
+        "amount": "Summa",
+        "place": "Joy",
+        "entered": "Kim kiritdi"
+      }
+    }
+  },
+  "finance": {
+    "title": "Pul oqimi",
+    "subtitle": "Daromad va xarajatlar — UZS/USD alohida ko'rsatiladi",
+    "income": "Daromadlar",
+    "expense": "Xarajatlar",
+    "net": "Sof",
+    "incomeSection": "Daromadlar ({n} ta to'lov)",
+    "expenseSection": "Xarajatlar — Ombor ({n} ta xarid)",
+    "empty": "Bajarilgan to'lovlar yo'q.",
+    "expenseEmpty": "Ombor xaridlari yo'q.",
+    "filterClear": "Filtrlarni tozalash",
+    "showMore": "+{n} ko'proq",
+    "showAll": "Barchasi ({n})",
+    "noFilterResult": "Filtr bo'yicha yozuv yo'q.",
+    "filterAll": "Barchasi",
+    "headers": {
+      "date": "Sana",
+      "product": "Mahsulot",
+      "category": "Kategoriya",
+      "area": "Maydon",
+      "place": "Joy",
+      "entered": "Kim kiritdi",
+      "amount": "Summa",
+      "method": "Usul"
+    },
+    "detailFields": {
+      "dateTime": "Sana / Vaqt",
+      "product": "Mahsulot",
+      "category": "Kategoriya",
+      "area": "Maydon",
+      "quantity": "Miqdor",
+      "unitPrice": "Birlik narxi",
+      "total": "Jami summa",
+      "currency": "Valyuta",
+      "place": "Xarid joyi",
+      "enteredBy": "Kim kiritdi (tizim)",
+      "broughtBy": "Kim olib keldi (jismoniy)"
+    }
+  },
+  "login": {
+    "panelTitle": "Boshqaruv paneli",
+    "emailLabel": "E-mail",
+    "passwordLabel": "Parol",
+    "loggingIn": "Kirish…",
+    "loginButton": "Kirish"
+  },
+  "invoice": {
+    "title": "Kvitansiya — Anor Avenue",
+    "previewTitle": "Kvitansiya ko'rinishi",
+    "invoiceLabel": "Квитанция / Fatura",
+    "dateLabel": "Sana: ",
+    "guestSection": "Mehmon / Гость",
+    "guestFields": {
+      "nationality": "Fuqarolik: ",
+      "passport": "Pasport: ",
+      "dob": "T.s.: ",
+      "phone": "Tel.: ",
+      "email": "E-mail: "
+    },
+    "reservationSection": "Bron / Бронь",
+    "reservationFields": {
+      "room": "Xona",
+      "floor": "Qavat",
+      "floorSuffix": "-qavat",
+      "checkIn": "Kirish",
+      "checkOut": "Chiqish",
+      "nightsAdults": "Kecha / Kishi",
+      "channel": "Kanal"
+    },
+    "nightsAdultsValue": "{nights} kecha · {adults} katta",
+    "childrenExtra": "+ {n} bola",
+    "lineHeaders": {
+      "description": "Tavsif",
+      "qty": "Miqdor",
+      "amount": "Summa"
+    },
+    "lineItems": {
+      "roomRent": "Xona ijarasi — ",
+      "priceFormula": "{price} × {nights} kecha",
+      "discount": "Chegirma"
+    },
+    "total": "JAMI / ИТОГО",
+    "paymentsSection": "Qabul qilingan to'lovlar / To'lovlar",
+    "remaining": "QOLDIQ / ОСТАТОК",
+    "fullyPaid": "TO'LIQ TO'LANGAN / ОПЛАЧЕНО",
+    "specialRequest": "Maxsus so'rov:",
+    "footer": "Ushbu hujjat {hotel} tomonidan {date} kuni tuzilgan."
+  },
+  "newReservation": {
+    "sections": {
+      "guestInfo": "Mehmon ma'lumotlari",
+      "reservationDetails": "Bron tafsilotlari",
+      "prepayment": "Oldindan to'lov"
+    },
+    "fields": {
+      "firstName": "Ism",
+      "lastName": "Familiya",
+      "phone": "Telefon",
+      "email": "E-mail",
+      "nationality": "Fuqarolik",
+      "passportId": "Pasport / Shaxsiy hujjat",
+      "room": "Xona",
+      "checkIn": "Kirish sanasi",
+      "checkOut": "Chiqish sanasi",
+      "adults": "Kattallar soni",
+      "expectedCheckIn": "Kutilgan kirish vaqti (ixtiyoriy)",
+      "breakfast": "Nonushta",
+      "specialRequest": "Maxsus so'rov",
+      "amount": "Summa (UZS)",
+      "method": "To'lov usuli"
+    },
+    "placeholders": {
+      "nationality": "O'zbekiston",
+      "specialRequest": "Erta kirish, yuqori qavat...",
+      "email": "mehmon@email.com"
+    },
+    "roomSelect": "— Xona tanlang —",
+    "adultsOption": "{n} katta",
+    "breakfastIncluded": "Nonushta kiritilgan",
+    "priceFormula": "{price} × {nights} kecha",
+    "removePrepayment": "Olib tashlash",
+    "addPrepayment": "+ Qo'shish",
+    "prepaymentNote": "Oldindan to'lov olinmagan bo'lsa, bo'sh qoldiring. Kirishda qo'shish mumkin.",
+    "savingButton": "Saqlanmoqda…",
+    "redirectingButton": "Yo'naltirilmoqda…",
+    "submitButton": "Bron yaratish",
+    "cancelLink": "Bekor"
+  }
+}

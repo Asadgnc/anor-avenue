@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { updateGuestAction } from '@/app/(dashboard)/guests/actions'
+import { updateGuestAction } from '@/app/[locale]/(dashboard)/guests/actions'
 
 interface GuestDetail {
   id: string

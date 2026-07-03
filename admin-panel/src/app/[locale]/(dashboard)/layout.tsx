@@ -2,27 +2,29 @@ import { createClient } from '@/lib/supabase-server'
 import SidebarNav from '@/components/admin/SidebarNav'
 import AppTopbar from '@/components/admin/AppTopbar'
 import RealtimeRefresher from '@/components/admin/RealtimeRefresher'
+import { getTranslations } from 'next-intl/server'
 
 export const dynamic = 'force-dynamic'
 
-const ROLE_LABELS: Record<string, string> = {
-  admin: 'Admin',
-  manager: 'Müdür',
-  receptionist: 'Resepsiyon',
-  housekeeper: 'Temizlik',
-  accountant: 'Muhasebeci',
-}
-
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const t = await getTranslations('roles')
+
+  const ROLE_LABELS: Record<string, string> = {
+    admin: t('admin'),
+    manager: t('manager'),
+    receptionist: t('receptionist'),
+    housekeeper: t('housekeeper'),
+    accountant: t('accountant'),
+  }
+
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
 
   const role = (user?.user_metadata?.role as string | undefined) ?? 'receptionist'
   const userEmail = user?.email ?? ''
-  // Ek sorgu atmamak için ad, metadata'dan; yoksa e-postanın @ öncesi kullanılır
   const userName =
     (user?.user_metadata?.full_name as string | undefined) ||
-    (userEmail ? userEmail.split('@')[0] : 'Kullanıcı')
+    (userEmail ? userEmail.split('@')[0] : 'User')
 
   const [pendingReservations, pendingPayments] = await Promise.all([
     supabase.from('reservations').select('id', { count: 'exact', head: true }).eq('status', 'pending'),

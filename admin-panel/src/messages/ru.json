@@ -1,0 +1,790 @@
+{
+  "common": {
+    "save": "Сохранить",
+    "saving": "Сохранение…",
+    "saved": "Сохранено ✓",
+    "cancel": "Отмена",
+    "edit": "Редактировать",
+    "delete": "Удалить",
+    "detail": "Подробнее →",
+    "all": "Все",
+    "noResult": "Ничего не найдено",
+    "loading": "Загрузка…",
+    "error": "Ошибка",
+    "select": "— Выберите —",
+    "filterClear": "Сбросить фильтры",
+    "showMore": "+{n} ещё",
+    "showAll": "Все ({n})",
+    "visibleCount": "{visible} / {total} записей",
+    "noFilterResult": "По заданным фильтрам записей нет.",
+    "redirecting": "Перенаправление…"
+  },
+  "nav": {
+    "title": "Панель управления",
+    "brandName": "Anor Avenue",
+    "dashboard": "Dashboard",
+    "calendar": "Календарь",
+    "reservationList": "Список броней",
+    "newReservation": "Новая бронь",
+    "rooms": "Номера",
+    "guests": "Гости",
+    "registrations": "Регистрация",
+    "housekeeping": "Уборка",
+    "dailyOverview": "Ежедневный обзор",
+    "payments": "Платежи",
+    "reports": "Отчёты",
+    "warehouse": "Склад",
+    "garden": "Сад",
+    "cashFlow": "Движение средств",
+    "staff": "Персонал",
+    "settings": "Настройки",
+    "logout": "Выйти",
+    "openMenu": "Открыть меню"
+  },
+  "roles": {
+    "admin": "Admin",
+    "manager": "Менеджер",
+    "receptionist": "Ресепшн",
+    "housekeeper": "Уборка",
+    "accountant": "Бухгалтер"
+  },
+  "topbar": {
+    "dashboard": "Dashboard",
+    "calendar": "Календарь броней",
+    "reservationList": "Список броней",
+    "newReservation": "Новая бронь",
+    "rooms": "Номера",
+    "guests": "Гости",
+    "newGuest": "Новый гость",
+    "registrations": "Регистрация гостей",
+    "housekeeping": "Уборка",
+    "dailyOverview": "Ежедневный обзор",
+    "payments": "Платежи",
+    "reports": "Отчёты",
+    "staff": "Персонал",
+    "settings": "Настройки",
+    "reservationDetail": "Детали брони",
+    "guestDetail": "Профиль гостя",
+    "pendingReservations": "Ожидающие брони",
+    "pendingPayments": "Ожидающие платежи"
+  },
+  "status": {
+    "reservation": {
+      "pending": "Ожидает",
+      "confirmed": "Подтверждена",
+      "checked_in": "Заехал",
+      "checked_out": "Выехал",
+      "cancelled": "Отменена",
+      "no_show": "Не явился"
+    },
+    "payment": {
+      "pending": "Ожидает",
+      "completed": "Выполнен",
+      "failed": "Ошибка",
+      "refunded": "Возврат"
+    },
+    "room": {
+      "available": "Свободен",
+      "occupied": "Занят",
+      "cleaning": "Убирается",
+      "maintenance": "Ремонт",
+      "blocked": "Закрыт"
+    },
+    "cleaning": {
+      "clean": "Чисто",
+      "dirty": "Грязно",
+      "in_progress": "Убирается",
+      "cleaned": "Убран · Ожидает проверки",
+      "cleaned_housekeeper": "Убран",
+      "inspected": "Проверен"
+    }
+  },
+  "dashboard": {
+    "greeting": "Добро пожаловать, {name}",
+    "overview": "Обзор",
+    "todayMovement": "Движение сегодня",
+    "operation": "Операции",
+    "cleaningStatus": "Статус уборки номеров",
+    "accessDenied": "У вас нет доступа к этой странице. Используйте меню слева.",
+    "pendingReservations": "{n} бронь ожидает подтверждения",
+    "morePending": "+{n} ещё →",
+    "totalRooms": "Всего номеров",
+    "occupiedRooms": "Занято",
+    "availableRooms": "Свободно",
+    "guestsStaying": "Гостей в отеле",
+    "newReservations": "Новые брони (сегодня)",
+    "tomorrowCheckIn": "Заезд завтра",
+    "todayCheckIn": "Заезд сегодня",
+    "todayCheckOut": "Выезд сегодня",
+    "guestFallback": "Гость",
+    "userFallback": "Пользователь"
+  },
+  "reservations": {
+    "calendar": {
+      "title": "Календарь броней",
+      "listButton": "☰ Список",
+      "newButton": "+ Новая бронь"
+    },
+    "list": {
+      "searchPlaceholder": "Имя гостя, тел., код или номер…",
+      "resultCount": "{n} броней",
+      "searchSuffix": "· поиск «{search}»",
+      "noResult": "Ничего не найдено",
+      "detailLink": "Детали →",
+      "headers": {
+        "code": "Код",
+        "guest": "Гость",
+        "room": "Номер",
+        "channel": "Канал",
+        "checkIn": "Заезд",
+        "checkOut": "Выезд",
+        "nights": "Ночей",
+        "amount": "Сумма",
+        "status": "Статус"
+      },
+      "filterSection": "Фильтры"
+    },
+    "new": {
+      "backLink": "← Календарь",
+      "title": "Новая бронь",
+      "noRoomsWarning": "Нет активных номеров. Добавьте номер в таблицу rooms в Supabase."
+    },
+    "detail": {
+      "backLink": "← Календарь",
+      "printInvoice": "Распечатать квитанцию",
+      "sections": {
+        "reservation": "Бронь",
+        "guest": "Гость",
+        "payments": "Платежи",
+        "addPayment": "Добавить платёж",
+        "registration": "Регистрация"
+      },
+      "fields": {
+        "room": "Номер",
+        "checkIn": "Заезд",
+        "checkOut": "Выезд",
+        "nights": "Ночей",
+        "adults": "Взрослых",
+        "channel": "Канал",
+        "roomPrice": "Цена номера",
+        "totalAmount": "Итого",
+        "paid": "Оплачено",
+        "remaining": "Остаток",
+        "specialRequest": "Пожелания",
+        "notes": "Заметки",
+        "expectedCheckIn": "Ожидаемое время заезда",
+        "breakfast": "Завтрак",
+        "actualCheckIn": "Фактический заезд",
+        "actualCheckOut": "Фактический выезд"
+      },
+      "breakfastIncluded": "Включён ✓",
+      "breakfastNotIncluded": "Не включён",
+      "guestProfileLink": "Открыть профиль гостя →",
+      "noPayments": "Платежей пока нет.",
+      "perNight": "/ночь"
+    },
+    "edit": {
+      "toggleButton": "Редактировать бронь",
+      "title": "Редактировать бронь",
+      "fields": {
+        "checkIn": "Дата заезда",
+        "checkOut": "Дата выезда",
+        "adults": "Кол-во взрослых",
+        "pricePerNight": "Цена за ночь (UZS)",
+        "expectedCheckIn": "Ожидаемое время заезда",
+        "specialRequests": "Пожелания",
+        "internalNotes": "Внутренние заметки",
+        "breakfastIncluded": "Завтрак включён"
+      }
+    },
+    "addPayment": {
+      "amountLabel": "Сумма (UZS)",
+      "methodLabel": "Способ",
+      "noteLabel": "Примечание (необязательно)",
+      "successMessage": "✓ Платёж сохранён, список обновляется…"
+    },
+    "actions": {
+      "title": "Действия",
+      "confirm": "Подтвердить",
+      "noShow": "Не явился (No-show)",
+      "cancel": "Отменить",
+      "checkIn": "Заезд",
+      "checkOut": "Выезд",
+      "confirmDialogs": {
+        "confirm": "Бронь будет подтверждена. Продолжить?",
+        "noShow": "Гость будет отмечен как не явившийся. Продолжить?",
+        "cancel": "Бронь будет отменена. Это действие нельзя отменить. Продолжить?",
+        "checkIn": "Будет выполнен заезд. Продолжить?",
+        "checkOut": "Будет выполнен выезд. Продолжить?"
+      },
+      "errorPrefix": "Ошибка: "
+    },
+    "deletePayment": {
+      "confirmDialog": "Вы уверены, что хотите удалить эту запись о платеже?",
+      "deleteButton": "Удалить"
+    },
+    "channels": {
+      "all": "Все каналы",
+      "website": "Наш сайт",
+      "walkin": "Лично",
+      "phone": "Телефон"
+    },
+    "methods": {
+      "cash": "Наличные",
+      "transfer": "Перевод"
+    }
+  },
+  "rooms": {
+    "title": "Управление номерами",
+    "subtitle": "{n} активных номеров · Статусы можно менять здесь",
+    "floors": {
+      "basement": "Цокольный этаж",
+      "floor2": "2-й этаж",
+      "floor3": "3-й этаж",
+      "floor4": "4-й этаж · Мансарда",
+      "floorN": "{floor}-й этаж"
+    },
+    "addRoom": {
+      "title": "Добавить номер",
+      "success": "Номер добавлен ✓",
+      "numberLabel": "Номер",
+      "floorLabel": "Этаж",
+      "typeLabel": "Тип номера",
+      "selectPlaceholder": "— Выбрать —",
+      "addingButton": "Добавление…",
+      "addButton": "+ Добавить номер"
+    },
+    "editRoom": {
+      "numberLabel": "Номер",
+      "floorLabel": "Этаж",
+      "typeLabel": "Тип номера",
+      "notesLabel": "Заметки",
+      "activeLabel": "Активен",
+      "activeOption": "Активен",
+      "inactiveOption": "Неактивен"
+    },
+    "empty": "Номеров пока нет.",
+    "emptyHint": "Добавьте номер выше.",
+    "headers": {
+      "number": "Номер",
+      "type": "Тип",
+      "status": "Статус",
+      "cleaning": "Уборка",
+      "price": "Цена/ночь"
+    },
+    "cancelButton": "Отмена",
+    "editButton": "Редактировать",
+    "inventoryLink": "Инвентарь →"
+  },
+  "guests": {
+    "title": "Гости",
+    "count": "{n} записей",
+    "newButton": "+ Новый гость",
+    "searchPlaceholder": "Имя, телефон, e-mail или паспорт…",
+    "resultCount": "{n} результатов",
+    "noResult": "Ничего не найдено.",
+    "emptyState": "Гостей пока нет.",
+    "emptyHint": "Гости добавляются автоматически при создании брони.",
+    "headers": {
+      "name": "Ф.И.О.",
+      "phone": "Телефон",
+      "email": "E-mail",
+      "nationality": "Гражданство",
+      "passport": "Паспорт",
+      "actions": "Действия"
+    },
+    "detailLink": "Детали →",
+    "detail": {
+      "backLink": "← Гости",
+      "subtitle": "{n} броней · итого {total}",
+      "reservationsSection": "Брони ({n})",
+      "noReservations": "Бронирований нет."
+    },
+    "form": {
+      "firstName": "Имя",
+      "lastName": "Фамилия",
+      "phone": "Телефон",
+      "email": "E-mail",
+      "nationality": "Гражданство",
+      "passportNo": "Номер паспорта",
+      "passportSeries": "Серия паспорта",
+      "dob": "Дата рождения",
+      "address": "Адрес",
+      "notes": "Заметки",
+      "savingButton": "Сохранение…",
+      "redirectingButton": "Перенаправление…",
+      "saveButton": "Сохранить гостя"
+    },
+    "editForm": {
+      "sectionTitle": "Личные данные",
+      "fields": {
+        "fullName": "Ф.И.О.",
+        "phone": "Телефон",
+        "email": "E-mail",
+        "nationality": "Гражданство",
+        "passportNo": "Номер паспорта",
+        "passportSeries": "Серия паспорта",
+        "dob": "Дата рождения",
+        "address": "Адрес",
+        "notes": "Заметки",
+        "registeredAt": "Дата регистрации",
+        "firstNameRequired": "Имя *",
+        "lastNameRequired": "Фамилия *"
+      },
+      "editButton": "Редактировать",
+      "savingButton": "Сохранение…",
+      "saveButton": "Сохранить",
+      "cancelButton": "Отмена"
+    }
+  },
+  "housekeeping": {
+    "title": "Управление уборкой",
+    "subtitle": "{rooms} номеров · {tasks} активных задач",
+    "overview": {
+      "title": "Ежедневный обзор",
+      "tomorrowCheckIns": "Заезд завтра",
+      "todayCheckOuts": "Выезд сегодня",
+      "tomorrowBreakfast": "Завтрак завтра утром",
+      "breakfastBadge": "Завтрак ✓",
+      "persons": "{n} чел.",
+      "checkOutLabel": "Выезд: {date}",
+      "sections": {
+        "checkIns": "Заезды завтра — {date}",
+        "checkOuts": "Выезды сегодня",
+        "occupiedRooms": "Занятые номера"
+      },
+      "empty": {
+        "checkIns": "Заездов завтра не ожидается.",
+        "checkOuts": "Выездов сегодня нет.",
+        "occupied": "Сейчас занятых номеров нет."
+      }
+    },
+    "inspection": {
+      "title": "Номер #{number} — Проверка",
+      "floorBasement": "Цоколь",
+      "floorN": "{floor}-й этаж",
+      "staying": "проживает",
+      "pastInspections": "История проверок",
+      "unknown": "Неизвестно",
+      "noProblem": "✓ Проблем нет",
+      "hasProblem": "⚠ Есть проблема",
+      "noDamage": "✓ Повреждений нет",
+      "hasDamage": "⚠ Есть повреждение",
+      "missingItems": "{n} недостающих предметов",
+      "problemNote": "Проблема: {note}",
+      "damageNote": "Повреждение: {note}",
+      "missingNote": "Недостаёт: {list}"
+    },
+    "board": {
+      "startCleaning": "Начать уборку",
+      "cleaned": "Убрано",
+      "markDirty": "Отметить грязным",
+      "markClean": "Отметить чистым",
+      "inspect": "🔍 Проверить",
+      "inspectionHint": "Проверка →",
+      "floorBasement": "Цоколь ({floor}-й эт.)",
+      "floorN": "{floor}-й этаж"
+    }
+  },
+  "payments": {
+    "title": "Платежи",
+    "count": "{n} записей",
+    "summaryTitle": "Сводка платежей",
+    "totalIncome": "Итого доходов",
+    "pendingPayment": "Ожидающие платежи",
+    "totalCount": "Всего записей",
+    "empty": "Платежей пока нет.",
+    "headers": {
+      "reservation": "Бронь",
+      "guest": "Гость",
+      "amount": "Сумма",
+      "method": "Способ",
+      "status": "Статус",
+      "date": "Дата"
+    },
+    "methods": {
+      "cash": "Наличные",
+      "transfer": "Перевод"
+    },
+    "statuses": {
+      "pending": "Ожидает",
+      "completed": "Выполнен",
+      "failed": "Ошибка",
+      "refunded": "Возврат"
+    }
+  },
+  "reports": {
+    "title": "Ежедневный отчёт",
+    "errorMessage": "Не удалось загрузить отчёт.",
+    "viewButton": "Посмотреть",
+    "exportButton": "Скачать Excel",
+    "summaryTitle": "Сводка за день",
+    "occupancy": "Заполняемость",
+    "roomsCount": "{occupied}/{total} номеров",
+    "dailyIncome": "Доход за день",
+    "transactions": "{n} транзакций",
+    "checkIns": "заездов",
+    "checkOuts": "выездов",
+    "revenueBreakdown": "Разбивка доходов",
+    "checkInList": "Список заездов ({n})",
+    "checkOutList": "Список выездов ({n})",
+    "noCheckIns": "Заездов в этот день нет.",
+    "noCheckOuts": "Выездов в этот день нет.",
+    "headers": {
+      "reservation": "Бронь",
+      "guest": "Гость",
+      "room": "Номер",
+      "roomPrice": "Цена номера",
+      "total": "Итого"
+    }
+  },
+  "registrations": {
+    "title": "Регистрация гостей",
+    "subtitle": "Уведомление иностранных гостей — требование законодательства Узбекистана",
+    "statuses": {
+      "pending": "Ожидает",
+      "submitted": "Подана",
+      "confirmed": "Подтверждена"
+    },
+    "filters": {
+      "all": "Все",
+      "pending": "Ожидает",
+      "submitted": "Подана",
+      "confirmed": "Подтверждена"
+    },
+    "loadError": "Не удалось загрузить записи: ",
+    "emptyAll": "Записей пока нет.",
+    "emptyStatus": "Записей с таким статусом нет.",
+    "emptyHint": "Создайте запись на странице деталей брони для иностранного гостя.",
+    "headers": {
+      "guest": "Гость",
+      "passport": "Паспорт",
+      "nationality": "Гражданство",
+      "reservation": "Бронь",
+      "dates": "Даты",
+      "room": "Номер",
+      "registeredAt": "Дата регистрации",
+      "status": "Статус"
+    },
+    "birthDatePrefix": "Р: ",
+    "infoTitle": "Что такое регистрация?",
+    "infoText": "По законодательству Узбекистана иностранные гости должны быть зарегистрированы в системе ОВИР в течение 3 дней с момента заселения. Отслеживайте статус:",
+    "infoBoldText": "Ожидает → Подана → Подтверждена",
+    "infoTextEnd": "",
+    "buttons": {
+      "markSubmitted": "Отметить как поданную",
+      "markConfirmed": "Отметить как подтверждённую"
+    }
+  },
+  "staff": {
+    "title": "Управление персоналом",
+    "subtitle": "Аккаунты с доступом к системе",
+    "inviteSection": {
+      "title": "Пригласить нового сотрудника",
+      "subtitle": "На указанный e-mail будет отправлена ссылка для входа"
+    },
+    "activeAccounts": "Активные аккаунты",
+    "empty": "Пользователей не найдено.",
+    "meBadge": "(я)",
+    "lastSignIn": "Последний вход: {date}",
+    "neverSignedIn": "Ещё не входил",
+    "rolesSection": "Уровни доступа по ролям",
+    "roleDescriptions": {
+      "admin": "Всё: настройки системы, управление пользователями, все отчёты",
+      "manager": "Операции + финансы + отчёты (персонал/настройки ограничены)",
+      "receptionist": "Брони, заезд/выезд, платежи, гости, уборка",
+      "housekeeper": "Только Dashboard и страница уборки",
+      "accountant": "Dashboard, Платежи, Отчёты"
+    },
+    "inviteForm": {
+      "nameLabel": "Ф.И.О.",
+      "emailLabel": "E-mail адрес",
+      "roleLabel": "Роль",
+      "namePlaceholder": "Иван Иванов",
+      "emailPlaceholder": "staff@example.com",
+      "sendingButton": "Отправка…",
+      "sentButton": "Приглашение отправлено ✓",
+      "sendButton": "Отправить приглашение"
+    },
+    "deleteConfirm": "Вы уверены, что хотите удалить аккаунт «{email}»?"
+  },
+  "settings": {
+    "title": "Настройки",
+    "subtitle": "Профиль отеля, цены номеров и уведомления",
+    "hotelProfile": {
+      "title": "Профиль отеля",
+      "subtitle": "Используется в квитанциях и подтверждениях по e-mail",
+      "fields": {
+        "name": "Название отеля",
+        "address": "Адрес",
+        "phone": "Телефон",
+        "email": "E-mail",
+        "website": "Веб-сайт",
+        "checkInTime": "Время заезда",
+        "checkOutTime": "Время выезда"
+      },
+      "savingButton": "Сохранение…",
+      "savedButton": "Сохранено ✓",
+      "saveButton": "Сохранить"
+    },
+    "roomTypePrices": {
+      "title": "Цены по типам номеров",
+      "subtitle": "Изменения применяются сразу — отражаются в новых бронях",
+      "empty": "Типы номеров не найдены. Возможно, отсутствуют начальные данные.",
+      "priceUnit": "UZS / ночь"
+    },
+    "emailNotifications": {
+      "title": "Email-уведомления",
+      "subtitle": "Читается из переменных окружения Vercel",
+      "adminEmail": "E-mail администратора",
+      "resendApi": "Resend API",
+      "connected": "Подключено ✓",
+      "notSet": "Не настроено — письма не отправляются",
+      "envVarsNote": "Добавьте в переменные окружения Vercel:"
+    }
+  },
+  "garden": {
+    "title": "Садовые работы",
+    "subtitle": "Список задач и садовые материалы",
+    "tasksSection": "Задачи",
+    "materialsSection": "Садовые материалы ({n})",
+    "warehouseLink": "Смотреть на складе →",
+    "addTask": {
+      "title": "Добавить задачу",
+      "namePlaceholder": "Название задачи...",
+      "notePlaceholder": "Примечание (необязательно)...",
+      "addingButton": "Добавление...",
+      "addButton": "+ Добавить"
+    },
+    "pending": "Ожидающие ({n})",
+    "done": "Выполнено ({n})",
+    "emptyPending": "Ожидающих задач нет ✓",
+    "completeButton": "Выполнить",
+    "undoButton": "Отменить"
+  },
+  "depo": {
+    "productsTitle": "Товары на складе",
+    "purchaseHistoryTitle": "История закупок",
+    "newPurchaseButton": "+ Новая закупка",
+    "cancelButton": "Отмена",
+    "newPurchaseTitle": "Новая закупка на склад",
+    "categorySelectLabel": "Выберите категорию",
+    "changeCategory": "Изменить",
+    "savedMessage": "Закупка сохранена ✓",
+    "fields": {
+      "productName": "Название товара *",
+      "place": "Место покупки *",
+      "quantity": "Количество *",
+      "unitPrice": "Цена за единицу (необязательно)",
+      "totalAmount": "Итоговая сумма *",
+      "currency": "Валюта *",
+      "area": "Область",
+      "broughtBy": "Кто принёс (необязательно)"
+    },
+    "areas": {
+      "general": "Общее",
+      "rooms": "Номера",
+      "garden": "Сад",
+      "kitchen": "Кухня",
+      "reception": "Ресепшн"
+    },
+    "categories": {
+      "cleaning": "Уборка",
+      "kitchen": "Кухня",
+      "food": "Продукты",
+      "beverage": "Напитки",
+      "decoration": "Декор",
+      "room_furniture": "Мебель",
+      "replacement": "Замена"
+    },
+    "products": {
+      "nameHeader": "Название",
+      "quantityHeader": "Кол-во",
+      "useButton": "Использовать",
+      "closeButton": "Закрыть",
+      "useAgainButton": "Использовать ещё",
+      "historyButton": "История",
+      "consumeSuccess": "✓ Списано со склада",
+      "searchPlaceholder": "Поиск товара...",
+      "allCategories": "Все категории",
+      "clearFilter": "Сбросить",
+      "noProducts": "Товаров пока нет. Добавьте закупку — товары создадутся автоматически.",
+      "noFilterResult": "Товаров по фильтру нет.",
+      "lowStockWarning": "⚠ мало",
+      "consumeForm": {
+        "quantityLabel": "Количество",
+        "destinationLabel": "Место использования",
+        "roomLabel": "Номер",
+        "noteLabel": "Примечание (необязательно)",
+        "confirmButton": "Подтвердить",
+        "savingButton": "Сохранение…"
+      },
+      "history": {
+        "loadingText": "Загрузка…",
+        "noHistory": "Движений пока нет.",
+        "headers": {
+          "date": "Дата",
+          "type": "Тип",
+          "quantity": "Кол-во",
+          "who": "Кто",
+          "where": "Куда",
+          "note": "Примечание"
+        },
+        "typeIn": "Приход",
+        "typeOut": "Расход"
+      },
+      "destinations": {
+        "room": "Номер",
+        "garden": "Сад",
+        "kitchen": "Кухня",
+        "reception": "Ресепшн",
+        "general": "Общее"
+      }
+    },
+    "purchaseList": {
+      "empty": "Закупок пока нет.",
+      "filterResult": "{visible} / {total} записей",
+      "showMore": "+{n} ещё",
+      "showAll": "Все ({n})",
+      "noFilterResult": "По фильтру записей нет.",
+      "headers": {
+        "date": "Дата",
+        "product": "Товар",
+        "category": "Категория",
+        "area": "Область",
+        "quantity": "Кол-во",
+        "amount": "Сумма",
+        "place": "Место",
+        "entered": "Кто внёс"
+      }
+    }
+  },
+  "finance": {
+    "title": "Движение средств",
+    "subtitle": "Доходы и расходы — UZS/USD раздельно",
+    "income": "Доходы",
+    "expense": "Расходы",
+    "net": "Итого",
+    "incomeSection": "Доходы ({n} платежей)",
+    "expenseSection": "Расходы — Склад ({n} закупок)",
+    "empty": "Завершённых платежей нет.",
+    "expenseEmpty": "Закупок на складе нет.",
+    "filterClear": "Сбросить фильтры",
+    "showMore": "+{n} ещё",
+    "showAll": "Все ({n})",
+    "noFilterResult": "По фильтру записей нет.",
+    "filterAll": "Все",
+    "headers": {
+      "date": "Дата",
+      "product": "Товар",
+      "category": "Категория",
+      "area": "Область",
+      "place": "Место",
+      "entered": "Кто внёс",
+      "amount": "Сумма",
+      "method": "Способ"
+    },
+    "detailFields": {
+      "dateTime": "Дата / Время",
+      "product": "Товар",
+      "category": "Категория",
+      "area": "Область",
+      "quantity": "Количество",
+      "unitPrice": "Цена за единицу",
+      "total": "Итоговая сумма",
+      "currency": "Валюта",
+      "place": "Место покупки",
+      "enteredBy": "Внёс (система)",
+      "broughtBy": "Принёс (физически)"
+    }
+  },
+  "login": {
+    "panelTitle": "Панель управления",
+    "emailLabel": "E-mail",
+    "passwordLabel": "Пароль",
+    "loggingIn": "Вход…",
+    "loginButton": "Войти"
+  },
+  "invoice": {
+    "title": "Квитанция — Anor Avenue",
+    "previewTitle": "Предпросмотр квитанции",
+    "invoiceLabel": "Квитанция / Фatura",
+    "dateLabel": "Дата: ",
+    "guestSection": "Гость / Mehmon",
+    "guestFields": {
+      "nationality": "Гражданство: ",
+      "passport": "Паспорт: ",
+      "dob": "Д.р.: ",
+      "phone": "Тел.: ",
+      "email": "E-mail: "
+    },
+    "reservationSection": "Бронь / Бронь",
+    "reservationFields": {
+      "room": "Номер",
+      "floor": "Этаж",
+      "floorSuffix": "-й эт.",
+      "checkIn": "Заезд",
+      "checkOut": "Выезд",
+      "nightsAdults": "Ночей / Гостей",
+      "channel": "Канал"
+    },
+    "nightsAdultsValue": "{nights} ночей · {adults} взрослых",
+    "childrenExtra": "+ {n} детей",
+    "lineHeaders": {
+      "description": "Описание",
+      "qty": "Кол-во",
+      "amount": "Сумма"
+    },
+    "lineItems": {
+      "roomRent": "Аренда номера — ",
+      "priceFormula": "{price} × {nights} ночей",
+      "discount": "Скидка"
+    },
+    "total": "ИТОГО / JAMI",
+    "paymentsSection": "Принятые платежи / To'lovlar",
+    "remaining": "ОСТАТОК / QOLDIQ",
+    "fullyPaid": "ОПЛАЧЕНО ПОЛНОСТЬЮ / TO'LIQ TO'LANGAN",
+    "specialRequest": "Пожелания:",
+    "footer": "Этот документ составлен {hotel} {date}."
+  },
+  "newReservation": {
+    "sections": {
+      "guestInfo": "Данные гостя",
+      "reservationDetails": "Детали бронирования",
+      "prepayment": "Предоплата"
+    },
+    "fields": {
+      "firstName": "Имя",
+      "lastName": "Фамилия",
+      "phone": "Телефон",
+      "email": "E-mail",
+      "nationality": "Гражданство",
+      "passportId": "Паспорт / Удостоверение",
+      "room": "Номер",
+      "checkIn": "Дата заезда",
+      "checkOut": "Дата выезда",
+      "adults": "Кол-во взрослых",
+      "expectedCheckIn": "Ожидаемое время заезда (необязательно)",
+      "breakfast": "Завтрак",
+      "specialRequest": "Пожелания",
+      "amount": "Сумма (UZS)",
+      "method": "Способ оплаты"
+    },
+    "placeholders": {
+      "nationality": "Узбекистан",
+      "specialRequest": "Ранний заезд, высокий этаж...",
+      "email": "guest@email.com"
+    },
+    "roomSelect": "— Выберите номер —",
+    "adultsOption": "{n} взрослых",
+    "breakfastIncluded": "Завтрак включён",
+    "priceFormula": "{price} × {nights} ночей",
+    "removePrepayment": "Убрать",
+    "addPrepayment": "+ Добавить",
+    "prepaymentNote": "Оставьте пустым, если предоплата не получена. Можно добавить при заезде.",
+    "savingButton": "Сохранение…",
+    "redirectingButton": "Перенаправление…",
+    "submitButton": "Создать бронь",
+    "cancelLink": "Отмена"
+  }
+}

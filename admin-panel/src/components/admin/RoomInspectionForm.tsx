@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { submitRoomInspectionAction } from '@/app/(dashboard)/housekeeping/actions'
+import { submitRoomInspectionAction } from '@/app/[locale]/(dashboard)/housekeeping/actions'
 import type { RoomItem } from '@/types/hotel'
 
 interface Props {

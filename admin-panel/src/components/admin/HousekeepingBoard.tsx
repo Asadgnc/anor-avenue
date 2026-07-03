@@ -2,7 +2,7 @@
 
 import { useTransition } from 'react'
 import { useRouter } from 'next/navigation'
-import { updateCleaningStatus } from '@/app/(dashboard)/housekeeping/actions'
+import { updateCleaningStatus } from '@/app/[locale]/(dashboard)/housekeeping/actions'
 import type { Room, CleaningStatus } from '@/types/hotel'
 import { dash } from '@/lib/dashboardTheme'
 

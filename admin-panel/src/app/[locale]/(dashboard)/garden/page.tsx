@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { Package } from 'lucide-react'
 import GardenClient from './GardenClient'
-import DepoClient from '@/app/(dashboard)/depo/DepoClient'
+import DepoClient from '@/app/[locale]/(dashboard)/depo/DepoClient'
 import type { GardenTask, InventoryPurchase } from '@/types/hotel'
 
 export default async function GardenPage() {

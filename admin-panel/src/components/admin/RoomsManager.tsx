@@ -8,7 +8,7 @@ import {
   updateCleaningStatusAction,
   updateRoomStatusAction,
   type RoomFormState,
-} from '@/app/(dashboard)/rooms/actions'
+} from '@/app/[locale]/(dashboard)/rooms/actions'
 import type { Room, RoomType } from '@/types/hotel'
 import { dash } from '@/lib/dashboardTheme'
 

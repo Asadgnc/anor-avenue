@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState } from 'react'
-import { createRegistrationAction } from '@/app/(dashboard)/registrations/actions'
+import { createRegistrationAction } from '@/app/[locale]/(dashboard)/registrations/actions'
 import { dash } from '@/lib/dashboardTheme'
 
 interface Props {
