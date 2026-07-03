@@ -94,7 +94,7 @@ export interface RoomInspection {
 export interface InventoryPurchase {
   id: string
   category: 'cleaning' | 'kitchen' | 'food' | 'beverage' | 'decoration' | 'room_furniture' | 'replacement'
-  area: 'general' | 'rooms' | 'garden'
+  area: 'general' | 'rooms' | 'garden' | 'kitchen' | 'reception'
   product_name: string
   quantity: number
   unit_price: number | null

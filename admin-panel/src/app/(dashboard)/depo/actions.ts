@@ -11,7 +11,7 @@ const CONSUME_ROLES = new Set(['admin', 'manager', 'receptionist', 'housekeeper'
 
 const purchaseSchema = z.object({
   category: z.enum(['cleaning', 'kitchen', 'food', 'beverage', 'decoration', 'room_furniture', 'replacement']),
-  area: z.enum(['general', 'rooms', 'garden']).default('general'),
+  area: z.enum(['general', 'rooms', 'garden', 'kitchen', 'reception']).default('general'),
   product_name: z.string().min(1, 'Ürün adı zorunlu'),
   quantity: z.coerce.number().positive('Miktar 0\'dan büyük olmalı'),
   unit_price: z.coerce.number().nonnegative().optional(),

@@ -40,7 +40,114 @@ interface Props {
 
 const initialConsumeState = { error: undefined as string | undefined, success: undefined as boolean | undefined }
 
-// Tek ürün için tüketim + geçmiş arayüzü
+// ——— Tüketim formu — ayrı bileşen, her mount'ta taze state ———
+function ConsumeForm({
+  product,
+  rooms,
+  onClose,
+  onAgain,
+}: {
+  product: InventoryProduct
+  rooms: Room[]
+  onClose: () => void
+  onAgain: () => void
+}) {
+  const [destination, setDestination] = useState<InventoryDestination>('room')
+  const [consumeState, consumeFormAction, isPending] = useActionState(consumeStockAction, initialConsumeState)
+
+  const inputCls = 'w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground outline-none focus:ring-1 focus:ring-primary'
+
+  if (consumeState.success) {
+    return (
+      <div className="flex items-center gap-3 py-2">
+        <span className="text-sm text-green-700 font-medium">✓ Stoktan düşüldü</span>
+        <button
+          onClick={onAgain}
+          className="text-xs text-primary underline font-medium"
+        >
+          Tekrar kullan
+        </button>
+        <button
+          onClick={onClose}
+          className="text-xs text-muted-foreground underline"
+        >
+          Kapat
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <form action={consumeFormAction} className="flex flex-wrap gap-3 items-end py-2">
+      <input type="hidden" name="productId" value={product.id} />
+
+      <div>
+        <label className="block text-xs font-medium text-muted-foreground mb-1">Miktar</label>
+        <input
+          name="quantity"
+          type="number"
+          step="1"
+          min="1"
+          max={String(product.on_hand)}
+          defaultValue="1"
+          className="w-24 px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground outline-none focus:ring-1 focus:ring-primary"
+          required
+        />
+      </div>
+
+      <div>
+        <label className="block text-xs font-medium text-muted-foreground mb-1">Kullanım Yeri</label>
+        <select
+          name="destination"
+          value={destination}
+          onChange={(e) => setDestination(e.target.value as InventoryDestination)}
+          className={inputCls + ' w-auto'}
+        >
+          {Object.entries(DESTINATIONS).map(([k, v]) => (
+            <option key={k} value={k}>{v}</option>
+          ))}
+        </select>
+      </div>
+
+      {destination === 'room' && (
+        <div>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">Oda No</label>
+          <select name="roomId" className={inputCls + ' w-auto'}>
+            <option value="">— Seçin</option>
+            {rooms.map((r) => (
+              <option key={r.id} value={r.id}>#{r.room_number}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
+      <div>
+        <label className="block text-xs font-medium text-muted-foreground mb-1">Not (opsiyonel)</label>
+        <input
+          name="note"
+          type="text"
+          placeholder="Kısa açıklama..."
+          className="w-48 px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground outline-none focus:ring-1 focus:ring-primary"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        {consumeState.error && (
+          <p className="text-xs text-destructive">{consumeState.error}</p>
+        )}
+        <button
+          type="submit"
+          disabled={isPending}
+          className="px-4 py-2 rounded-lg bg-primary text-white text-xs font-semibold disabled:opacity-60 transition-opacity"
+        >
+          {isPending ? 'Kaydediliyor…' : 'Onayla'}
+        </button>
+      </div>
+    </form>
+  )
+}
+
+// ——— Tek ürün satırı ———
 function ProductRow({
   product,
   rooms,
@@ -55,24 +162,31 @@ function ProductRow({
   const [historyLoading, setHistoryLoading] = useState(false)
   const [historyData, setHistoryData] = useState<InventoryMovement[] | null>(null)
   const [historyError, setHistoryError] = useState<string | null>(null)
+  // Her "Kullan" açılışında key artarak ConsumeForm'u taze mount eder
+  const [openKey, setOpenKey] = useState(0)
 
-  const [destination, setDestination] = useState<InventoryDestination>('room')
-  const [consumeState, consumeFormAction, isPending] = useActionState(consumeStockAction, initialConsumeState)
+  const lowStock = product.on_hand <= 3
 
-  const inputCls = 'w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground outline-none focus:ring-1 focus:ring-primary'
+  function handleOpenConsume() {
+    if (showConsume) {
+      setShowConsume(false)
+    } else {
+      setOpenKey((k) => k + 1) // taze mount
+      setShowConsume(true)
+      setShowHistory(false)
+    }
+  }
 
   async function handleShowHistory() {
     if (showHistory) { setShowHistory(false); return }
     setShowHistory(true)
-    if (historyData !== null) return // zaten yüklendi
+    if (historyData !== null) return
     setHistoryLoading(true)
     const res = await getProductMovementsAction(product.id)
     setHistoryLoading(false)
     if (res.error) setHistoryError(res.error)
     else setHistoryData(res.movements ?? [])
   }
-
-  const lowStock = product.on_hand <= 3
 
   return (
     <div className="border-b border-border last:border-0">
@@ -87,10 +201,10 @@ function ProductRow({
         </span>
         <div className="flex gap-1.5">
           <button
-            onClick={() => { setShowConsume(!showConsume); setShowHistory(false) }}
+            onClick={handleOpenConsume}
             className="px-3 py-1.5 rounded-lg text-xs font-semibold bg-primary text-white hover:opacity-90 transition-opacity"
           >
-            Kullan
+            {showConsume ? 'Kapat' : 'Kullan'}
           </button>
           {isAdmin && (
             <button
@@ -103,77 +217,19 @@ function ProductRow({
         </div>
       </div>
 
-      {/* Kullanım formu */}
+      {/* Tüketim paneli */}
       {showConsume && (
         <div className="px-4 pb-4 pt-1 bg-muted/10 border-t border-border">
-          {consumeState.success ? (
-            <div className="flex items-center gap-3 py-2">
-              <span className="text-sm text-green-700 font-medium">✓ Stoktan düşüldü</span>
-              <button
-                onClick={() => { setShowConsume(false) }}
-                className="text-xs text-muted-foreground underline"
-              >
-                Kapat
-              </button>
-            </div>
-          ) : (
-            <form action={consumeFormAction} className="flex flex-wrap gap-3 items-end py-2">
-              <input type="hidden" name="productId" value={product.id} />
-
-              <div>
-                <label className="block text-xs font-medium text-muted-foreground mb-1">Miktar</label>
-                <input
-                  name="quantity"
-                  type="number"
-                  step="1"
-                  min="1"
-                  max={String(product.on_hand)}
-                  defaultValue="1"
-                  className="w-24 px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground outline-none focus:ring-1 focus:ring-primary"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-medium text-muted-foreground mb-1">Kullanım Yeri</label>
-                <select
-                  name="destination"
-                  value={destination}
-                  onChange={(e) => setDestination(e.target.value as InventoryDestination)}
-                  className={inputCls + ' w-auto'}
-                >
-                  {Object.entries(DESTINATIONS).map(([k, v]) => (
-                    <option key={k} value={k}>{v}</option>
-                  ))}
-                </select>
-              </div>
-
-              {destination === 'room' && (
-                <div>
-                  <label className="block text-xs font-medium text-muted-foreground mb-1">Oda No</label>
-                  <select name="roomId" className={inputCls + ' w-auto'}>
-                    <option value="">— Seçin</option>
-                    {rooms.map((r) => (
-                      <option key={r.id} value={r.id}>#{r.room_number}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-
-              <div className="flex flex-col gap-1">
-                {consumeState.error && (
-                  <p className="text-xs text-destructive">{consumeState.error}</p>
-                )}
-                <button
-                  type="submit"
-                  disabled={isPending}
-                  className="px-4 py-2 rounded-lg bg-primary text-white text-xs font-semibold disabled:opacity-60 transition-opacity"
-                >
-                  {isPending ? 'Kaydediliyor…' : 'Onayla'}
-                </button>
-              </div>
-            </form>
-          )}
+          <ConsumeForm
+            key={openKey}
+            product={product}
+            rooms={rooms}
+            onClose={() => setShowConsume(false)}
+            onAgain={() => {
+              // Taze form aç (key artır)
+              setOpenKey((k) => k + 1)
+            }}
+          />
         </div>
       )}
 
@@ -240,6 +296,9 @@ function ProductRow({
 
 // ——— Ana bileşen ———
 export default function DepoProductsSection({ products, rooms, isAdmin }: Props) {
+  const [searchName, setSearchName] = useState('')
+  const [filterCat, setFilterCat] = useState<string>('all')
+
   if (products.length === 0) {
     return (
       <p className="text-sm text-muted-foreground text-center py-6">
@@ -248,15 +307,60 @@ export default function DepoProductsSection({ products, rooms, isAdmin }: Props)
     )
   }
 
+  // Filtrele
+  const filtered = products.filter((p) => {
+    const nameMatch = p.name.toLowerCase().includes(searchName.toLowerCase())
+    const catMatch = filterCat === 'all' || p.category === filterCat
+    return nameMatch && catMatch
+  })
+
   // Kategoriye göre grupla
   const grouped: Partial<Record<InventoryCategory, InventoryProduct[]>> = {}
-  for (const p of products) {
+  for (const p of filtered) {
     if (!grouped[p.category]) grouped[p.category] = []
     grouped[p.category]!.push(p)
   }
 
   return (
     <div className="space-y-4">
+      {/* Filtre satırı */}
+      <div className="flex flex-wrap gap-3 items-center">
+        <input
+          type="text"
+          value={searchName}
+          onChange={(e) => setSearchName(e.target.value)}
+          placeholder="Ürün ara..."
+          className="px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground outline-none focus:ring-1 focus:ring-primary w-52"
+        />
+        <select
+          value={filterCat}
+          onChange={(e) => setFilterCat(e.target.value)}
+          className="px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground outline-none focus:ring-1 focus:ring-primary"
+        >
+          <option value="all">Tüm Kategoriler</option>
+          {(Object.entries(CATEGORIES) as [InventoryCategory, string][]).map(([k, v]) => (
+            <option key={k} value={k}>{v}</option>
+          ))}
+        </select>
+        {(searchName || filterCat !== 'all') && (
+          <button
+            onClick={() => { setSearchName(''); setFilterCat('all') }}
+            className="text-xs text-muted-foreground underline"
+          >
+            Temizle
+          </button>
+        )}
+        {filtered.length !== products.length && (
+          <span className="text-xs text-muted-foreground">
+            {filtered.length} / {products.length} ürün
+          </span>
+        )}
+      </div>
+
+      {filtered.length === 0 && (
+        <p className="text-sm text-muted-foreground text-center py-6">Arama kriterine uygun ürün yok.</p>
+      )}
+
       {(Object.keys(CATEGORIES) as InventoryCategory[])
         .filter((cat) => grouped[cat] && grouped[cat]!.length > 0)
         .map((cat) => (
