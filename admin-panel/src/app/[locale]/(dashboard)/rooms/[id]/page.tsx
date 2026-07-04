@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect, notFound } from 'next/navigation'
 import { Link } from '@/i18n/navigation'
-import { getTranslations, getLocale } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import { ArrowLeft, Trash2 } from 'lucide-react'
 import { addRoomItemAction, deleteRoomItemAction } from '@/app/[locale]/(dashboard)/rooms/actions'
 import type { RoomItem } from '@/types/hotel'
@@ -14,7 +14,7 @@ export default async function RoomDetailPage({
   const { id } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect(`/${await getLocale()}/login`)
+  if (!user) redirect('/login')
 
   const t = await getTranslations('roomItems')
   const tFloor = await getTranslations('rooms.floors')

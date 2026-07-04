@@ -2,7 +2,7 @@ import type { ReactNode } from 'react'
 import { createClient } from '@/lib/supabase-server'
 import { redirect, notFound } from 'next/navigation'
 import { Link } from '@/i18n/navigation'
-import { getTranslations, getLocale } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import ReservationActions from './ReservationActions'
 import AddPaymentFormClient from './AddPaymentFormClient'
 import CreateRegistrationForm from './CreateRegistrationForm'
@@ -96,7 +96,7 @@ export default async function ReservationDetailPage({
   const { locale, id } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect(`/${await getLocale()}/login`)
+  if (!user) redirect('/login')
 
   const t = await getTranslations('reservations.detail')
   const tf = await getTranslations('reservations.detail.fields')

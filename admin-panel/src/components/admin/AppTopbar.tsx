@@ -4,7 +4,7 @@
 // Left: current section name (resolved from URL)
 // Right: pending reservation / payment notifications + user card + language switcher
 
-import { Link, usePathname, useRouter } from '@/i18n/navigation'
+import { Link, usePathname } from '@/i18n/navigation'
 import { useTranslations, useLocale } from 'next-intl'
 import { Bell, Mail } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
@@ -35,7 +35,6 @@ export default function AppTopbar({
   pendingPayments,
 }: Props) {
   const pathname = usePathname()
-  const router = useRouter()
   const locale = useLocale()
   const t = useTranslations('topbar')
   const initial = userName.charAt(0).toUpperCase() || '?'
@@ -72,7 +71,8 @@ export default function AppTopbar({
   }
 
   function switchLocale(next: string) {
-    router.replace(pathname, { locale: next })
+    document.cookie = `NEXT_LOCALE=${next}; path=/; max-age=31536000; SameSite=Lax`
+    window.location.reload()
   }
 
   return (

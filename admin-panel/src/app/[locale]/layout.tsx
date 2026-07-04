@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import { cookies } from 'next/headers'
 import { notFound } from 'next/navigation'
 import { NextIntlClientProvider, hasLocale } from 'next-intl'
 import { setRequestLocale } from 'next-intl/server'
@@ -25,8 +26,15 @@ export default async function LocaleLayout({
   children: React.ReactNode
   params: Promise<{ locale: string }>
 }) {
-  const { locale } = await params
-  if (!hasLocale(routing.locales, locale)) notFound()
+  const { locale: paramLocale } = await params
+  if (!hasLocale(routing.locales, paramLocale)) notFound()
+
+  // Cookie locale overrides the URL segment locale so that language switching
+  // works without changing the URL (localePrefix: 'never').
+  const cookieStore = await cookies()
+  const cookieLocale = cookieStore.get('NEXT_LOCALE')?.value
+  const locale = hasLocale(routing.locales, cookieLocale) ? cookieLocale! : paramLocale
+
   setRequestLocale(locale)
 
   return (

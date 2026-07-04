@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
-import { getTranslations, getLocale } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import RoomsManager from '@/components/admin/RoomsManager'
 import type { Room, RoomType } from '@/types/hotel'
 
@@ -10,7 +10,7 @@ export default async function RoomsPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) redirect(`/${await getLocale()}/login`)
+  if (!user) redirect('/login')
 
   const role = (user.user_metadata?.role as string | undefined) ?? 'receptionist'
 

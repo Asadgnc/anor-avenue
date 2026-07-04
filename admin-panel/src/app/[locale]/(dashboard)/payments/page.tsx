@@ -37,7 +37,7 @@ function formatUZS(amount: number): string {
 export default async function PaymentsPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect(`/${await getLocale()}/login`)
+  if (!user) redirect('/login')
 
   const locale = await getLocale()
   const dateLocale = LOCALE_BCP47[locale] ?? 'ru-RU'

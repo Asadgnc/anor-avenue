@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
-import { getTranslations, getLocale } from 'next-intl/server'
+import { getTranslations } from 'next-intl/server'
 import DepoClient from './DepoClient'
 import DepoProductsSection from './DepoProductsSection'
 import type { InventoryPurchase, InventoryProduct } from '@/types/hotel'
@@ -12,7 +12,7 @@ export default async function DepoPage({
 }) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect(`/${await getLocale()}/login`)
+  if (!user) redirect('/login')
 
   const role = (user.user_metadata?.role as string | undefined) ?? 'receptionist'
   const isHousekeeper = role === 'housekeeper'

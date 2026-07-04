@@ -135,7 +135,7 @@ function EmptyRow({ text }: { text: string }) {
 export default async function HousekeepingOverviewPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect(`/${await getLocale()}/login`)
+  if (!user) redirect('/login')
 
   const locale = await getLocale()
   const t = await getTranslations('housekeeping.overview')

@@ -432,6 +432,27 @@ Mert "nar çarpışması" konsepti önerdi. Konsept henüz karara bağlanmadı �
   - favicon.ico geri yüklendi (git restore).
   - `pnpm build` başarılı (64 sayfa, 3 dil, sıfır hata) ✓
 
+- [x] Admin panel: GERÇEK KÖK NEDEN bulundu — middleware yanlış konumdaydı (4 Temmuz 2026)
+  - **Şikayet:** Dil değişikliğinden sonra localhost'ta tüm sayfalar 404 / açılmıyor, butonlar çalışmıyor,
+    diller karışıyor. Önceki oturumların "i18n düzeltmeleri" sorunu çözmedi çünkü YANLIŞ dosyayı düzenliyorlardı.
+  - **Tek gerçek kök neden:** `middleware.ts` proje kökündeydi (`admin-panel/middleware.ts`) ama uygulama
+    `src/app/` altında. Next.js `src/` dizini kullanılınca middleware'i SADECE `src/middleware.ts`'den yükler.
+    Kökteki middleware HİÇ ÇALIŞMIYORDU. Kanıt: minimal middleware'e eklenen `x-mw-ran` header'ı yanıtta görünmedi.
+  - **Sonuç:** middleware çalışmadığı için next-intl `localePrefix:'never'` rewrite'ı (`/login` → iç olarak
+    `/ru/login`) hiç uygulanmıyordu → tüm öneksiz yollar (`/login`, `/dashboard` …) 404 veriyordu. Auth koruması
+    ve dil tespiti de sessizce devre dışıydı. `/ru/login` gibi önekli URL'ler doğrudan 200 dönüyordu (kafa karıştırıcı).
+  - **Düzeltme (komple, tek satırlık kök çözüm):** `middleware.ts` → `src/middleware.ts` taşındı, kökteki silindi.
+    İçerik aynen korundu (auth + rol + next-intl). Başka hiçbir sayfa/kod değişmedi — gerek yoktu.
+  - **Kapsamlı test (localhost:3100, gerçek admin girişiyle a.kenja3683@…):**
+    - 17 sayfa × 3 dil = 51 yükleme → hepsi 200, sıfır hata sayfası, sıfır eksik çeviri
+    - Dinamik detay sayfaları (rezervasyon/oda/misafir/fatura/denetim) × 3 dil → hepsi 200
+    - Dil değiştirme: `<html lang>` + içerik her dilde doğru değişiyor (ru/uz/uz-cyrl birbirine karışmıyor)
+    - Auth: girişsiz `/dashboard` → `/login`'e yönleniyor (koruma artık gerçekten çalışıyor)
+    - Çeviri anahtarı pariteti: 3 dosya da 802 anahtar, birebir eşit — eksik/fazla yok
+  - `pnpm build` başarılı (ƒ Middleware artık derleniyor — önce yok sayılıyordu) ✓
+  - Not: Önceki oturumun önekli `redirect(\`/${locale}/login\`)` yamaları artık gereksiz ama zararsız
+    (next-intl 'never' modunda önekli URL'i öneksize geri yönlendirir). Churn olmasın diye dokunulmadı.
+
 ## Sonraki Adımlar (Kalan — sadece merchant hesabı sonrası)
 1. Payme/Click/Uzum gerçek entegrasyon — UI + endpoint hazır, sadece merchant credentials bekleniyor
 

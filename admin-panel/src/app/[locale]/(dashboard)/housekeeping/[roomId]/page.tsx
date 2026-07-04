@@ -31,7 +31,7 @@ export default async function RoomInspectionPage({
   const { roomId } = await params
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect(`/${await getLocale()}/login`)
+  if (!user) redirect('/login')
 
   const locale = await getLocale()
   const t = await getTranslations('housekeeping.inspection')

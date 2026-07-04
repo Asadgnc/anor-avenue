@@ -5,9 +5,8 @@ import { routing } from '@/i18n/routing'
 
 type UserRole = 'admin' | 'manager' | 'receptionist' | 'housekeeper' | 'accountant'
 
-// Each role's allowed path prefixes (WITHOUT locale prefix)
 const ROLE_ALLOWED_PATHS: Record<UserRole, string[]> = {
-  admin: ['/'],  // admin can access everything
+  admin: ['/'],
   manager: [
     '/dashboard', '/reservations', '/rooms', '/guests',
     '/registrations', '/housekeeping', '/payments', '/reports',
@@ -28,29 +27,9 @@ function isAllowed(role: UserRole, pathname: string): boolean {
   return allowed.some((prefix) => pathname === prefix || pathname.startsWith(prefix + '/'))
 }
 
-// Strip locale prefix and return the detected locale (or defaultLocale as fallback)
-function detectLocale(pathname: string, cookieLocale?: string): { locale: string; path: string } {
-  for (const locale of routing.locales) {
-    if (pathname === `/${locale}` || pathname.startsWith(`/${locale}/`)) {
-      return { locale, path: pathname.slice(`/${locale}`.length) || '/' }
-    }
-  }
-  // Fallback: cookie locale if valid, otherwise default
-  const fallback =
-    cookieLocale && (routing.locales as readonly string[]).includes(cookieLocale)
-      ? cookieLocale
-      : routing.defaultLocale
-  return { locale: fallback, path: pathname }
-}
-
-function stripLocale(pathname: string): string {
-  return detectLocale(pathname).path
-}
-
 const handleI18nRouting = createIntlMiddleware(routing)
 
 export async function middleware(request: NextRequest) {
-  // Supabase client for auth — tracks cookie mutations
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
@@ -79,46 +58,31 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
-  const cookieLocale = request.cookies.get('NEXT_LOCALE')?.value
-  const { locale, path: pathWithoutLocale } = detectLocale(pathname, cookieLocale)
   const isLoginPage =
-    pathWithoutLocale === '/login' ||
-    pathWithoutLocale === '/' ||
-    pathWithoutLocale === ''
+    pathname === '/login' ||
+    pathname === '/' ||
+    pathname === ''
 
-  // Helper: build a redirect response that carries any refreshed Supabase cookies
   function makeRedirect(url: string) {
     const res = NextResponse.redirect(new URL(url, request.url))
     supabaseResponse.cookies.getAll().forEach((c) => res.cookies.set(c.name, c.value))
     return res
   }
 
-  // Not authenticated → send to login (preserve locale)
-  if (!user && !isLoginPage) {
-    return makeRedirect(`/${locale}/login`)
-  }
+  if (!user && !isLoginPage) return makeRedirect('/login')
+  if (user && isLoginPage) return makeRedirect('/dashboard')
 
-  // Authenticated on login/root → send to dashboard (preserve locale)
-  if (user && isLoginPage) {
-    return makeRedirect(`/${locale}/dashboard`)
-  }
-
-  // RBAC check for authenticated users
   if (user && !isLoginPage) {
     const role = (user.user_metadata?.role as UserRole | undefined) ?? 'receptionist'
-    if (!isAllowed(role, pathWithoutLocale)) {
-      return makeRedirect(`/${locale}/dashboard?blocked=1`)
-    }
+    if (!isAllowed(role, pathname)) return makeRedirect('/dashboard?blocked=1')
   }
 
-  // Hand off to next-intl (locale detection / prefix redirect)
+  // Hand off to next-intl: detects locale from NEXT_LOCALE cookie / Accept-Language
+  // and internally rewrites the request to the correct [locale] page.
   const i18nResponse = handleI18nRouting(request)
-
-  // Merge any refreshed Supabase auth cookies into the i18n response
   supabaseResponse.cookies.getAll().forEach((c) =>
     i18nResponse.cookies.set(c.name, c.value)
   )
-
   return i18nResponse
 }
 
