@@ -417,6 +417,21 @@ Mert "nar çarpışması" konsepti önerdi. Konsept henüz karara bağlanmadı �
   - `next build` başarılı (63 sayfa, 3 dil prerender) ✓
   - ⚠️ Ekran görüntüsü alınamadı — kullanıcı tarayıcıda 3 dilde doğrulayacak; commit yapıldı, henüz PUSH edilmedi (kullanıcı onayı bekleniyor)
 
+- [x] Admin panel: i18n kritik hata düzeltmesi (4 Temmuz 2026)
+  - **Kök neden 1 — Çift `<html>`:** `src/app/layout.tsx` `<html><body>` render ediyordu; `[locale]/layout.tsx`
+    da kendi `<html>`'ini render ediyordu → iç içe geçmiş geçersiz DOM → localhost'ta binlerce hydration hatası.
+    Düzeltme: `src/app/layout.tsx` artık sadece `<>{children}</>` (passthrough).
+  - **Kök neden 2 — Sabit `/ru` redirect'leri:** `middleware.ts`'de 3 redirect hedefi `/ru/...` olarak
+    hardcode'du → uz/uz-cyrl kullanıcısı her zaman Rusçaya fırlatılıyordu. Düzeltme: `detectLocale()` fonksiyonu
+    URL önekinden dili tespit eder, redirect'ler `/${locale}/...` kullanır.
+  - **Kök neden 3 — 22 sayfada öneksiz `redirect('/login')`:** Tüm dashboard sayfaları `redirect('/login')`
+    çağırıyordu (dil öneki yok) → middleware bunları `/ru/login`'e çeviriyordu → uz/uz-cyrl oturumu Rusçaya düşüyordu.
+    Düzeltme: Tüm sayfalarda `redirect(\`/\${await getLocale()}/login\`)` pattern'i uygulandı.
+  - Auth callback (`/api/auth/callback`) sabit `/ru/...` yerine cookie'den dil tespiti yapıyor.
+  - `src/app/[locale]/not-found.tsx` eklendi — 3 dilde çevrili 404 sayfası.
+  - favicon.ico geri yüklendi (git restore).
+  - `pnpm build` başarılı (64 sayfa, 3 dil, sıfır hata) ✓
+
 ## Sonraki Adımlar (Kalan — sadece merchant hesabı sonrası)
 1. Payme/Click/Uzum gerçek entegrasyon — UI + endpoint hazır, sadece merchant credentials bekleniyor
 

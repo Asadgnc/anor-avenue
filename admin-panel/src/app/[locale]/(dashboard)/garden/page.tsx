@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import { Link } from '@/i18n/navigation'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, getLocale } from 'next-intl/server'
 import { Package } from 'lucide-react'
 import GardenClient from './GardenClient'
 import DepoClient from '@/app/[locale]/(dashboard)/depo/DepoClient'
@@ -10,7 +10,7 @@ import type { GardenTask, InventoryPurchase } from '@/types/hotel'
 export default async function GardenPage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  if (!user) redirect(`/${await getLocale()}/login`)
 
   const t = await getTranslations('garden')
 

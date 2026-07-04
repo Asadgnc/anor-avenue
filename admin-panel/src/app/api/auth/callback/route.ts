@@ -6,18 +6,20 @@ import { createClient } from '@/lib/supabase-server'
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
-  const next = searchParams.get('next') ?? '/ru/dashboard'
+
+  // Preserve the user's locale from cookie, fall back to default
+  const cookieHeader = request.headers.get('cookie') ?? ''
+  const localeMatch = cookieHeader.match(/NEXT_LOCALE=([^;]+)/)
+  const locale = localeMatch ? localeMatch[1] : 'ru'
 
   if (code) {
     const supabase = await createClient()
     const { error } = await supabase.auth.exchangeCodeForSession(code)
 
     if (!error) {
-      // Successfully authenticated — redirect to dashboard
-      return NextResponse.redirect(new URL('/ru/dashboard', origin))
+      return NextResponse.redirect(new URL(`/${locale}/dashboard`, origin))
     }
   }
 
-  // Something went wrong — redirect to login with error hint
-  return NextResponse.redirect(new URL('/ru/login?error=auth_callback_failed', origin))
+  return NextResponse.redirect(new URL(`/${locale}/login?error=auth_callback_failed`, origin))
 }

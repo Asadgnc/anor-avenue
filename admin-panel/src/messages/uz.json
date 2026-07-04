@@ -1001,5 +1001,10 @@
     "occupancy": "Bandlik",
     "collection": "Toʻlov yigʻilishi",
     "cancellation": "Bekor qilish ulushi"
+  },
+  "notFound": {
+    "title": "Sahifa topilmadi",
+    "description": "So'ralgan sahifa mavjud emas.",
+    "backButton": "Bosh sahifaga"
   }
 }

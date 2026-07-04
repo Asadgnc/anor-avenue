@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import { Link } from '@/i18n/navigation'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, getLocale } from 'next-intl/server'
 import WalkInForm from '@/components/admin/WalkInForm'
 import type { Room } from '@/types/hotel'
 import { dash } from '@/lib/dashboardTheme'
@@ -12,7 +12,7 @@ export default async function NewReservationPage() {
   const {
     data: { user },
   } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  if (!user) redirect(`/${await getLocale()}/login`)
 
   const { data } = await supabase
     .from('rooms')

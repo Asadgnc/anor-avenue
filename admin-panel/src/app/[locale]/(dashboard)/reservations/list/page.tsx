@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import { Link } from '@/i18n/navigation'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, getLocale } from 'next-intl/server'
 import ReservationListClient from './ReservationListClient'
 import type { ReservationStatus, Channel } from '@/types/hotel'
 import { dash } from '@/lib/dashboardTheme'
@@ -37,7 +37,7 @@ const VALID_CHANNELS: Channel[] = ['direct', 'booking_com', 'agoda', 'walk_in', 
 export default async function ReservationListPage({ searchParams }: Props) {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  if (!user) redirect(`/${await getLocale()}/login`)
 
   const { status, channel, createdOn, checkIn, checkOut } = await searchParams
   const t = await getTranslations('reservations.list')

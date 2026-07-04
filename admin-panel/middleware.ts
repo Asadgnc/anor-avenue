@@ -28,14 +28,23 @@ function isAllowed(role: UserRole, pathname: string): boolean {
   return allowed.some((prefix) => pathname === prefix || pathname.startsWith(prefix + '/'))
 }
 
-// Strip locale prefix so RBAC can compare against plain paths like /dashboard
-function stripLocale(pathname: string): string {
+// Strip locale prefix and return the detected locale (or defaultLocale as fallback)
+function detectLocale(pathname: string, cookieLocale?: string): { locale: string; path: string } {
   for (const locale of routing.locales) {
     if (pathname === `/${locale}` || pathname.startsWith(`/${locale}/`)) {
-      return pathname.slice(`/${locale}`.length) || '/'
+      return { locale, path: pathname.slice(`/${locale}`.length) || '/' }
     }
   }
-  return pathname
+  // Fallback: cookie locale if valid, otherwise default
+  const fallback =
+    cookieLocale && (routing.locales as readonly string[]).includes(cookieLocale)
+      ? cookieLocale
+      : routing.defaultLocale
+  return { locale: fallback, path: pathname }
+}
+
+function stripLocale(pathname: string): string {
+  return detectLocale(pathname).path
 }
 
 const handleI18nRouting = createIntlMiddleware(routing)
@@ -70,7 +79,8 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser()
 
   const { pathname } = request.nextUrl
-  const pathWithoutLocale = stripLocale(pathname)
+  const cookieLocale = request.cookies.get('NEXT_LOCALE')?.value
+  const { locale, path: pathWithoutLocale } = detectLocale(pathname, cookieLocale)
   const isLoginPage =
     pathWithoutLocale === '/login' ||
     pathWithoutLocale === '/' ||
@@ -83,21 +93,21 @@ export async function middleware(request: NextRequest) {
     return res
   }
 
-  // Not authenticated → send to login
+  // Not authenticated → send to login (preserve locale)
   if (!user && !isLoginPage) {
-    return makeRedirect('/ru/login')
+    return makeRedirect(`/${locale}/login`)
   }
 
-  // Authenticated on login/root → send to dashboard
+  // Authenticated on login/root → send to dashboard (preserve locale)
   if (user && isLoginPage) {
-    return makeRedirect('/ru/dashboard')
+    return makeRedirect(`/${locale}/dashboard`)
   }
 
   // RBAC check for authenticated users
   if (user && !isLoginPage) {
     const role = (user.user_metadata?.role as UserRole | undefined) ?? 'receptionist'
     if (!isAllowed(role, pathWithoutLocale)) {
-      return makeRedirect('/ru/dashboard?blocked=1')
+      return makeRedirect(`/${locale}/dashboard?blocked=1`)
     }
   }
 

@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, getLocale } from 'next-intl/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingDown, TrendingUp, Minus } from 'lucide-react'
 import FinanceExpenseTable from './FinanceExpenseTable'
@@ -19,10 +19,10 @@ function fmtUSD(amount: number) {
 export default async function FinancePage() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  if (!user) redirect(`/${await getLocale()}/login`)
 
   const role = (user.user_metadata?.role as string | undefined) ?? 'receptionist'
-  if (role !== 'admin') redirect('/dashboard?blocked=1')
+  if (role !== 'admin') redirect(`/${await getLocale()}/dashboard?blocked=1`)
 
   const [paymentsResult, purchasesResult] = await Promise.all([
     supabase
