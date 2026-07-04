@@ -2,7 +2,7 @@ import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import { Link } from '@/i18n/navigation'
 import { getTranslations } from 'next-intl/server'
-import NewReservationForm from '@/components/admin/NewReservationForm'
+import WalkInForm from '@/components/admin/WalkInForm'
 import type { Room } from '@/types/hotel'
 import { dash } from '@/lib/dashboardTheme'
 
@@ -47,7 +47,7 @@ export default async function NewReservationPage() {
         </div>
       )}
 
-      <NewReservationForm rooms={rooms} />
+      <WalkInForm rooms={rooms} />
     </div>
   )
 }

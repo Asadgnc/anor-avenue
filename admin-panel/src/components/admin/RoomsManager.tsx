@@ -3,6 +3,7 @@
 import { Fragment, useActionState, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
+import { Link } from '@/i18n/navigation'
 import {
   addRoomAction,
   updateRoomAction,
@@ -51,19 +52,34 @@ function useFloorLabel() {
   }
 }
 
+function useRoomTypeName() {
+  const tRoomTypes = useTranslations('roomTypes')
+  return (name: string): string => {
+    try {
+      return tRoomTypes(name as Parameters<typeof tRoomTypes>[0])
+    } catch {
+      return name
+    }
+  }
+}
+
 // ─── StatusPill ───────────────────────────────────────────────────────────────
 
 function StatusPill({
   value,
   options,
   onSelect,
+  displayOptions,
 }: {
   value: string
   options: readonly { value: string; label: string; color: string; bg: string }[]
   onSelect: (v: string) => void
+  displayOptions?: readonly { value: string; label: string; color: string; bg: string }[]
 }) {
   const [open, setOpen] = useState(false)
+  // displayOptions is a superset used only for label/color lookup (not selectable)
   const current = options.find((o) => o.value === value)
+    ?? displayOptions?.find((o) => o.value === value)
 
   return (
     <div className="relative">
@@ -304,21 +320,30 @@ function EditRoomRow({
 interface Props {
   rooms: Room[]
   roomTypes: RoomType[]
+  role?: string
 }
 
-export default function RoomsManager({ rooms, roomTypes }: Props) {
+export default function RoomsManager({ rooms, roomTypes, role }: Props) {
   const t = useTranslations('rooms')
   const th = useTranslations('rooms.headers')
   const tRoomStatus = useTranslations('status.room')
   const tCleaning = useTranslations('status.cleaning')
   const floorLabel = useFloorLabel()
+  const roomTypeName = useRoomTypeName()
 
   const roomStatusOptions = (Object.keys(ROOM_STATUS_COLORS) as (keyof typeof ROOM_STATUS_COLORS)[]).map((k) => ({
     value: k,
     label: tRoomStatus(k),
     ...ROOM_STATUS_COLORS[k],
   }))
-  const cleaningStatusOptions = (Object.keys(CLEANING_STATUS_COLORS) as (keyof typeof CLEANING_STATUS_COLORS)[]).map((k) => ({
+  // Selectable options: only clean/dirty — detailed transitions managed in Housekeeping
+  const cleaningStatusOptions = (['clean', 'dirty'] as const).map((k) => ({
+    value: k,
+    label: tCleaning(k),
+    ...CLEANING_STATUS_COLORS[k],
+  }))
+  // Full set for display — so badge shows translated label even for cleaned/in_progress/inspected
+  const allCleaningOptions = (Object.keys(CLEANING_STATUS_COLORS) as (keyof typeof CLEANING_STATUS_COLORS)[]).map((k) => ({
     value: k,
     label: tCleaning(k),
     ...CLEANING_STATUS_COLORS[k],
@@ -352,7 +377,7 @@ export default function RoomsManager({ rooms, roomTypes }: Props) {
 
   return (
     <div className="space-y-6">
-      <AddRoomForm roomTypes={roomTypes} />
+      {role === 'admin' && <AddRoomForm roomTypes={roomTypes} />}
 
       {rooms.length === 0 ? (
         <div
@@ -400,7 +425,7 @@ export default function RoomsManager({ rooms, roomTypes }: Props) {
                           >
                             <td className="px-4 py-3 font-semibold text-foreground">{room.room_number}</td>
                             <td className="px-4 py-3" style={{ color: 'var(--color-admin-muted)' }}>
-                              {room.room_types?.name ?? '—'}
+                              {room.room_types?.name ? roomTypeName(room.room_types.name) : '—'}
                             </td>
                             <td className="px-4 py-3">
                               <StatusPill
@@ -413,6 +438,7 @@ export default function RoomsManager({ rooms, roomTypes }: Props) {
                               <StatusPill
                                 value={cleaningStatuses[room.id] ?? room.cleaning_status}
                                 options={cleaningStatusOptions}
+                                displayOptions={allCleaningOptions}
                                 onSelect={(v) => handleCleaningStatus(room.id, v)}
                               />
                             </td>
@@ -430,13 +456,13 @@ export default function RoomsManager({ rooms, roomTypes }: Props) {
                                 >
                                   {editingRoomId === room.id ? t('cancelButton') : t('editButton')}
                                 </button>
-                                <a
+                                <Link
                                   href={`/rooms/${room.id}`}
                                   className="text-xs px-2 py-1 rounded-lg border transition-opacity hover:opacity-80"
                                   style={{ color: 'var(--color-admin-muted)', borderColor: 'var(--color-admin-border)' }}
                                 >
                                   {t('inventoryLink')}
-                                </a>
+                                </Link>
                               </div>
                             </td>
                           </tr>

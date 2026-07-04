@@ -12,6 +12,8 @@ export default async function RoomsPage() {
   } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  const role = (user.user_metadata?.role as string | undefined) ?? 'receptionist'
+
   const [roomsResult, typesResult] = await Promise.all([
     supabase
       .from('rooms')
@@ -37,7 +39,7 @@ export default async function RoomsPage() {
         </p>
       </div>
 
-      <RoomsManager rooms={rooms} roomTypes={roomTypes} />
+      <RoomsManager rooms={rooms} roomTypes={roomTypes} role={role} />
     </div>
   )
 }

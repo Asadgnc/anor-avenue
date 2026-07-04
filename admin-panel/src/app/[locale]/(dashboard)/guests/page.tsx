@@ -2,8 +2,7 @@ import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import { Link } from '@/i18n/navigation'
 import { getTranslations } from 'next-intl/server'
-import GuestListClient from './GuestListClient'
-import type { Guest } from '@/types/hotel'
+import GuestListClient, { type GuestRow } from './GuestListClient'
 
 export default async function GuestsPage() {
   const supabase = await createClient()
@@ -12,13 +11,61 @@ export default async function GuestsPage() {
 
   const t = await getTranslations('guests')
 
+  // Fetch guests with their reservations (to show last stay info)
   const { data: guests } = await supabase
     .from('guests')
-    .select('id, first_name, last_name, email, phone, nationality, passport_number')
+    .select(`
+      id, first_name, last_name, nationality,
+      reservations(
+        id, check_in, check_out, nights, total_amount, room_rate,
+        rooms(room_number),
+        payments(amount, status)
+      )
+    `)
     .order('created_at', { ascending: false })
     .limit(500)
 
-  const rows = (guests ?? []) as Guest[]
+  type RawGuest = {
+    id: string
+    first_name: string
+    last_name: string
+    nationality: string | null
+    reservations: Array<{
+      id: string
+      check_in: string
+      check_out: string
+      nights: number
+      total_amount: number
+      room_rate: number
+      rooms: { room_number: string } | null
+      payments: Array<{ amount: number; status: string }>
+    }>
+  }
+
+  const rows: GuestRow[] = ((guests ?? []) as unknown as RawGuest[]).map((g) => {
+    // Find most recent reservation by check_in date
+    const sorted = [...g.reservations].sort((a, b) =>
+      b.check_in.localeCompare(a.check_in)
+    )
+    const last = sorted[0] ?? null
+    const paid = last
+      ? last.payments
+          .filter((p) => p.status === 'completed')
+          .reduce((sum, p) => sum + p.amount, 0)
+      : 0
+
+    return {
+      id: g.id,
+      first_name: g.first_name,
+      last_name: g.last_name,
+      nationality: g.nationality,
+      lastRoom: last?.rooms?.room_number ?? null,
+      lastNights: last?.nights ?? null,
+      lastTotalAmount: last?.total_amount ?? null,
+      lastPaid: last ? paid : null,
+      stayCount: g.reservations.length,
+    }
+  })
 
   return (
     <div className="space-y-6">

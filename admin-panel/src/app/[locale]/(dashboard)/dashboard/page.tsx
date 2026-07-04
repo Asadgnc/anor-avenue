@@ -8,10 +8,6 @@ import {
   LogOut,
   CalendarPlus,
   AlertCircle,
-  CheckCircle2,
-  Wind,
-  Clock,
-  Sparkles,
   LayoutGrid,
   BedDouble,
   Users,
@@ -22,6 +18,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import StatCard from '@/components/admin/StatCard'
 import RoomStatusGrid, { type RoomStatusRow } from '@/components/admin/RoomStatusGrid'
 import RecentBookingsList, { type RecentBooking } from '@/components/admin/RecentBookingsList'
+import CleaningStatusCards from '@/components/admin/CleaningStatusCards'
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
@@ -104,21 +101,17 @@ async function fetchRoomStatusList(): Promise<RoomStatusRow[]> {
   return (data ?? []) as RoomStatusRow[]
 }
 
-async function fetchCleaningStatus() {
+interface CleaningRoomInfo { room_number: string; floor: number }
+
+async function fetchCleaningRooms(): Promise<{ dirty: CleaningRoomInfo[]; clean: CleaningRoomInfo[] }> {
   const supabase = await createClient()
-  const [cleanResult, dirtyResult, inProgressResult, cleanedResult, inspectedResult] = await Promise.all([
-    supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('cleaning_status', 'clean').eq('is_active', true),
-    supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('cleaning_status', 'dirty').eq('is_active', true),
-    supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('cleaning_status', 'in_progress').eq('is_active', true),
-    supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('cleaning_status', 'cleaned').eq('is_active', true),
-    supabase.from('rooms').select('id', { count: 'exact', head: true }).eq('cleaning_status', 'inspected').eq('is_active', true),
+  const [dirtyResult, cleanResult] = await Promise.all([
+    supabase.from('rooms').select('room_number, floor').eq('cleaning_status', 'dirty').eq('is_active', true).order('floor').order('room_number'),
+    supabase.from('rooms').select('room_number, floor').eq('cleaning_status', 'clean').eq('is_active', true).order('floor').order('room_number'),
   ])
   return {
-    clean: cleanResult.count ?? 0,
-    dirty: dirtyResult.count ?? 0,
-    in_progress: inProgressResult.count ?? 0,
-    cleaned: cleanedResult.count ?? 0,
-    inspected: inspectedResult.count ?? 0,
+    dirty: (dirtyResult.data ?? []) as CleaningRoomInfo[],
+    clean: (cleanResult.data ?? []) as CleaningRoomInfo[],
   }
 }
 
@@ -206,10 +199,10 @@ export default async function DashboardPage({
   const { blocked } = await searchParams
   const t = await getTranslations('dashboard')
 
-  const [stats, roomStatusList, cleaning, recentBookings, pendingReservations, userName, occupancy] = await Promise.all([
+  const [stats, roomStatusList, cleaningRooms, recentBookings, pendingReservations, userName, occupancy] = await Promise.all([
     fetchStatCardsData(),
     fetchRoomStatusList(),
-    fetchCleaningStatus(),
+    fetchCleaningRooms(),
     fetchRecentBookings(t('guestFallback')),
     fetchPendingReservations(),
     fetchUserName(user.id, user.email ?? t('userFallback')),
@@ -353,8 +346,11 @@ export default async function DashboardPage({
             <CardHeader>
               <CardTitle>{t('cleaningStatus')}</CardTitle>
             </CardHeader>
-            <CardContent className="grid grid-cols-2 gap-3">
-              <CleaningLegend cleaning={cleaning} />
+            <CardContent>
+              <CleaningStatusCards
+                dirtyRooms={cleaningRooms.dirty}
+                cleanRooms={cleaningRooms.clean}
+              />
             </CardContent>
           </Card>
         </div>
@@ -366,30 +362,3 @@ export default async function DashboardPage({
   )
 }
 
-async function CleaningLegend({
-  cleaning,
-}: {
-  cleaning: { clean: number; dirty: number; in_progress: number; cleaned: number; inspected: number }
-}) {
-  const ts = await getTranslations('status.cleaning')
-  const items = [
-    { label: ts('clean'), count: cleaning.clean, color: 'text-green-600', icon: <CheckCircle2 size={16} /> },
-    { label: ts('dirty'), count: cleaning.dirty, color: 'text-red-600', icon: <Wind size={16} /> },
-    { label: ts('in_progress'), count: cleaning.in_progress, color: 'text-amber-600', icon: <Clock size={16} /> },
-    { label: ts('cleaned'), count: cleaning.cleaned, color: 'text-sky-600', icon: <Sparkles size={16} /> },
-    { label: ts('inspected'), count: cleaning.inspected, color: 'text-primary', icon: <CheckCircle2 size={16} /> },
-  ]
-  return (
-    <>
-      {items.map((c) => (
-        <div key={c.label} className="rounded-lg border border-border p-3 flex items-center gap-2.5">
-          <span className={c.color}>{c.icon}</span>
-          <div>
-            <p className="text-lg font-semibold leading-none text-foreground">{c.count}</p>
-            <p className="text-[11px] mt-0.5 text-muted-foreground">{c.label}</p>
-          </div>
-        </div>
-      ))}
-    </>
-  )
-}

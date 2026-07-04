@@ -2,7 +2,7 @@
 
 import { z } from 'zod'
 import { redirect } from 'next/navigation'
-import { getTranslations } from 'next-intl/server'
+import { getTranslations, getLocale } from 'next-intl/server'
 import { createClient } from '@/lib/supabase-server'
 
 const loginSchema = z.object({
@@ -39,5 +39,6 @@ export async function loginAction(
     return { error: t('invalidCredentials') }
   }
 
-  redirect('/dashboard')
+  const locale = await getLocale()
+  redirect(`/${locale}/dashboard`)
 }

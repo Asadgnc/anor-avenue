@@ -3,10 +3,25 @@
 import { useState, useMemo } from 'react'
 import { Link } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
-import type { Guest } from '@/types/hotel'
+
+export interface GuestRow {
+  id: string
+  first_name: string
+  last_name: string
+  nationality: string | null
+  lastRoom: string | null
+  lastNights: number | null
+  lastTotalAmount: number | null
+  lastPaid: number | null
+  stayCount: number
+}
 
 interface Props {
-  guests: Guest[]
+  guests: GuestRow[]
+}
+
+function formatUZS(n: number): string {
+  return new Intl.NumberFormat('uz-UZ', { maximumFractionDigits: 0 }).format(n) + ' UZS'
 }
 
 export default function GuestListClient({ guests }: Props) {
@@ -21,15 +36,11 @@ export default function GuestListClient({ guests }: Props) {
       const name = `${g.first_name} ${g.last_name}`.toLowerCase()
       return (
         name.includes(q) ||
-        (g.phone ?? '').includes(q) ||
-        (g.email ?? '').toLowerCase().includes(q) ||
-        (g.passport_number ?? '').toLowerCase().includes(q) ||
-        (g.nationality ?? '').toLowerCase().includes(q)
+        (g.nationality ?? '').toLowerCase().includes(q) ||
+        (g.lastRoom ?? '').includes(q)
       )
     })
   }, [guests, search])
-
-  const headers = [th('name'), th('phone'), th('email'), th('nationality'), th('passport'), th('actions')]
 
   return (
     <div className="space-y-4">
@@ -72,13 +83,21 @@ export default function GuestListClient({ guests }: Props) {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm" style={{ minWidth: '700px' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
-                  {headers.map((h, i) => (
+                  {[
+                    th('name'),
+                    th('nationality'),
+                    th('lastRoom'),
+                    th('nights'),
+                    th('totalAmount'),
+                    th('paid'),
+                    th('actions'),
+                  ].map((h, i) => (
                     <th
                       key={`${h}-${i}`}
-                      className="text-left px-5 py-3 text-xs font-semibold uppercase tracking-widest"
+                      className="text-left px-4 py-3 text-xs font-semibold uppercase tracking-widest"
                       style={{ color: 'var(--color-admin-muted)' }}
                     >
                       {h}
@@ -93,22 +112,30 @@ export default function GuestListClient({ guests }: Props) {
                     style={{ borderBottom: '1px solid var(--color-admin-border)' }}
                     className="hover:bg-black/[0.03] transition-colors"
                   >
-                    <td className="px-5 py-3 font-medium text-foreground">
+                    <td className="px-4 py-3 font-medium text-foreground">
                       {g.first_name} {g.last_name}
+                      {g.stayCount > 1 && (
+                        <span className="ml-2 text-xs px-1.5 py-0.5 rounded-full" style={{ backgroundColor: 'var(--color-admin-bg)', color: 'var(--color-accent)' }}>
+                          ×{g.stayCount}
+                        </span>
+                      )}
                     </td>
-                    <td className="px-5 py-3" style={{ color: 'var(--color-admin-muted)' }}>
-                      {g.phone ?? '—'}
-                    </td>
-                    <td className="px-5 py-3" style={{ color: 'var(--color-admin-muted)' }}>
-                      {g.email ?? '—'}
-                    </td>
-                    <td className="px-5 py-3" style={{ color: 'var(--color-admin-muted)' }}>
+                    <td className="px-4 py-3" style={{ color: 'var(--color-admin-muted)' }}>
                       {g.nationality ?? '—'}
                     </td>
-                    <td className="px-5 py-3" style={{ color: 'var(--color-admin-muted)' }}>
-                      {g.passport_number ?? '—'}
+                    <td className="px-4 py-3 font-semibold" style={{ color: 'var(--foreground)' }}>
+                      {g.lastRoom ? `#${g.lastRoom}` : '—'}
                     </td>
-                    <td className="px-5 py-3">
+                    <td className="px-4 py-3 tabular-nums" style={{ color: 'var(--color-admin-muted)' }}>
+                      {g.lastNights ?? '—'}
+                    </td>
+                    <td className="px-4 py-3 tabular-nums font-medium" style={{ color: 'var(--color-accent)' }}>
+                      {g.lastTotalAmount != null ? formatUZS(g.lastTotalAmount) : '—'}
+                    </td>
+                    <td className="px-4 py-3 tabular-nums" style={{ color: 'var(--color-admin-muted)' }}>
+                      {g.lastPaid != null ? formatUZS(g.lastPaid) : '—'}
+                    </td>
+                    <td className="px-4 py-3">
                       <Link
                         href={`/guests/${g.id}`}
                         className="text-xs font-medium hover:opacity-80 transition-opacity"

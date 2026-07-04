@@ -1,4 +1,9 @@
 {
+  "roomTypes": {
+    "Standard": "Стандарт",
+    "Luxury": "Люкс",
+    "Deluxe": "Делюкс"
+  },
   "common": {
     "save": "Сақлаш",
     "saving": "Сақланмоқда…",
@@ -106,6 +111,11 @@
     "todayMovement": "Бугунги ҳаракат",
     "operation": "Операция",
     "cleaningStatus": "Хоналар тозалик ҳолати",
+    "dirtyRoomsTitle": "Ифлос хоналар",
+    "cleanRoomsTitle": "Тоза хоналар",
+    "cleaningModal": {
+      "noRooms": "Хона йўқ"
+    },
     "accessDenied": "Сизда бу саҳифага кириш ҳуқуқи йўқ. Чап меню орқали ўз саҳифангизни танланг.",
     "pendingReservations": "{n} та брон тасдиқланишини кутмоқда",
     "morePending": "+{n} та →",
@@ -163,9 +173,45 @@
       "clearFilter": "Филтрни тозалаш ×"
     },
     "new": {
-      "backLink": "← Календар",
+      "backLink": "← Орқага",
       "title": "Янги брон",
-      "noRoomsWarning": "Фаол хоналар йўқ. Supabase'да rooms жадвалига хона қўшинг."
+      "noRoomsWarning": "Фаол хоналар йўқ. Supabase'да rooms жадвалига хона қўшинг.",
+      "modeTitle": "Рўйхатга олиш тури",
+      "modeSubtitle": "Яшашни қандай расмийлаштириш керак?",
+      "walkInBtn": "Ҳозир кириш",
+      "walkInDesc": "Меҳмон шахсан келди — ҳозироқ расмийлаштирилади",
+      "bookBtn": "Олдиндан брон",
+      "bookDesc": "Келажакдаги сана учун брон қилиш",
+      "changeMode": "← Ўзгартириш",
+      "guestCountLabel": "Меҳмонлар сони",
+      "guestCountPlaceholder": "Сонини киритинг",
+      "guestCountBtn": "Карточкаларни тўлдириш →",
+      "guestCardTitle": "Меҳмон {n}",
+      "primaryBadge": "Асосий",
+      "companionBadge": "Ҳамроҳ",
+      "fields": {
+        "firstName": "Исм",
+        "lastName": "Фамилия",
+        "nationality": "Фуқаролиги",
+        "dateOfBirth": "Туғилган сана",
+        "relationship": "Муносабат (бош меҳмон билан)",
+        "marriageCert": "Никоҳ гувоҳномаси кўрсатилди",
+        "phone": "Телефон",
+        "passportNumber": "Паспорт рақами"
+      },
+      "sharedSection": "Яшаш параметрлари",
+      "roomLabel": "Хона",
+      "checkOutLabel": "Чиқиш санаси",
+      "breakfastLabel": "Нонушта киритилган",
+      "adultsLabel": "Катталар сони (рўйхатга олиш учун)",
+      "paymentSection": "Кириш пайтида тўлов (ихтиёрий)",
+      "amountLabel": "Сумма (UZS)",
+      "methodLabel": "Тўлов усули",
+      "specialRequestsLabel": "Махсус сўровлар",
+      "submitBtn": "Киришни расмийлаштириш",
+      "submitting": "Сақланмоқда…",
+      "successTitle": "Кириш расмийлаштирилди!",
+      "successGoDetail": "Бронига ўтиш →"
     },
     "detail": {
       "backLink": "← Календар",
@@ -322,7 +368,11 @@
       "email": "E-mail",
       "nationality": "Фуқаролик",
       "passport": "Паспорт",
-      "actions": "Амаллар"
+      "actions": "Амаллар",
+      "lastRoom": "Сўнги хона",
+      "nights": "Тунлар",
+      "totalAmount": "Сумма",
+      "paid": "Тўланган"
     },
     "detailLink": "Батафсил →",
     "detail": {
@@ -444,6 +494,7 @@
       "guest": "Меҳмон",
       "amount": "Сумма",
       "method": "Усул",
+      "receivedBy": "Қабул қилди",
       "status": "Ҳолат",
       "date": "Сана"
     },
@@ -456,6 +507,28 @@
       "completed": "Бажарилди",
       "failed": "Хатолик",
       "refunded": "Қайтарилди"
+    },
+    "detail": {
+      "title": "Тўлов тафсилотлари",
+      "reservation": "Брон",
+      "guest": "Меҳмон",
+      "amount": "Сумма",
+      "method": "Тўлов усули",
+      "status": "Ҳолат",
+      "date": "Сана ва вақт",
+      "receivedBy": "Қабул қилди",
+      "notes": "Изоҳ"
+    },
+    "receipt": {
+      "title": "Тўлов квитансияси",
+      "code": "Брон №",
+      "guest": "Меҳмон",
+      "method": "Усул",
+      "date": "Сана",
+      "receivedBy": "Қабул қилди",
+      "amount": "ЖАМИ",
+      "thanks": "Ташриф учун раҳмат!",
+      "printButton": "Квитансия"
     }
   },
   "reports": {

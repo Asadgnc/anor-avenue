@@ -34,9 +34,10 @@ export async function inviteStaffAction(
   const service = createServiceClient()
 
   // Send invite via Supabase Auth Admin
+  const baseUrl = process.env.NEXT_PUBLIC_ADMIN_URL ?? 'https://anor-avenue-admin-panel.vercel.app'
   const { data, error } = await service.auth.admin.inviteUserByEmail(parsed.data.email, {
     data: { role: parsed.data.role },
-    redirectTo: `${process.env.NEXT_PUBLIC_ADMIN_URL ?? 'https://anor-avenue-admin-panel.vercel.app'}/login`,
+    redirectTo: `${baseUrl}/api/auth/callback`,
   })
 
   if (error) {

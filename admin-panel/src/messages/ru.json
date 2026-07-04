@@ -1,4 +1,9 @@
 {
+  "roomTypes": {
+    "Standard": "Стандарт",
+    "Luxury": "Люкс",
+    "Deluxe": "Делюкс"
+  },
   "common": {
     "save": "Сохранить",
     "saving": "Сохранение…",
@@ -106,6 +111,11 @@
     "todayMovement": "Движение сегодня",
     "operation": "Операции",
     "cleaningStatus": "Статус уборки номеров",
+    "dirtyRoomsTitle": "Грязные номера",
+    "cleanRoomsTitle": "Чистые номера",
+    "cleaningModal": {
+      "noRooms": "Нет номеров"
+    },
     "accessDenied": "У вас нет доступа к этой странице. Используйте меню слева.",
     "pendingReservations": "{n} бронь ожидает подтверждения",
     "morePending": "+{n} ещё →",
@@ -163,9 +173,45 @@
       "clearFilter": "Сбросить фильтр ×"
     },
     "new": {
-      "backLink": "← Календарь",
+      "backLink": "← Назад",
       "title": "Новая бронь",
-      "noRoomsWarning": "Нет активных номеров. Добавьте номер в таблицу rooms в Supabase."
+      "noRoomsWarning": "Нет активных номеров. Добавьте номер в таблицу rooms в Supabase.",
+      "modeTitle": "Тип оформления",
+      "modeSubtitle": "Как оформить проживание?",
+      "walkInBtn": "Заезд сейчас",
+      "walkInDesc": "Гость пришёл лично — оформление прямо сейчас",
+      "bookBtn": "Предзаказ",
+      "bookDesc": "Забронировать на будущую дату",
+      "changeMode": "← Изменить",
+      "guestCountLabel": "Количество гостей",
+      "guestCountPlaceholder": "Введите количество",
+      "guestCountBtn": "Заполнить карточки →",
+      "guestCardTitle": "Гость {n}",
+      "primaryBadge": "Основной",
+      "companionBadge": "Сопровождающий",
+      "fields": {
+        "firstName": "Имя",
+        "lastName": "Фамилия",
+        "nationality": "Гражданство",
+        "dateOfBirth": "Дата рождения",
+        "relationship": "Отношение (к главному гостю)",
+        "marriageCert": "Свидетельство о браке предъявлено",
+        "phone": "Телефон",
+        "passportNumber": "Номер паспорта"
+      },
+      "sharedSection": "Параметры проживания",
+      "roomLabel": "Номер",
+      "checkOutLabel": "Дата выезда",
+      "breakfastLabel": "Завтрак включён",
+      "adultsLabel": "Кол-во взрослых (для регистрации)",
+      "paymentSection": "Оплата при заезде (необязательно)",
+      "amountLabel": "Сумма (UZS)",
+      "methodLabel": "Способ оплаты",
+      "specialRequestsLabel": "Пожелания",
+      "submitBtn": "Оформить заезд",
+      "submitting": "Сохраняем…",
+      "successTitle": "Заезд оформлен!",
+      "successGoDetail": "Перейти к брони →"
     },
     "detail": {
       "backLink": "← Календарь",
@@ -322,7 +368,11 @@
       "email": "E-mail",
       "nationality": "Гражданство",
       "passport": "Паспорт",
-      "actions": "Действия"
+      "actions": "Действия",
+      "lastRoom": "Посл. номер",
+      "nights": "Ночей",
+      "totalAmount": "Сумма",
+      "paid": "Оплачено"
     },
     "detailLink": "Детали →",
     "detail": {
@@ -444,6 +494,7 @@
       "guest": "Гость",
       "amount": "Сумма",
       "method": "Способ",
+      "receivedBy": "Принял",
       "status": "Статус",
       "date": "Дата"
     },
@@ -456,6 +507,28 @@
       "completed": "Выполнен",
       "failed": "Ошибка",
       "refunded": "Возврат"
+    },
+    "detail": {
+      "title": "Детали платежа",
+      "reservation": "Бронь",
+      "guest": "Гость",
+      "amount": "Сумма",
+      "method": "Способ оплаты",
+      "status": "Статус",
+      "date": "Дата и время",
+      "receivedBy": "Принял",
+      "notes": "Примечание"
+    },
+    "receipt": {
+      "title": "Квитанция об оплате",
+      "code": "Бронь №",
+      "guest": "Гость",
+      "method": "Способ",
+      "date": "Дата",
+      "receivedBy": "Принял",
+      "amount": "ИТОГО",
+      "thanks": "Спасибо за ваш визит!",
+      "printButton": "Квитанция"
     }
   },
   "reports": {

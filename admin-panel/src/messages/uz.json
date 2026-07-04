@@ -1,4 +1,9 @@
 {
+  "roomTypes": {
+    "Standard": "Standart",
+    "Luxury": "Lyuks",
+    "Deluxe": "Deluxe"
+  },
   "common": {
     "save": "Saqlash",
     "saving": "Saqlanmoqda…",
@@ -106,6 +111,11 @@
     "todayMovement": "Bugungi harakat",
     "operation": "Operatsiya",
     "cleaningStatus": "Xonalar tozalik holati",
+    "dirtyRoomsTitle": "Iflos xonalar",
+    "cleanRoomsTitle": "Toza xonalar",
+    "cleaningModal": {
+      "noRooms": "Xona yo'q"
+    },
     "accessDenied": "Sizda bu sahifaga kirish huquqi yo'q. Chap menyu orqali o'z sahifangizni tanlang.",
     "pendingReservations": "{n} ta bron tasdiqlanishini kutmoqda",
     "morePending": "+{n} ta →",
@@ -163,9 +173,45 @@
       "clearFilter": "Filtrni tozalash ×"
     },
     "new": {
-      "backLink": "← Kalendar",
+      "backLink": "← Orqaga",
       "title": "Yangi bron",
-      "noRoomsWarning": "Faol xonalar yo'q. Supabase'da rooms jadvaliga xona qo'shing."
+      "noRoomsWarning": "Faol xonalar yo'q. Supabase'da rooms jadvaliga xona qo'shing.",
+      "modeTitle": "Ro'yxatga olish turi",
+      "modeSubtitle": "Yashashni qanday rasmiylashtirish kerak?",
+      "walkInBtn": "Hozir kirish",
+      "walkInDesc": "Mehmon shaxsan keldi — hoziroq rasmiylashtiriladi",
+      "bookBtn": "Oldindan bron",
+      "bookDesc": "Kelajakdagi sana uchun bron qilish",
+      "changeMode": "← O'zgartirish",
+      "guestCountLabel": "Mehmonlar soni",
+      "guestCountPlaceholder": "Sonini kiriting",
+      "guestCountBtn": "Kartochkalarni to'ldirish →",
+      "guestCardTitle": "Mehmon {n}",
+      "primaryBadge": "Asosiy",
+      "companionBadge": "Hamroh",
+      "fields": {
+        "firstName": "Ism",
+        "lastName": "Familiya",
+        "nationality": "Fuqaroligi",
+        "dateOfBirth": "Tug'ilgan sana",
+        "relationship": "Munosabat (bosh mehmon bilan)",
+        "marriageCert": "Nikoh guvohnomasi ko'rsatildi",
+        "phone": "Telefon",
+        "passportNumber": "Pasport raqami"
+      },
+      "sharedSection": "Yashash parametrlari",
+      "roomLabel": "Xona",
+      "checkOutLabel": "Chiqish sanasi",
+      "breakfastLabel": "Nonushta kiritilgan",
+      "adultsLabel": "Kattalar soni (ro'yxatga olish uchun)",
+      "paymentSection": "Kirish paytida to'lov (ixtiyoriy)",
+      "amountLabel": "Summa (UZS)",
+      "methodLabel": "To'lov usuli",
+      "specialRequestsLabel": "Maxsus so'rovlar",
+      "submitBtn": "Kirishni rasmiylashtirish",
+      "submitting": "Saqlanmoqda…",
+      "successTitle": "Kirish rasmiylashtirildi!",
+      "successGoDetail": "Broniga o'tish →"
     },
     "detail": {
       "backLink": "← Kalendar",
@@ -322,7 +368,11 @@
       "email": "E-mail",
       "nationality": "Fuqarolik",
       "passport": "Pasport",
-      "actions": "Amallar"
+      "actions": "Amallar",
+      "lastRoom": "So'ngi xona",
+      "nights": "Tunlar",
+      "totalAmount": "Summa",
+      "paid": "To'langan"
     },
     "detailLink": "Batafsil →",
     "detail": {
@@ -444,6 +494,7 @@
       "guest": "Mehmon",
       "amount": "Summa",
       "method": "Usul",
+      "receivedBy": "Qabul qildi",
       "status": "Holat",
       "date": "Sana"
     },
@@ -456,6 +507,28 @@
       "completed": "Bajarildi",
       "failed": "Xatolik",
       "refunded": "Qaytarildi"
+    },
+    "detail": {
+      "title": "To'lov tafsilotlari",
+      "reservation": "Bron",
+      "guest": "Mehmon",
+      "amount": "Summa",
+      "method": "To'lov usuli",
+      "status": "Holat",
+      "date": "Sana va vaqt",
+      "receivedBy": "Qabul qildi",
+      "notes": "Izoh"
+    },
+    "receipt": {
+      "title": "To'lov kvitansiyasi",
+      "code": "Bron №",
+      "guest": "Mehmon",
+      "method": "Usul",
+      "date": "Sana",
+      "receivedBy": "Qabul qildi",
+      "amount": "JAMI",
+      "thanks": "Tashrif uchun rahmat!",
+      "printButton": "Kvitansiya"
     }
   },
   "reports": {
