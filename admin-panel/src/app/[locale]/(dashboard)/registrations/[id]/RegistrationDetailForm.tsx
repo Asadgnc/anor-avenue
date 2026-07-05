@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { saveRegistrationDetailsAction, uploadRegistrationDocumentAction } from '../actions'
+import PassportScanButton from '@/components/admin/PassportScanButton'
+import type { MrzFields } from '@/lib/mrz'
 
 interface GuestDoc {
   id: string
@@ -16,6 +18,8 @@ interface GuestDoc {
   visa_number: string | null
   visa_expiry: string | null
   pinfl: string | null
+  passport_expiry: string | null
+  sex: string | null
 }
 
 interface RegInfo {
@@ -24,21 +28,40 @@ interface RegInfo {
   tourist_tax_paid: boolean
 }
 
+// Fields the scan can populate; used to flag which ones need manual review.
+type WarnKey = 'passportNumber' | 'dateOfBirth' | 'passportExpiry'
+
 const inputCls = 'w-full px-3 py-2 rounded-lg text-sm border outline-none'
-const inputStyle = {
+const baseInputStyle = {
   backgroundColor: 'var(--color-admin-bg)',
   color: 'var(--foreground)',
   borderColor: 'var(--color-admin-border)',
 }
 const cardStyle = { backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }
 
-function Field({ label, name, defaultValue, type = 'text' }: {
-  label: string; name: string; defaultValue?: string | null; type?: string
+function Field({
+  label, name, value, onChange, type = 'text', warn = false,
+}: {
+  label: string
+  name: string
+  value: string
+  onChange: (v: string) => void
+  type?: string
+  warn?: boolean
 }) {
   return (
     <div>
-      <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-admin-muted)' }}>{label}</label>
-      <input name={name} type={type} defaultValue={defaultValue ?? ''} className={inputCls} style={inputStyle} />
+      <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-admin-muted)' }}>
+        {label}{warn && <span style={{ color: '#EF4444' }}> ⚠</span>}
+      </label>
+      <input
+        name={name}
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className={inputCls}
+        style={warn ? { ...baseInputStyle, borderColor: '#EF4444' } : baseInputStyle}
+      />
     </div>
   )
 }
@@ -67,6 +90,7 @@ export default function RegistrationDetailForm({
   const t = useTranslations('registrations.detail')
   const tf = useTranslations('registrations.detail.fields')
   const tdoc = useTranslations('registrations.detail.document')
+  const ts = useTranslations('scan')
   const tc = useTranslations('common')
 
   const [editing, setEditing] = useState(false)
@@ -76,6 +100,55 @@ export default function RegistrationDetailForm({
   const [uploading, setUploading] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
 
+  const [scanInfo, setScanInfo] = useState<string | null>(null)
+  const [warn, setWarn] = useState<Set<WarnKey>>(new Set())
+
+  // Controlled form state (so the scanner can fill it)
+  const [passportSeries, setPassportSeries] = useState(guest?.passport_series ?? '')
+  const [passportNumber, setPassportNumber] = useState(guest?.passport_number ?? '')
+  const [passportExpiry, setPassportExpiry] = useState(guest?.passport_expiry ?? '')
+  const [sex, setSex] = useState(guest?.sex ?? '')
+  const [visaNumber, setVisaNumber] = useState(guest?.visa_number ?? '')
+  const [visaExpiry, setVisaExpiry] = useState(guest?.visa_expiry ?? '')
+  const [pinfl, setPinfl] = useState(guest?.pinfl ?? '')
+  const [nationality, setNationality] = useState(guest?.nationality ?? '')
+  const [dateOfBirth, setDateOfBirth] = useState(guest?.date_of_birth ?? '')
+  const [registrationNumber, setRegistrationNumber] = useState(registration.registration_number ?? '')
+  const [touristTaxAmount, setTouristTaxAmount] = useState(
+    registration.tourist_tax_amount != null ? String(registration.tourist_tax_amount) : ''
+  )
+  const [touristTaxPaid, setTouristTaxPaid] = useState(registration.tourist_tax_paid)
+  const [mrzRaw, setMrzRaw] = useState('')
+
+  function applyScan(f: MrzFields) {
+    setEditing(true)
+    if (f.passportNumber) setPassportNumber(f.passportNumber)
+    if (f.nationalityName) setNationality(f.nationalityName)
+    if (f.dateOfBirth) setDateOfBirth(f.dateOfBirth)
+    if (f.expiryDate) setPassportExpiry(f.expiryDate)
+    if (f.sex) setSex(f.sex)
+    setMrzRaw(f.raw)
+
+    const w = new Set<WarnKey>()
+    if (!f.checks.passportNumber) w.add('passportNumber')
+    if (!f.checks.dateOfBirth) w.add('dateOfBirth')
+    if (!f.checks.expiryDate) w.add('passportExpiry')
+    setWarn(w)
+    setScanInfo(w.size > 0 ? ts('reviewWarning') : ts('filledBanner'))
+  }
+
+  async function handleScanImage(file: File) {
+    // Store the captured passport photo as the registration document too.
+    setUploading(true)
+    setUploadError(null)
+    const fd = new FormData()
+    fd.append('document', file)
+    const result = await uploadRegistrationDocumentAction(registrationId, fd)
+    setUploading(false)
+    if (result.error) setUploadError(result.error)
+    else router.refresh()
+  }
+
   async function handleSave(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setSaving(true)
@@ -83,7 +156,7 @@ export default function RegistrationDetailForm({
     const result = await saveRegistrationDetailsAction(registrationId, new FormData(e.currentTarget))
     setSaving(false)
     if (result.error) setError(result.error)
-    else { setEditing(false); router.refresh() }
+    else { setEditing(false); setScanInfo(null); setWarn(new Set()); router.refresh() }
   }
 
   async function handleUpload(e: React.FormEvent<HTMLFormElement>) {
@@ -97,8 +170,28 @@ export default function RegistrationDetailForm({
     else { form.reset(); router.refresh() }
   }
 
+  const sexLabel = sex === 'M' ? tf('sexMale') : sex === 'F' ? tf('sexFemale') : ''
+
   return (
     <div className="space-y-6">
+      {/* Passport scan — entry point (koordinasyon: bu kayıt bağlamının içinde) */}
+      <div className="rounded-2xl p-5" style={cardStyle}>
+        <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--color-admin-muted)' }}>
+          {ts('sectionTitle')}
+        </p>
+        <PassportScanButton onResult={applyScan} onImage={handleScanImage} />
+        {scanInfo && (
+          <p
+            className="mt-3 text-xs px-3 py-2 rounded-lg"
+            style={warn.size > 0
+              ? { backgroundColor: '#FEF3C7', color: '#92400E' }
+              : { backgroundColor: '#DCFCE7', color: '#166534' }}
+          >
+            {scanInfo}
+          </p>
+        )}
+      </div>
+
       {/* Belge + registratsiya bilgileri */}
       <div className="rounded-2xl" style={cardStyle}>
         <div className="px-5 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
@@ -118,19 +211,18 @@ export default function RegistrationDetailForm({
 
         {!editing && (
           <div className="px-5 pb-3">
-            <Row label={tf('passportSeries')} value={guest?.passport_series ?? ''} />
-            <Row label={tf('passportNumber')} value={guest?.passport_number ?? ''} />
-            <Row label={tf('visaNumber')} value={guest?.visa_number ?? ''} />
-            <Row label={tf('visaExpiry')} value={guest?.visa_expiry ?? ''} />
-            <Row label={tf('pinfl')} value={guest?.pinfl ?? ''} />
-            <Row label={tf('nationality')} value={guest?.nationality ?? ''} />
-            <Row label={tf('dob')} value={guest?.date_of_birth ?? ''} />
-            <Row label={tf('registrationNumber')} value={registration.registration_number ?? ''} />
-            <Row
-              label={tf('touristTaxAmount')}
-              value={registration.tourist_tax_amount != null ? String(registration.tourist_tax_amount) : ''}
-            />
-            <Row label={tf('touristTaxPaid')} value={registration.tourist_tax_paid ? t('yes') : t('no')} />
+            <Row label={tf('passportSeries')} value={passportSeries} />
+            <Row label={tf('passportNumber')} value={passportNumber} />
+            <Row label={tf('passportExpiry')} value={passportExpiry} />
+            <Row label={tf('sex')} value={sexLabel} />
+            <Row label={tf('visaNumber')} value={visaNumber} />
+            <Row label={tf('visaExpiry')} value={visaExpiry} />
+            <Row label={tf('pinfl')} value={pinfl} />
+            <Row label={tf('nationality')} value={nationality} />
+            <Row label={tf('dob')} value={dateOfBirth} />
+            <Row label={tf('registrationNumber')} value={registrationNumber} />
+            <Row label={tf('touristTaxAmount')} value={touristTaxAmount} />
+            <Row label={tf('touristTaxPaid')} value={touristTaxPaid ? t('yes') : t('no')} />
           </div>
         )}
 
@@ -139,23 +231,34 @@ export default function RegistrationDetailForm({
             {error && (
               <p className="mb-4 text-xs px-3 py-2 rounded-lg" style={{ backgroundColor: '#FDEAEA', color: '#EF4444' }}>{error}</p>
             )}
+            <input type="hidden" name="mrzRaw" value={mrzRaw} />
             <div className="grid grid-cols-2 gap-3">
-              <Field label={tf('passportSeries')} name="passportSeries" defaultValue={guest?.passport_series} />
-              <Field label={tf('passportNumber')} name="passportNumber" defaultValue={guest?.passport_number} />
-              <Field label={tf('visaNumber')} name="visaNumber" defaultValue={guest?.visa_number} />
-              <Field label={tf('visaExpiry')} name="visaExpiry" type="date" defaultValue={guest?.visa_expiry} />
-              <Field label={tf('pinfl')} name="pinfl" defaultValue={guest?.pinfl} />
-              <Field label={tf('nationality')} name="nationality" defaultValue={guest?.nationality} />
-              <Field label={tf('dob')} name="dateOfBirth" type="date" defaultValue={guest?.date_of_birth} />
-              <Field label={tf('registrationNumber')} name="registrationNumber" defaultValue={registration.registration_number} />
-              <Field
-                label={tf('touristTaxAmount')}
-                name="touristTaxAmount"
-                type="number"
-                defaultValue={registration.tourist_tax_amount != null ? String(registration.tourist_tax_amount) : ''}
-              />
+              <Field label={tf('passportSeries')} name="passportSeries" value={passportSeries} onChange={setPassportSeries} />
+              <Field label={tf('passportNumber')} name="passportNumber" value={passportNumber} onChange={setPassportNumber} warn={warn.has('passportNumber')} />
+              <Field label={tf('passportExpiry')} name="passportExpiry" type="date" value={passportExpiry} onChange={setPassportExpiry} warn={warn.has('passportExpiry')} />
+              <div>
+                <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-admin-muted)' }}>{tf('sex')}</label>
+                <select
+                  name="sex"
+                  value={sex}
+                  onChange={(e) => setSex(e.target.value)}
+                  className={inputCls}
+                  style={baseInputStyle}
+                >
+                  <option value="">—</option>
+                  <option value="M">{tf('sexMale')}</option>
+                  <option value="F">{tf('sexFemale')}</option>
+                </select>
+              </div>
+              <Field label={tf('visaNumber')} name="visaNumber" value={visaNumber} onChange={setVisaNumber} />
+              <Field label={tf('visaExpiry')} name="visaExpiry" type="date" value={visaExpiry} onChange={setVisaExpiry} />
+              <Field label={tf('pinfl')} name="pinfl" value={pinfl} onChange={setPinfl} />
+              <Field label={tf('nationality')} name="nationality" value={nationality} onChange={setNationality} />
+              <Field label={tf('dob')} name="dateOfBirth" type="date" value={dateOfBirth} onChange={setDateOfBirth} warn={warn.has('dateOfBirth')} />
+              <Field label={tf('registrationNumber')} name="registrationNumber" value={registrationNumber} onChange={setRegistrationNumber} />
+              <Field label={tf('touristTaxAmount')} name="touristTaxAmount" type="number" value={touristTaxAmount} onChange={setTouristTaxAmount} />
               <label className="flex items-center gap-2 text-sm self-end pb-2" style={{ color: 'var(--foreground)' }}>
-                <input type="checkbox" name="touristTaxPaid" defaultChecked={registration.tourist_tax_paid} />
+                <input type="checkbox" name="touristTaxPaid" checked={touristTaxPaid} onChange={(e) => setTouristTaxPaid(e.target.checked)} />
                 {tf('touristTaxPaid')}
               </label>
             </div>
@@ -182,7 +285,7 @@ export default function RegistrationDetailForm({
         )}
       </div>
 
-      {/* PDF belgesi */}
+      {/* Belge (PDF / görsel) */}
       <div className="rounded-2xl" style={cardStyle}>
         <div className="px-5 py-3" style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
           <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-admin-muted)' }}>

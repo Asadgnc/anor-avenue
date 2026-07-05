@@ -648,6 +648,10 @@
         "pinfl": "PINFL",
         "nationality": "Fuqarolik",
         "dob": "Tugʻilgan sana",
+        "passportExpiry": "Passport amal qilish muddati",
+        "sex": "Jinsi",
+        "sexMale": "Erkak",
+        "sexFemale": "Ayol",
         "registrationNumber": "Registratsiya raqami (OVIR)",
         "touristTaxAmount": "Turistik yigʻim",
         "touristTaxPaid": "Yigʻim toʻlangan"
@@ -661,6 +665,17 @@
         "replaceButton": "Hujjatni almashtirish"
       }
     }
+  },
+  "scan": {
+    "sectionTitle": "Passportni skanerlash",
+    "button": "Passportni skanerlash",
+    "reading": "Oʻqilmoqda… {progress}%",
+    "readingHint": "Aniqlanmoqda, kuting…",
+    "cameraHint": "Kamerani passportning mashina oʻqiydigan zonasiga (pastdagi 2 qator) qarating.",
+    "notFound": "MRZ zonasi topilmadi. Yaxshiroq yorugʻlikda qayta urinib koʻring.",
+    "failed": "Skanerlashda xatolik. Qayta urinib koʻring.",
+    "filledBanner": "Maydonlar passportdan toʻldirildi. Tekshiring va saqlang.",
+    "reviewWarning": "Baʼzi maydonlarni tekshirib boʻlmadi (⚠). Saqlashdan oldin ularni tekshiring."
   },
   "staff": {
     "title": "Xodimlarni boshqarish",

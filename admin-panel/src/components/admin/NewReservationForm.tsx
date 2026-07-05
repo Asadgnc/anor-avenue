@@ -4,6 +4,8 @@ import { useActionState, useEffect, useMemo, useState } from 'react'
 import { useRouter } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 import { createReservationAction, type ReservationFormState } from '@/app/[locale]/(dashboard)/reservations/new/actions'
+import PassportScanButton from './PassportScanButton'
+import type { MrzFields } from '@/lib/mrz'
 import type { Room } from '@/types/hotel'
 import { dash } from '@/lib/dashboardTheme'
 
@@ -138,6 +140,25 @@ export default function NewReservationForm({ rooms }: Props) {
   const [advanceAmount, setAdvanceAmount] = useState('')
   const [showPayment, setShowPayment] = useState(false)
 
+  // Guest fields — controlled so the passport scanner can fill them
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [nationality, setNationality] = useState('')
+  const [passportNumber, setPassportNumber] = useState('')
+  const [dateOfBirth, setDateOfBirth] = useState('')
+  const [passportExpiry, setPassportExpiry] = useState('')
+  const [sex, setSex] = useState('')
+
+  function applyScan(f: MrzFields) {
+    if (f.surname) setLastName(f.surname)
+    if (f.givenNames) setFirstName(f.givenNames)
+    if (f.nationalityName) setNationality(f.nationalityName)
+    if (f.passportNumber) setPassportNumber(f.passportNumber)
+    if (f.dateOfBirth) setDateOfBirth(f.dateOfBirth)
+    if (f.expiryDate) setPassportExpiry(f.expiryDate)
+    if (f.sex) setSex(f.sex)
+  }
+
   // Selected room price
   const selectedRoom = useMemo(
     () => rooms.find((r) => r.id === selectedRoomId) ?? null,
@@ -167,14 +188,17 @@ export default function NewReservationForm({ rooms }: Props) {
         className="rounded-2xl p-5 space-y-4"
         style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
       >
-        <SectionTitle>{ts('guestInfo')}</SectionTitle>
+        <div className="flex items-center justify-between gap-3 flex-wrap">
+          <SectionTitle>{ts('guestInfo')}</SectionTitle>
+          <PassportScanButton onResult={applyScan} />
+        </div>
 
         <div className="grid grid-cols-2 gap-4">
           <Field label={tf('firstName')} required error={fe.firstName}>
-            <Input name="firstName" placeholder="Alisher" hasError={!!fe.firstName} />
+            <Input name="firstName" placeholder="Alisher" hasError={!!fe.firstName} value={firstName} onChange={(e) => setFirstName(e.target.value)} />
           </Field>
           <Field label={tf('lastName')} required error={fe.lastName}>
-            <Input name="lastName" placeholder="Karimov" hasError={!!fe.lastName} />
+            <Input name="lastName" placeholder="Karimov" hasError={!!fe.lastName} value={lastName} onChange={(e) => setLastName(e.target.value)} />
           </Field>
         </div>
 
@@ -189,12 +213,17 @@ export default function NewReservationForm({ rooms }: Props) {
 
         <div className="grid grid-cols-2 gap-4">
           <Field label={tf('nationality')} error={fe.nationality}>
-            <Input name="nationality" placeholder={tp('nationality')} />
+            <Input name="nationality" placeholder={tp('nationality')} value={nationality} onChange={(e) => setNationality(e.target.value)} />
           </Field>
           <Field label={tf('passportId')} error={fe.passportNumber}>
-            <Input name="passportNumber" placeholder="AA1234567" />
+            <Input name="passportNumber" placeholder="AA1234567" value={passportNumber} onChange={(e) => setPassportNumber(e.target.value)} />
           </Field>
         </div>
+
+        {/* Scan-populated fields (hidden; no manual entry needed here) */}
+        <input type="hidden" name="dateOfBirth" value={dateOfBirth} />
+        <input type="hidden" name="passportExpiry" value={passportExpiry} />
+        <input type="hidden" name="sex" value={sex} />
       </div>
 
       {/* Reservation details */}

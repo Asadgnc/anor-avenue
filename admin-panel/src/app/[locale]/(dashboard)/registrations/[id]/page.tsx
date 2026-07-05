@@ -39,6 +39,8 @@ interface DetailRow {
     visa_number: string | null
     visa_expiry: string | null
     pinfl: string | null
+    passport_expiry: string | null
+    sex: string | null
   } | null
   reservations: {
     id: string
@@ -70,7 +72,7 @@ export default async function RegistrationDetailPage({
     .from('guest_registrations')
     .select(`
       id, status, registered_at, submitted_at, registration_number, tourist_tax_amount, tourist_tax_paid, document_url,
-      guests(id, first_name, last_name, nationality, passport_number, passport_series, date_of_birth, visa_number, visa_expiry, pinfl),
+      guests(id, first_name, last_name, nationality, passport_number, passport_series, date_of_birth, visa_number, visa_expiry, pinfl, passport_expiry, sex),
       reservations(id, reservation_code, check_in, check_out, rooms(room_number))
     `)
     .eq('id', id)

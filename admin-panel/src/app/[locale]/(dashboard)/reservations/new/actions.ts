@@ -22,6 +22,9 @@ const schema = z.object({
   email:                z.string().optional(),
   nationality:          z.string().optional(),
   passportNumber:       z.string().optional(),
+  dateOfBirth:          z.string().optional(),
+  passportExpiry:       z.string().optional(),
+  sex:                  z.enum(['M', 'F']).optional().or(z.literal('')),
   roomId:               z.string().uuid(),
   checkIn:              z.string().min(1),
   checkOut:             z.string().min(1),
@@ -111,6 +114,9 @@ export async function createReservationAction(
       email:           d.email || null,
       nationality:     d.nationality || null,
       passport_number: d.passportNumber || null,
+      date_of_birth:   d.dateOfBirth || null,
+      passport_expiry: d.passportExpiry || null,
+      sex:             d.sex || null,
     })
     .select('id')
     .single()
@@ -189,6 +195,8 @@ const walkInSchema = z.object({
   guest_0_dateOfBirth:   z.string().optional(),
   guest_0_phone:         z.string().optional(),
   guest_0_passportNumber: z.string().optional(),
+  guest_0_passportExpiry: z.string().optional(),
+  guest_0_sex:           z.enum(['M', 'F']).optional().or(z.literal('')),
 })
 
 export type WalkInFormState = {
@@ -261,6 +269,9 @@ export async function createWalkInAction(
       email:           null,
       nationality:     d.guest_0_nationality || null,
       passport_number: d.guest_0_passportNumber || null,
+      date_of_birth:   d.guest_0_dateOfBirth || null,
+      passport_expiry: d.guest_0_passportExpiry || null,
+      sex:             d.guest_0_sex || null,
     })
     .select('id')
     .single()

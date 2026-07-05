@@ -94,6 +94,9 @@ const detailsSchema = z.object({
   pinfl: z.string().trim().max(20).optional(),
   nationality: z.string().trim().max(80).optional(),
   dateOfBirth: z.string().optional(),
+  passportExpiry: z.string().optional(),
+  sex: z.enum(['M', 'F']).optional().or(z.literal('')),
+  mrzRaw: z.string().max(120).optional(),
   registrationNumber: z.string().trim().max(60).optional(),
   touristTaxAmount: z.string().optional(),
   touristTaxPaid: z.string().optional(), // checkbox: 'on' | undefined
@@ -138,6 +141,9 @@ export async function saveRegistrationDetailsAction(
       pinfl: d.pinfl || null,
       nationality: d.nationality || null,
       date_of_birth: d.dateOfBirth || null,
+      passport_expiry: d.passportExpiry || null,
+      sex: d.sex || null,
+      mrz_raw: d.mrzRaw || null,
     })
     .eq('id', reg.guest_id)
   if (guestErr) return { error: t('registrationSaveFailed', { msg: guestErr.message }) }

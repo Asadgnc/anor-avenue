@@ -504,7 +504,28 @@ Mert "nar çarpışması" konsepti önerdi. Konsept henüz karara bağlanmadı �
   - `/payroll` sayfası: dönem oluştur (draft→finalized→paid), personel başına maaş/prim/kesinti
   - SidebarNav + middleware güncellendi; `pnpm build` başarılı ✓
 
+- [x] Telefonla pasaport tarama (MRZ/OCR) — ücretsiz, cihazda, API'siz (5 Temmuz 2026)
+  - Plan: `.claude/plans/optimized-gathering-quokka.md`. Karar: ücretli AI YOK — pasaportun MRZ
+    bölümü telefonda `tesseract.js` (açık kaynak, ücretsiz) ile okunur, check-digit ile doğrulanır.
+  - Koordinasyon ilkesi: tarama asla boşta başlamaz; her zaman zaten bakılan kaydın içinden → veri
+    yanlış rezervasyona gidemez, YENİ SAYFA açılmaz. Tek paylaşılan bileşen 3 mevcut ekrana gömüldü.
+  - Yeni: `src/lib/mrz.ts` (saf-TS TD3 parser + check-digit + ISO ülke haritası; 21 birim testi geçti),
+    `src/components/admin/PassportScanButton.tsx` (capture kamera + canvas ön işleme + lazy tesseract).
+  - Gömüldü: RegistrationDetailForm (controlled + tarama, görsel private `registrations` bucket'a belge
+    olarak da kaydolur), WalkInForm GuestCard, NewReservationForm — hepsi ad/soyad/pasaport/uyruk/DOB/
+    son-geçerlilik/cinsiyet doldurur; checksum tutmayan alan kırmızı "⚠" ile işaretlenir, personel onaylar.
+  - `docs/migrations/015_passport_scan_fields.sql`: guests +passport_expiry/sex/mrz_raw (+ canlı-only
+    registratsiya sütunları hijyen). ⚠️ CANLIYA HENÜZ UYGULANMADI — server action'lar bu sütunlara
+    yazdığı için migration uygulanmadan rezervasyon oluşturma/kayıt kaydetme HATA verir.
+  - i18n: 3 dile `scan.*` namespace + `registrations.detail.fields` içine passportExpiry/sex/sexMale/
+    sexFemale (970 anahtar × 3 dil, tam parite). `pnpm build` başarılı; tesseract lazy → bundle şişmedi.
+  - Parkta (kullanıcı bilgisi bekleniyor): ARCA/ERA fiskal POS (cihaz VAR — satıcıdan API doküman + terminal
+    ID lazım), Channex OTA (hesap YOK), turizm vergisi otomatik hesabı (güncel BHM oranı lazım).
+  - ⚠️ Tarayıcı/telefon doğrulaması kullanıcıda: gerçek pasaportla kamera → alan doldurma testi.
+
 ## Sonraki Adımlar
+- ⚠️ ÖNCELİK: Migration 015 kullanıcı tarafından Supabase Dashboard > SQL Editor'den uygulanacak
+  (MCP salt-okunur, uygulanamadı). Uygulanmadan rezervasyon oluşturma/kayıt kaydetme bozulur.
 - Migration 013 ve 014 Supabase Dashboard'a uygulanacak (kullanıcı yapacak)
 - Payme/Click/Uzum gerçek entegrasyon — UI + endpoint hazır, sadece merchant credentials bekleniyor
 

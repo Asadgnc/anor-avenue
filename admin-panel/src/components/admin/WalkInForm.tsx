@@ -5,7 +5,9 @@ import { useRouter } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 import { createWalkInAction, type WalkInFormState } from '@/app/[locale]/(dashboard)/reservations/new/actions'
 import NewReservationForm from './NewReservationForm'
+import PassportScanButton from './PassportScanButton'
 import { dash } from '@/lib/dashboardTheme'
+import type { MrzFields } from '@/lib/mrz'
 import type { Room } from '@/types/hotel'
 
 // ─── Input helpers ────────────────────────────────────────────────────────────
@@ -63,6 +65,27 @@ function GuestCard({ index, isPrimary, t }: GuestCardProps) {
   const [marriageCert, setMarriageCert] = useState(false)
   const prefix = `guest_${index}_`
 
+  // Controlled so the passport scanner can fill the card.
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
+  const [nationality, setNationality] = useState('')
+  const [dateOfBirth, setDateOfBirth] = useState('')
+  const [passportNumber, setPassportNumber] = useState('')
+  const [passportExpiry, setPassportExpiry] = useState('')
+  const [sex, setSex] = useState('')
+
+  function applyScan(f: MrzFields) {
+    if (f.surname) setLastName(f.surname)
+    if (f.givenNames) setFirstName(f.givenNames)
+    if (f.nationalityName) setNationality(f.nationalityName)
+    if (f.dateOfBirth) setDateOfBirth(f.dateOfBirth)
+    if (isPrimary) {
+      if (f.passportNumber) setPassportNumber(f.passportNumber)
+      if (f.expiryDate) setPassportExpiry(f.expiryDate)
+      if (f.sex) setSex(f.sex)
+    }
+  }
+
   return (
     <div
       className="rounded-xl p-4 border space-y-4"
@@ -83,18 +106,20 @@ function GuestCard({ index, isPrimary, t }: GuestCardProps) {
         </span>
       </div>
 
+      <PassportScanButton onResult={applyScan} />
+
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <Field label={t('fields.firstName')} required>
-          <Input name={`${prefix}firstName`} required placeholder="—" />
+          <Input name={`${prefix}firstName`} required placeholder="—" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
         </Field>
         <Field label={t('fields.lastName')} required>
-          <Input name={`${prefix}lastName`} required placeholder="—" />
+          <Input name={`${prefix}lastName`} required placeholder="—" value={lastName} onChange={(e) => setLastName(e.target.value)} />
         </Field>
         <Field label={t('fields.nationality')}>
-          <Input name={`${prefix}nationality`} placeholder="UZ / RU / …" />
+          <Input name={`${prefix}nationality`} placeholder="UZ / RU / …" value={nationality} onChange={(e) => setNationality(e.target.value)} />
         </Field>
         <Field label={t('fields.dateOfBirth')}>
-          <Input type="date" name={`${prefix}dateOfBirth`} />
+          <Input type="date" name={`${prefix}dateOfBirth`} value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} />
         </Field>
         {isPrimary && (
           <>
@@ -102,8 +127,10 @@ function GuestCard({ index, isPrimary, t }: GuestCardProps) {
               <Input type="tel" name={`${prefix}phone`} placeholder="+998" />
             </Field>
             <Field label={t('fields.passportNumber')}>
-              <Input name={`${prefix}passportNumber`} placeholder="AA1234567" />
+              <Input name={`${prefix}passportNumber`} placeholder="AA1234567" value={passportNumber} onChange={(e) => setPassportNumber(e.target.value)} />
             </Field>
+            <input type="hidden" name={`${prefix}passportExpiry`} value={passportExpiry} />
+            <input type="hidden" name={`${prefix}sex`} value={sex} />
           </>
         )}
         {!isPrimary && (
