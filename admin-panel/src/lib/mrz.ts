@@ -78,20 +78,46 @@ function toIsoDate(yymmdd: string, kind: 'dob' | 'expiry'): string {
 
 // ─── MRZ line extraction from raw OCR text ─────────────────────────────────────
 
-// Pulls the two TD3 lines out of noisy OCR output. Strips spaces, uppercases,
-// keeps lines made of the MRZ alphabet, then normalizes each to exactly 44 chars.
+// Pulls the two TD3 lines out of noisy OCR output. Rather than assuming the MRZ
+// is literally the last two lines (fragile when Vision emits the printed fields
+// after the MRZ, or splits/reorders lines), it scores every line for how
+// MRZ-like it is and keeps the best two, then normalizes each to 44 chars.
 export function extractMrzLines(text: string): [string, string] | null {
-  const candidates = text
+  const scored = text
     .split(/\r?\n/)
-    .map((l) => l.replace(/\s+/g, '').toUpperCase().replace(/[^A-Z0-9<]/g, ''))
-    .filter((l) => l.length >= 30 && l.includes('<'))
+    .map((line) => {
+      const compact = line.replace(/\s+/g, '').toUpperCase()
+      const norm = compact.replace(/[^A-Z0-9<]/g, '')
+      const mrzRatio = compact.length ? norm.length / compact.length : 0
+      return { norm, mrzRatio }
+    })
+    // MRZ lines are long and almost entirely the MRZ alphabet (A-Z, 0-9, '<').
+    .filter((c) => c.norm.length >= 28 && c.mrzRatio >= 0.8)
+    .map((c) => {
+      // Reward MRZ-typical lengths (44=TD3, 36=TD2, 30=TD1) and '<' fillers.
+      const lenPenalty = Math.min(
+        Math.abs(c.norm.length - 44),
+        Math.abs(c.norm.length - 36),
+        Math.abs(c.norm.length - 30)
+      )
+      const fill = (c.norm.match(/</g) || []).length
+      return { norm: c.norm, score: c.mrzRatio * 10 + Math.min(fill, 12) - lenPenalty }
+    })
 
-  if (candidates.length < 2) return null
+  if (scored.length < 2) return null
 
-  // The MRZ is the last block of long lines; take the final two.
-  const line1 = normalizeLine(candidates[candidates.length - 2])
-  const line2 = normalizeLine(candidates[candidates.length - 1])
-  return [line1, line2]
+  // Take the two most MRZ-like lines, then restore their original reading order.
+  const top = [...scored].sort((a, b) => b.score - a.score).slice(0, 2)
+  const posA = scored.indexOf(top[0])
+  const posB = scored.indexOf(top[1])
+  const [first, second] = posA <= posB ? [top[0], top[1]] : [top[1], top[0]]
+
+  // Guard against false positives: a real TD3 MRZ always carries '<' fillers.
+  // If neither candidate has any and neither is a full 44-char line, bail out.
+  const totalFill = (first.norm.match(/</g) || []).length + (second.norm.match(/</g) || []).length
+  if (totalFill === 0 && first.norm.length < 43 && second.norm.length < 43) return null
+
+  return [normalizeLine(first.norm), normalizeLine(second.norm)]
 }
 
 function normalizeLine(line: string): string {

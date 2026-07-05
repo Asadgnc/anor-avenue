@@ -675,7 +675,12 @@
     "notFound": "MRZ zonasi topilmadi. Yaxshiroq yorugʻlikda qayta urinib koʻring.",
     "failed": "Skanerlashda xatolik. Qayta urinib koʻring.",
     "filledBanner": "Maydonlar passportdan toʻldirildi. Tekshiring va saqlang.",
-    "reviewWarning": "Baʼzi maydonlarni tekshirib boʻlmadi (⚠). Saqlashdan oldin ularni tekshiring."
+    "reviewWarning": "Baʼzi maydonlarni tekshirib boʻlmadi (⚠). Saqlashdan oldin ularni tekshiring.",
+    "align": "Passportni ramkaga joylashtiring — pastki 2 qator (MRZ) aniq va yaltirashsiz boʻlsin",
+    "capture": "Suratga olish",
+    "retake": "Qayta urinish",
+    "cancel": "Bekor qilish",
+    "cameraError": "Kameraga kirish yoʻq. Ruxsat bering yoki fayl tanlang."
   },
   "staff": {
     "title": "Xodimlarni boshqarish",
