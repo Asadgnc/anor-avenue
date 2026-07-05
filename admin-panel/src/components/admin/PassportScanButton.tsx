@@ -1,15 +1,16 @@
 'use client'
 
-// Reusable passport MRZ scanner. Opens the phone's rear camera (or a file
-// picker on desktop), runs on-device OCR with tesseract.js (free, no API key),
-// parses the TD3 machine-readable zone locally with check-digit validation, and
-// hands the structured fields back to the host form. It never saves anything on
-// its own — the host decides what to do with the result and the raw image.
+// Reusable passport MRZ scanner. Opens the phone's rear camera (or a file picker
+// on desktop), downscales the shot on-device to keep the upload small, sends it
+// to Google Cloud Vision via a server action, and hands the parsed TD3 fields
+// back to the host form. It never saves anything on its own — the host decides
+// what to do with the result and the raw image.
 
 import { useRef, useState } from 'react'
 import { useTranslations } from 'next-intl'
 import { ScanLine } from 'lucide-react'
-import { parseMrzFromText, type MrzFields } from '@/lib/mrz'
+import { scanPassportAction } from '@/lib/actions/scan-passport'
+import type { MrzFields } from '@/lib/mrz'
 import { dash } from '@/lib/dashboardTheme'
 
 interface Props {
@@ -18,9 +19,10 @@ interface Props {
   className?: string
 }
 
-// Draw the picked image onto a canvas, capping the largest side and converting
-// to grayscale. Bounds OCR time and gives Tesseract a cleaner signal.
-async function preprocess(file: File): Promise<HTMLCanvasElement> {
+// Draw the picked image onto a canvas capped at MAX px on the largest side and
+// return it as a JPEG data URL. Keeps colour (Vision reads colour fine) and
+// bounds the upload size for slow connections.
+async function toDownscaledJpeg(file: File): Promise<string> {
   const url = URL.createObjectURL(file)
   try {
     const img = await new Promise<HTMLImageElement>((resolve, reject) => {
@@ -30,7 +32,7 @@ async function preprocess(file: File): Promise<HTMLCanvasElement> {
       el.src = url
     })
 
-    const MAX = 2000
+    const MAX = 1600
     const scale = Math.min(1, MAX / Math.max(img.naturalWidth, img.naturalHeight))
     const w = Math.round(img.naturalWidth * scale)
     const h = Math.round(img.naturalHeight * scale)
@@ -41,26 +43,16 @@ async function preprocess(file: File): Promise<HTMLCanvasElement> {
     const ctx = canvas.getContext('2d')!
     ctx.drawImage(img, 0, 0, w, h)
 
-    const imageData = ctx.getImageData(0, 0, w, h)
-    const px = imageData.data
-    for (let i = 0; i < px.length; i += 4) {
-      const gray = px[i] * 0.299 + px[i + 1] * 0.587 + px[i + 2] * 0.114
-      px[i] = px[i + 1] = px[i + 2] = gray
-    }
-    ctx.putImageData(imageData, 0, 0)
-    return canvas
+    return canvas.toDataURL('image/jpeg', 0.8)
   } finally {
     URL.revokeObjectURL(url)
   }
 }
 
-const MRZ_WHITELIST = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<'
-
 export default function PassportScanButton({ onResult, onImage, className }: Props) {
   const t = useTranslations('scan')
   const inputRef = useRef<HTMLInputElement>(null)
   const [busy, setBusy] = useState(false)
-  const [progress, setProgress] = useState(0)
   const [error, setError] = useState<string | null>(null)
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -70,33 +62,20 @@ export default function PassportScanButton({ onResult, onImage, className }: Pro
 
     setBusy(true)
     setError(null)
-    setProgress(0)
     try {
-      const canvas = await preprocess(file)
+      const dataUrl = await toDownscaledJpeg(file)
+      const result = await scanPassportAction(dataUrl)
 
-      // Lazy-load Tesseract so it never touches the main bundle.
-      const { createWorker } = await import('tesseract.js')
-      const worker = await createWorker('eng', 1, {
-        logger: (m: { status: string; progress: number }) => {
-          if (m.status === 'recognizing text') setProgress(Math.round(m.progress * 100))
-        },
-      })
-      await worker.setParameters({ tessedit_char_whitelist: MRZ_WHITELIST })
-      const { data } = await worker.recognize(canvas)
-      await worker.terminate()
-
-      const fields = parseMrzFromText(data.text)
-      if (!fields) {
-        setError(t('notFound'))
+      if ('error' in result) {
+        setError(result.error === 'not_found' ? t('notFound') : t('failed'))
         return
       }
       if (onImage) onImage(file)
-      onResult(fields)
+      onResult(result.fields)
     } catch {
       setError(t('failed'))
     } finally {
       setBusy(false)
-      setProgress(0)
     }
   }
 
@@ -118,7 +97,7 @@ export default function PassportScanButton({ onResult, onImage, className }: Pro
         style={{ backgroundColor: dash.primary }}
       >
         <ScanLine size={16} />
-        {busy ? t('reading', { progress }) : t('button')}
+        {busy ? t('readingHint') : t('button')}
       </button>
       <p className="mt-1.5 text-xs" style={{ color: 'var(--color-admin-muted)' }}>
         {busy ? t('readingHint') : t('cameraHint')}

@@ -523,7 +523,23 @@ Mert "nar çarpışması" konsepti önerdi. Konsept henüz karara bağlanmadı �
     ID lazım), Channex OTA (hesap YOK), turizm vergisi otomatik hesabı (güncel BHM oranı lazım).
   - ⚠️ Tarayıcı/telefon doğrulaması kullanıcıda: gerçek pasaportla kamera → alan doldurma testi.
 
+- [x] Pasaport tarama: cihazda OCR (tesseract) → Cloud AI (Google Cloud Vision) geçişi (5 Temmuz 2026)
+  - **Sorun:** tesseract.js cihazda çalışıyordu; ışık parlaması/arka plan/odak yüzünden MRZ okunamıyor, sürekli hata.
+  - **Karar (kullanıcı onaylı):** Google Cloud Vision + "sadece Cloud" (internet yoksa elle giriş). Yeni sayfa açılmadı.
+  - **Koordinasyon:** Tek paylaşılan bileşen `PassportScanButton`'ın yalnızca içi değişti; `onResult/onImage`
+    sözleşmesi aynı kaldı → 3 host form (WalkInForm, NewReservationForm, RegistrationDetailForm) HİÇ değişmedi.
+  - Yeni: `src/lib/actions/scan-passport.ts` — server action. Base64 JPEG → Vision `DOCUMENT_TEXT_DETECTION` REST
+    çağrısı (API key sadece sunucuda, `GOOGLE_CLOUD_VISION_API_KEY`) → mevcut `src/lib/mrz.ts` `parseMrzFromText`
+    ile TD3 ayrıştırma + check-digit. Auth geçidi: sadece giriş yapmış personel (kota kötüye kullanımına karşı).
+  - `PassportScanButton.tsx`: tesseract/worker kaldırıldı; görüntü cihazda 1600px'e küçültülüp JPEG q0.8 base64'e
+    çevrilir (yavaş internet için), action'a gönderilir. `mrz.ts` DEĞİŞMEDİ (aynen yeniden kullanıldı).
+  - `package.json`: `tesseract.js` bağımlılığı kaldırıldı (13 paket temizlendi). `pnpm build` başarılı ✓
+  - ⚠️ KURULUM BEKLİYOR: Google Cloud hesabı + Vision API + API key → `.env.local` ve Vercel'e
+    `GOOGLE_CLOUD_VISION_API_KEY`. Anahtar girilene kadar tarama "başarısız" döner (sayfa çökmez, elle giriş açık).
+  - ⚠️ Tarayıcı/telefon doğrulaması kullanıcıda: anahtar girildikten sonra gerçek pasaportla 3 ekranda test.
+
 ## Sonraki Adımlar
+- ⚠️ ÖNCELİK: Google Cloud Vision kurulumu — hesap/API key + `GOOGLE_CLOUD_VISION_API_KEY` env (kullanıcıyla adım adım)
 - ⚠️ ÖNCELİK: Migration 015 kullanıcı tarafından Supabase Dashboard > SQL Editor'den uygulanacak
   (MCP salt-okunur, uygulanamadı). Uygulanmadan rezervasyon oluşturma/kayıt kaydetme bozulur.
 - Migration 013 ve 014 Supabase Dashboard'a uygulanacak (kullanıcı yapacak)
