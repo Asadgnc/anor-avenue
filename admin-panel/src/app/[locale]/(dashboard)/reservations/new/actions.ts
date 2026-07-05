@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { getTranslations } from 'next-intl/server'
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase'
+import { triggerAvailabilitySync } from '@/lib/channex-sync'
 
 // Field → error translation key (resolved at runtime for i18n)
 const FIELD_ERROR_KEY: Record<string, string> = {
@@ -72,7 +73,7 @@ export async function createReservationAction(
   // Fetch room price
   const { data: roomData, error: roomErr } = await service
     .from('rooms')
-    .select('id, room_number, room_types(base_price)')
+    .select('id, room_number, room_type_id, room_types(base_price)')
     .eq('id', d.roomId)
     .eq('is_active', true)
     .single()
@@ -164,6 +165,9 @@ export async function createReservationAction(
     })
   }
 
+  // Channex: müsaitliği yeniden gönder (env yoksa no-op)
+  await triggerAvailabilitySync()
+
   // Return reservationId instead of redirect()
   return { reservationId: reservation.id }
 }
@@ -231,7 +235,7 @@ export async function createWalkInAction(
   // Fetch room price
   const { data: roomData, error: roomErr } = await service
     .from('rooms')
-    .select('id, room_number, room_types(base_price)')
+    .select('id, room_number, room_type_id, room_types(base_price)')
     .eq('id', d.roomId)
     .eq('is_active', true)
     .single()
@@ -343,6 +347,9 @@ export async function createWalkInAction(
   if (companions.length > 0) {
     await service.from('reservation_companions').insert(companions)
   }
+
+  // Channex: müsaitliği yeniden gönder (env yoksa no-op)
+  await triggerAvailabilitySync()
 
   // Payment on arrival (optional)
   if (d.advanceAmount && d.advanceAmount > 0 && d.paymentMethod) {

@@ -34,6 +34,23 @@ const schema = z.object({
   specialRequests: z.string().max(1000).optional(),
 })
 
+// Admin uygulamasındaki dahili Channex senkron endpoint'ini best-effort çağırır.
+async function notifyChannexSync(): Promise<void> {
+  const url = process.env.ADMIN_SYNC_URL
+  const secret = process.env.INTERNAL_SYNC_SECRET
+  if (!url || !secret) return
+  try {
+    await fetch(`${url.replace(/\/$/, '')}/api/internal/channex-sync`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-internal-secret': secret },
+      body: JSON.stringify({}),
+      cache: 'no-store',
+    })
+  } catch (e) {
+    console.error('[channex] guest sync notify failed:', e)
+  }
+}
+
 export async function submitBookingInquiry(
   locale: string,
   _prev: BookingInquiryState,
@@ -148,6 +165,10 @@ export async function submitBookingInquiry(
   if (resErr || !reservation) {
     return { error: locale === 'uz' ? 'Buyurtma yaratishda xatolik.' : locale === 'ru' ? 'Ошибка создания бронирования.' : 'Failed to create reservation.' }
   }
+
+  // Channex: müsaitliği admin uygulamasındaki dahili endpoint üzerinden hemen
+  // yeniden gönder (best-effort; env yoksa atlanır, admin cron yine de yakalar).
+  await notifyChannexSync()
 
   const code = reservation.reservation_code
   const guestName = `${d.firstName} ${d.lastName}`

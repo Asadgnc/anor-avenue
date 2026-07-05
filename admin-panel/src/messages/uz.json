@@ -1174,7 +1174,8 @@
     "productNameRequired": "Mahsulot nomi majburiy",
     "productCreateFailed": "Mahsulotni yaratib boʻlmadi.",
     "productNotFound": "Mahsulot topilmadi.",
-    "insufficientStock": "Omborda yetarli emas. Mavjud: {available}"
+    "insufficientStock": "Omborda yetarli emas. Mavjud: {available}",
+    "forbidden": "Ruxsat yo'q."
   },
   "roomItems": {
     "title": "Xona #{number} — Buyumlar",
@@ -1213,5 +1214,38 @@
     "title": "Sahifa topilmadi",
     "description": "So'ralgan sahifa mavjud emas.",
     "backButton": "Bosh sahifaga"
+  },
+  "channex": {
+    "variants": {
+      "title": "OTA (Channex) — narx va bo'sh joy",
+      "subtitle": "Har bir variant uchun OTA narxini kiriting; bo'sh joy bog'langan xonalarga qarab hisoblanadi",
+      "variant": "Variant",
+      "occupancy": "Mehmon",
+      "rooms": "Xona",
+      "otaPrice": "OTA narxi",
+      "enabled": "Yoniq",
+      "save": "Saqlash",
+      "saving": "Saqlanmoqda…",
+      "saved": "Saqlandi ✓",
+      "empty": "Variant topilmadi. 017 migratsiyasini qo'llang.",
+      "pricePlaceholder": "narx",
+      "priceHint": "Bo'sh = OTA'ga narx yuborilmaydi"
+    },
+    "connect": {
+      "title": "Channex ulanishi",
+      "subtitle": "Holat va sinxronlash",
+      "status": "Holat",
+      "propertyId": "Property ID",
+      "configured": "API kalit ulangan ✓",
+      "notConfigured": "API kalit kiritilmagan",
+      "notConfiguredHint": "Vercel muhit o'zgaruvchilariga CHANNEX_API_KEY qo'shing",
+      "test": "Aloqani tekshirish",
+      "testing": "Tekshirilmoqda…",
+      "testOk": "Aloqa o'rnatildi ✓",
+      "resync": "Hammasini qayta yuborish",
+      "resyncing": "Yuborilmoqda…",
+      "lastSync": "Oxirgi sinxronlash",
+      "never": "hali bo'lmagan"
+    }
   }
 }

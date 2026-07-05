@@ -2,15 +2,14 @@ import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase'
 import { redirect } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
-import RoomTypePriceForm from './RoomTypePriceForm'
 import HotelProfileForm from './HotelProfileForm'
+import RoomTypePriceForm from './RoomTypePriceForm'
+import ChannexSettings, { type VariantRow } from './ChannexSettings'
 
 interface RoomType {
   id: string
   name: string
   base_price: number
-  description: string | null
-  max_occupancy: number
 }
 
 interface HotelSettings {
@@ -21,6 +20,8 @@ interface HotelSettings {
   website: string | null
   checkin_time: string
   checkout_time: string
+  channex_property_id: string | null
+  channex_last_sync: string | null
 }
 
 export default async function SettingsPage() {
@@ -32,12 +33,35 @@ export default async function SettingsPage() {
 
   const service = createServiceClient()
 
-  const [{ data: roomTypes }, { data: hotelRow }] = await Promise.all([
-    supabase.from('room_types').select('id, name, base_price, description, max_occupancy').order('base_price'),
+  const [{ data: roomTypes }, { data: hotelRow }, { data: variantRows }, { data: roomRows }] = await Promise.all([
+    service.from('room_types').select('id, name, base_price').order('base_price'),
     service.from('hotel_settings').select('*').eq('id', 1).single(),
+    service.from('channex_variants').select('id, channex_room_type_id, channex_rate_plan_id, label, occupancy, ota_price, enabled').order('sort_order'),
+    service.from('rooms').select('channex_variant_id'),
   ])
 
-  const types = (roomTypes ?? []) as RoomType[]
+  const types = (roomTypes ?? []).map((r) => ({
+    id: r.id,
+    name: r.name,
+    base_price: Number(r.base_price),
+  })) as RoomType[]
+
+  const roomCount = new Map<string, number>()
+  for (const r of roomRows ?? []) {
+    if (r.channex_variant_id) roomCount.set(r.channex_variant_id, (roomCount.get(r.channex_variant_id) ?? 0) + 1)
+  }
+
+  const variants = (variantRows ?? []).map((v) => ({
+    id: v.id,
+    channex_room_type_id: v.channex_room_type_id,
+    channex_rate_plan_id: v.channex_rate_plan_id,
+    label: v.label,
+    occupancy: v.occupancy,
+    ota_price: v.ota_price != null ? Number(v.ota_price) : null,
+    enabled: v.enabled,
+    room_count: roomCount.get(v.id) ?? 0,
+  })) as VariantRow[]
+
   const hotel = (hotelRow ?? {
     hotel_name: 'Anor Avenue Hotel',
     address: 'Toshkent, O\'zbekiston',
@@ -46,12 +70,16 @@ export default async function SettingsPage() {
     website: '',
     checkin_time: '14:00',
     checkout_time: '12:00',
+    channex_property_id: null,
+    channex_last_sync: null,
   }) as HotelSettings
+
+  const channexConfigured = Boolean(process.env.CHANNEX_API_KEY)
 
   const ADMIN_EMAIL = process.env.ADMIN_NOTIFICATION_EMAIL ?? '—'
 
   return (
-    <div className="space-y-8 max-w-2xl">
+    <div className="space-y-8 max-w-4xl">
       <div>
         <h1 className="text-2xl font-semibold text-foreground">{t('title')}</h1>
         <p className="text-sm mt-1" style={{ color: 'var(--color-admin-muted)' }}>
@@ -83,7 +111,7 @@ export default async function SettingsPage() {
         </div>
       </div>
 
-      {/* Room type prices */}
+      {/* Base category prices (our own website + admin) */}
       <div
         className="rounded-2xl"
         style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
@@ -99,12 +127,18 @@ export default async function SettingsPage() {
             <RoomTypePriceForm key={rt.id} id={rt.id} name={rt.name} basePrice={rt.base_price} />
           ))}
           {types.length === 0 && (
-            <p className="text-sm" style={{ color: 'var(--color-admin-muted)' }}>
-              {t('roomTypePrices.empty')}
-            </p>
+            <p className="text-sm" style={{ color: 'var(--color-admin-muted)' }}>{t('roomTypePrices.empty')}</p>
           )}
         </div>
       </div>
+
+      {/* Channex OTA variants + connection */}
+      <ChannexSettings
+        variants={variants}
+        propertyId={hotel.channex_property_id ?? ''}
+        lastSync={hotel.channex_last_sync ?? null}
+        isConfigured={channexConfigured}
+      />
 
       {/* Email notification settings */}
       <div

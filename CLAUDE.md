@@ -553,11 +553,53 @@ Mert "nar çarpışması" konsepti önerdi. Konsept henüz karara bağlanmadı �
   - i18n: `scan.align/capture/retake/cancel/cameraError` (3 dil, 975 anahtar tam parite). `pnpm build` ✓, commit+push (f2a85fe), prod deploy ✓.
   - ⚠️ Telefon doğrulaması kullanıcıda: canlı kamera açılıyor mu, hizala→çek→alanlar doluyor mu (3 ekran).
 
+- [x] Channex kanal yöneticisi + çok-kanallı fiyatlandırma — Faz A (kod) tamamlandı (5 Temmuz 2026)
+  - Plan: `.claude/plans/channex-integration.md`. Kullanıcı Channex deneme aboneliği başlattı (2 hafta).
+  - **Kural pekişti:** ZORUNLU olmadıkça yeni sayfa açma → tüm Channex/fiyat UI'ı mevcut `/settings` sayfasına gömüldü.
+  - **İki yönlü senkron:** rooms+reservations'tan oda TİPİ başına boş oda sayısı hesaplanıp `POST /availability`
+    ile Channex'e gider (overbooking OTA'larda da engellenir). OTA rezervasyonu → `booking` webhook → tam kayıt
+    çekilir → misafir+rezervasyon oluşturulur, o tipte boş oda OTOMATİK atanır, kanal rozetiyle işaretlenir.
+  - **Çok-kanallı fiyat (kullanıcı isteği):** base fiyat (oda tipi) + kanal kuralı → kanala özel fiyat.
+    Modlar: `offset_commission` (satış=base÷(1−komisyon), varsayılan), percent, amount, manual, base.
+    Ayarlar'da matris (oda tipi × kanal) + kanal aç/kapa + Channex ID eşleştirme + test + "tam yeniden gönder".
+  - `docs/migrations/016_channex_channels.sql` — **CANLIYA UYGULANMALI**. Yeni: `sales_channels`,
+    `channel_rates`; +`room_types.channex_room_type_id`, +`hotel_settings.channex_property_id/channex_last_sync`,
+    +`reservations.channex_booking_id/channex_revision_id`; channel enum'a airbnb/expedia/other_ota.
+  - Yeni kod: `lib/channex.ts` (REST istemci, user-api-key), `lib/pricing.ts` (fiyat hesabı, client+server),
+    `lib/channex-sync.ts` (müsaitlik/fiyat hesap+push), `api/webhooks/channex` (OTA booking pull+otomatik oda),
+    `api/cron/channex-sync` (günlük güvenlik ağı, vercel.json cron 03:00), `api/internal/channex-sync`
+    (guest-site'ın best-effort çağırdığı dahili endpoint). Ayarlar: `ChannexSettings.tsx` + `channex-actions.ts`.
+  - Tetikleyiciler: rezervasyon oluştur/walk-in/düzenle/durum değişikliği + guest-site misafir rezervasyonu →
+    müsaitlik push (env yoksa sessiz no-op). i18n: `channex.*` namespace 3 dil tam parite (32 üst anahtar).
+  - Env yoksa TÜM Channex çağrıları no-op → panel Channex olmadan çalışmaya devam eder. `pnpm build` ✓ (admin+guest).
+  - ⚠️ Faz B (BİRLİKTE): Channex panelinde property/oda tipi/rate plan oluştur + Booking.com/Airbnb bağla,
+    API key + ID'leri al → env + Ayarlar; webhook URL gir; test. Gerekli env: `CHANNEX_API_KEY`,
+    `CHANNEX_BASE_URL`, `CHANNEX_WEBHOOK_SECRET`, `CRON_SECRET`, `INTERNAL_SYNC_SECRET`
+    (guest-site: `ADMIN_SYNC_URL` + `INTERNAL_SYNC_SECRET`).
+
+- [x] Channex Faz B — gerçek kurulum + env + commit (5 Temmuz 2026)
+  - **Model değişti (016→017):** kullanıcı Channex panelinde 6 gerçek oda tipi + rate plan oluşturdu; eski
+    `sales_channels/channel_rates` (016) yaklaşımı bırakıldı → doluluk-varyantı modeli (`channex_variants`).
+  - `docs/migrations/017_channex_variants.sql`: 6 varyant (gerçek Channex room_type + rate_plan ID'leri) +
+    `rooms.channex_variant_id` + fiziksel oda→varyant eşleştirmesi + property_id. **Kullanıcı SQL Editor'den
+    uyguladı** (otomatik-mod canlı DB migration'ı bloklar → SQL kullanıcıya verildi).
+  - Oda havuzu eşleştirmesi: 101→Std Quad, 102→Std Double, 103→Std Triple, 301/302/303/402→Deluxe Double,
+    201/403→Deluxe Triple, 202/304/401→Luxury Double.
+  - Env değişkenleri **Vercel'e otomatik eklendi** (vercel CLI, admin 5 + guest 2, üç ortam da): CHANNEX_API_KEY,
+    CHANNEX_BASE_URL=`secure.channex.io/api/v1`, CHANNEX_WEBHOOK_SECRET, CRON_SECRET, INTERNAL_SYNC_SECRET;
+    guest-site ADMIN_SYNC_URL + INTERNAL_SYNC_SECRET. Yerel `.env.local`'lere de eklendi. Secret'lar rastgele
+    üretildi; API key sadece env'de (koda/migration'a sızmadı — grep ile doğrulandı).
+  - Prod admin URL: `anor-avenue-admin-panel.vercel.app`. **Webhook URL (Channex panele girilecek):**
+    `https://anor-avenue-admin-panel.vercel.app/api/webhooks/channex?secret=<CHANNEX_WEBHOOK_SECRET>`.
+  - `pnpm build` ✓ (admin + guest). Commit + push yapıldı.
+  - ⚠️ Kullanıcıda kalan (Channex paneli): webhook URL'i gir + Booking.com/Airbnb kanallarını property'ye bağla.
+    Sonra Ayarlar → "Bağlantıyı test et" + varyant OTA fiyatlarını gir + "Tam yeniden gönder".
+
 ## Sonraki Adımlar
-- ✅ Google Cloud Vision kurulumu tamamlandı (key + billing + env + deploy).
-- ⚠️ ÖNCELİK: Migration 015 kullanıcı tarafından Supabase Dashboard > SQL Editor'den uygulanacak
-  (MCP salt-okunur, uygulanamadı). Uygulanmadan rezervasyon oluşturma/kayıt kaydetme bozulur.
-- Migration 013 ve 014 Supabase Dashboard'a uygulanacak (kullanıcı yapacak)
+- Channex paneli: webhook URL gir + Booking.com/Airbnb bağla → Ayarlar'da test + fiyat gir + tam yeniden gönder.
+- ✅ Migration 016 + 017 canlıda (Channex tam kurulu). ✅ Google Cloud Vision kurulu.
+- ✅ Canlı DB doğrulaması (5 Tem): 013/014/015/016/017 uygulanmış. ⚠️ İSTİSNA: `recurring_bills` (012) canlıda
+  YOK görünüyor — `/bills` sayfası etkilenebilir; kontrol edilecek.
 - Payme/Click/Uzum gerçek entegrasyon — UI + endpoint hazır, sadece merchant credentials bekleniyor
 
 ## Deploy Bilgisi

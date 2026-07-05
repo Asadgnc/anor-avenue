@@ -1174,7 +1174,8 @@
     "productNameRequired": "Маҳсулот номи мажбурий",
     "productCreateFailed": "Маҳсулотни яратиб бўлмади.",
     "productNotFound": "Маҳсулот топилмади.",
-    "insufficientStock": "Омборда етарли эмас. Мавжуд: {available}"
+    "insufficientStock": "Омборда етарли эмас. Мавжуд: {available}",
+    "forbidden": "Рухсат йўқ."
   },
   "roomItems": {
     "title": "Хона #{number} — Буюмлар",
@@ -1213,5 +1214,38 @@
     "title": "Саҳифа топилмади",
     "description": "Сўралган саҳифа мавжуд эмас.",
     "backButton": "Бош саҳифага"
+  },
+  "channex": {
+    "variants": {
+      "title": "OTA (Channex) — нарх ва бўш жой",
+      "subtitle": "Ҳар бир вариант учун OTA нархини киритинг; бўш жой боғланган хоналарга қараб ҳисобланади",
+      "variant": "Вариант",
+      "occupancy": "Меҳмон",
+      "rooms": "Хона",
+      "otaPrice": "OTA нархи",
+      "enabled": "Ёниқ",
+      "save": "Сақлаш",
+      "saving": "Сақланмоқда…",
+      "saved": "Сақланди ✓",
+      "empty": "Вариант топилмади. 017 миграциясини қўлланг.",
+      "pricePlaceholder": "нарх",
+      "priceHint": "Бўш = OTA’га нарх юборилмайди"
+    },
+    "connect": {
+      "title": "Channex уланиши",
+      "subtitle": "Ҳолат ва синхронлаш",
+      "status": "Ҳолат",
+      "propertyId": "Property ID",
+      "configured": "API калит уланган ✓",
+      "notConfigured": "API калит киритилмаган",
+      "notConfiguredHint": "Vercel муҳит ўзгарувчиларига CHANNEX_API_KEY қўшинг",
+      "test": "Алоқани текшириш",
+      "testing": "Текширилмоқда…",
+      "testOk": "Алоқа ўрнатилди ✓",
+      "resync": "Ҳаммасини қайта юбориш",
+      "resyncing": "Юборилмоқда…",
+      "lastSync": "Охирги синхронлаш",
+      "never": "ҳали бўлмаган"
+    }
   }
 }

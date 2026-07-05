@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { getTranslations } from 'next-intl/server'
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase'
+import { triggerAvailabilitySync } from '@/lib/channex-sync'
 import type { ReservationStatus } from '@/types/hotel'
 
 // ─── Edit reservation ────────────────────────────────────────────────────────
@@ -69,6 +70,8 @@ export async function updateReservationAction(
     .eq('id', reservationId)
 
   if (error) return { error: error.message }
+
+  await triggerAvailabilitySync()
 
   revalidatePath(`/reservations/${reservationId}`)
   revalidatePath('/reservations')
@@ -136,6 +139,8 @@ export async function updateReservationStatusAction(
       await service.from('rooms').update({ status: 'available' }).eq('id', res.room_id)
     }
   }
+
+  await triggerAvailabilitySync()
 
   revalidatePath(`/reservations/${reservationId}`)
   revalidatePath('/reservations')

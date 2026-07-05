@@ -1174,7 +1174,8 @@
     "productNameRequired": "Название товара обязательно",
     "productCreateFailed": "Не удалось создать товар.",
     "productNotFound": "Товар не найден.",
-    "insufficientStock": "Недостаточно на складе. Доступно: {available}"
+    "insufficientStock": "Недостаточно на складе. Доступно: {available}",
+    "forbidden": "Недостаточно прав."
   },
   "roomItems": {
     "title": "Номер #{number} — Инвентарь",
@@ -1213,5 +1214,38 @@
     "title": "Страница не найдена",
     "description": "Запрошенная страница не существует.",
     "backButton": "На главную"
+  },
+  "channex": {
+    "variants": {
+      "title": "OTA (Channex) — цены и доступность",
+      "subtitle": "Задайте цену OTA для каждого варианта; доступность считается по привязанным номерам",
+      "variant": "Вариант",
+      "occupancy": "Гостей",
+      "rooms": "Номеров",
+      "otaPrice": "Цена OTA",
+      "enabled": "Вкл.",
+      "save": "Сохранить",
+      "saving": "Сохранение…",
+      "saved": "Сохранено ✓",
+      "empty": "Варианты не найдены. Примените миграцию 017.",
+      "pricePlaceholder": "цена",
+      "priceHint": "Пусто = цена не отправляется в OTA"
+    },
+    "connect": {
+      "title": "Подключение Channex",
+      "subtitle": "Статус и синхронизация",
+      "status": "Статус",
+      "propertyId": "Property ID",
+      "configured": "API-ключ подключён ✓",
+      "notConfigured": "API-ключ не задан",
+      "notConfiguredHint": "Добавьте CHANNEX_API_KEY в переменные окружения Vercel",
+      "test": "Проверить связь",
+      "testing": "Проверка…",
+      "testOk": "Связь установлена ✓",
+      "resync": "Отправить всё заново",
+      "resyncing": "Отправка…",
+      "lastSync": "Последняя синхронизация",
+      "never": "ещё не было"
+    }
   }
 }
