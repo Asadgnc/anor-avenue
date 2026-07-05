@@ -534,12 +534,27 @@ Mert "nar çarpışması" konsepti önerdi. Konsept henüz karara bağlanmadı �
   - `PassportScanButton.tsx`: tesseract/worker kaldırıldı; görüntü cihazda 1600px'e küçültülüp JPEG q0.8 base64'e
     çevrilir (yavaş internet için), action'a gönderilir. `mrz.ts` DEĞİŞMEDİ (aynen yeniden kullanıldı).
   - `package.json`: `tesseract.js` bağımlılığı kaldırıldı (13 paket temizlendi). `pnpm build` başarılı ✓
-  - ⚠️ KURULUM BEKLİYOR: Google Cloud hesabı + Vision API + API key → `.env.local` ve Vercel'e
-    `GOOGLE_CLOUD_VISION_API_KEY`. Anahtar girilene kadar tarama "başarısız" döner (sayfa çökmez, elle giriş açık).
-  - ⚠️ Tarayıcı/telefon doğrulaması kullanıcıda: anahtar girildikten sonra gerçek pasaportla 3 ekranda test.
+  - ✅ KURULUM TAMAMLANDI: Google Cloud projesi + Vision API + billing açıldı; `GOOGLE_CLOUD_VISION_API_KEY`
+    `.env.local` + Vercel (production/preview/development) eklendi; Vercel CLI kuruldu; prod deploy edildi.
+
+- [x] Pasaport tarama: rehberli canlı kamera + toleranslı MRZ ayrıştırma (5 Temmuz 2026)
+  - **Şikayet:** Vision'a geçince de kullanıcının telefon fotoğrafları okunamadı ("daha iyi açıdan çek").
+  - **Kanıtlı teşhis (gerçek pasaport görüntüsüyle):** Vision + parser DOĞRU çalışıyor — örnek pasaportu %100
+    okudu; 800px'e küçültme ve 12° eğik+bulanık+q45 bozulmada bile okudu. Sorun KOD değil, telefon fotoğrafında
+    MRZ'nin çerçeveye düzgün girmemesi/parlaması. (Test harness: scratchpad, Vision REST + parser.)
+  - **Karar (kullanıcı onaylı):** Rehberli kamera. Plan: `.claude/plans/fancy-conjuring-galaxy.md`.
+  - `PassportScanButton.tsx`: native tek-kare yerine `getUserMedia` tam ekran modal — hizalama çerçevesi + MRZ/
+    parlama uyarısı + "Çek"/"Tekrar dene" + track cleanup + izin reddinde native dosya-seç fallback. onResult/
+    onImage sözleşmesi AYNI → 3 host form değişmedi, yeni sayfa yok.
+  - `mrz.ts extractMrzLines`: "son iki satır" heuristiği yerine skor tabanlı seçim (uzunluk 44/36/30 yakınlığı +
+    `<` oranı + MRZ-alfabe oranı) → Vision basılı alanları MRZ ile karışık döndürse de doğru iki satırı bulur;
+    yanlış-pozitif koruması. `parseTd3`/check-digit DOKUNULMADI. Regresyon: gerçek metin + ICAO vektörü + negatif
+    (MRZ yok → null) geçti.
+  - i18n: `scan.align/capture/retake/cancel/cameraError` (3 dil, 975 anahtar tam parite). `pnpm build` ✓, commit+push (f2a85fe), prod deploy ✓.
+  - ⚠️ Telefon doğrulaması kullanıcıda: canlı kamera açılıyor mu, hizala→çek→alanlar doluyor mu (3 ekran).
 
 ## Sonraki Adımlar
-- ⚠️ ÖNCELİK: Google Cloud Vision kurulumu — hesap/API key + `GOOGLE_CLOUD_VISION_API_KEY` env (kullanıcıyla adım adım)
+- ✅ Google Cloud Vision kurulumu tamamlandı (key + billing + env + deploy).
 - ⚠️ ÖNCELİK: Migration 015 kullanıcı tarafından Supabase Dashboard > SQL Editor'den uygulanacak
   (MCP salt-okunur, uygulanamadı). Uygulanmadan rezervasyon oluşturma/kayıt kaydetme bozulur.
 - Migration 013 ve 014 Supabase Dashboard'a uygulanacak (kullanıcı yapacak)
