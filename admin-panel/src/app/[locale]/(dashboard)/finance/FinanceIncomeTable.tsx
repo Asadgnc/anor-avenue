@@ -9,6 +9,8 @@ const LOCALE_BCP47: Record<string, string> = {
   'uz-cyrl': 'uz-Cyrl-UZ',
 }
 
+const REVENUE_CATEGORY_KEYS = ['accommodation', 'breakfast', 'extra_service', 'deposit', 'other'] as const
+
 export interface PaymentRow {
   id: string
   amount: number
@@ -16,7 +18,9 @@ export interface PaymentRow {
   method: string
   status: string
   paid_at: string | null
+  created_at?: string
   reservation_id: string
+  revenue_category?: string
 }
 
 interface Props {
@@ -31,15 +35,21 @@ function fmtUSD(amount: number) { return `$${amount.toLocaleString('en-US', { mi
 export default function FinanceIncomeTable({ payments }: Props) {
   const t = useTranslations('finance')
   const th = useTranslations('finance.headers')
+  const tcat = useTranslations('finance.categories')
   const tc = useTranslations('common')
   const locale = useLocale()
   const dateLocale = LOCALE_BCP47[locale] ?? 'ru-RU'
   const som = locale === 'uz' ? "so'm" : locale === 'uz-cyrl' ? 'сўм' : 'сум'
+  const catLabel = (k: string) => {
+    const valid = REVENUE_CATEGORY_KEYS.find(rk => rk === k)
+    return valid ? tcat(valid) : k
+  }
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
   // Filters
   const [fDate, setFDate] = useState('')
   const [fMethod, setFMethod] = useState('')
+  const [fCategory, setFCategory] = useState('all')
   const [fCurrency, setFCurrency] = useState('all')
 
   const filterInputCls = 'w-full px-2 py-1 rounded border border-border bg-background text-xs text-foreground outline-none focus:ring-1 focus:ring-primary'
@@ -50,15 +60,16 @@ export default function FinanceIncomeTable({ payments }: Props) {
       const dateStr = p.paid_at ? new Date(p.paid_at).toLocaleDateString(dateLocale, { dateStyle: 'short' }) : ''
       if (fDate && !dateStr.includes(fDate)) return false
       if (fMethod && !p.method.toLowerCase().includes(fMethod.toLowerCase())) return false
+      if (fCategory !== 'all' && (p.revenue_category || 'accommodation') !== fCategory) return false
       if (fCurrency !== 'all' && p.currency !== fCurrency) return false
       return true
     })
-  }, [payments, fDate, fMethod, fCurrency, dateLocale])
+  }, [payments, fDate, fMethod, fCategory, fCurrency, dateLocale])
 
-  const hasFilter = fDate || fMethod || fCurrency !== 'all'
+  const hasFilter = fDate || fMethod || fCategory !== 'all' || fCurrency !== 'all'
 
   function clearFilters() {
-    setFDate(''); setFMethod(''); setFCurrency('all')
+    setFDate(''); setFMethod(''); setFCategory('all'); setFCurrency('all')
     setVisibleCount(PAGE_SIZE)
   }
 
@@ -85,6 +96,7 @@ export default function FinanceIncomeTable({ payments }: Props) {
                 <tr className="border-b border-border bg-muted/30">
                   <th className="text-left px-4 py-2.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{th('date')}</th>
                   <th className="text-left px-4 py-2.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{th('method')}</th>
+                  <th className="text-left px-4 py-2.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{th('revenueCategory')}</th>
                   <th className="text-right px-4 py-2.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{th('amount')}</th>
                 </tr>
                 {/* Filter row */}
@@ -94,6 +106,12 @@ export default function FinanceIncomeTable({ payments }: Props) {
                   </td>
                   <td className="px-2 py-1">
                     <input value={fMethod} onChange={(e) => { setFMethod(e.target.value); setVisibleCount(PAGE_SIZE) }} placeholder="…" className={filterInputCls} />
+                  </td>
+                  <td className="px-2 py-1">
+                    <select value={fCategory} onChange={(e) => { setFCategory(e.target.value); setVisibleCount(PAGE_SIZE) }} className={filterSelectCls}>
+                      <option value="all">{t('filterAll')}</option>
+                      {REVENUE_CATEGORY_KEYS.map((k) => <option key={k} value={k}>{catLabel(k)}</option>)}
+                    </select>
                   </td>
                   <td className="px-2 py-1">
                     <select value={fCurrency} onChange={(e) => { setFCurrency(e.target.value); setVisibleCount(PAGE_SIZE) }} className={filterSelectCls}>
@@ -111,6 +129,7 @@ export default function FinanceIncomeTable({ payments }: Props) {
                       {p.paid_at ? new Date(p.paid_at).toLocaleDateString(dateLocale, { dateStyle: 'short' }) : '—'}
                     </td>
                     <td className="px-4 py-3 text-foreground capitalize">{p.method}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{catLabel(p.revenue_category || 'accommodation')}</td>
                     <td className="px-4 py-3 text-right tabular-nums font-medium text-green-700">
                       +{p.currency === 'USD' ? fmtUSD(p.amount) : `${fmt(p.amount)} ${som}`}
                     </td>

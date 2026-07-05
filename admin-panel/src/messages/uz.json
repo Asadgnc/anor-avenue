@@ -42,6 +42,9 @@
     "warehouse": "Ombor",
     "garden": "Bog' ishlari",
     "cashFlow": "Pul oqimi",
+    "timesheet": "Davomat jadvali",
+    "payroll": "Ish haqi hisobi",
+    "bills": "Schyotlar",
     "staff": "Xodimlar",
     "settings": "Sozlamalar",
     "logout": "Chiqish",
@@ -130,7 +133,9 @@
     "guestFallback": "Mehmon",
     "userFallback": "Foydalanuvchi",
     "recentTitle": "Yangi bronlar",
-    "noBookings": "Hozircha bron yoʻq"
+    "noBookings": "Hozircha bron yoʻq",
+    "upcomingBills": "{n} ta to'lov — 7 kun ichida",
+    "viewBills": "Barcha schyotlar →"
   },
   "reservations": {
     "calendar": {
@@ -264,6 +269,7 @@
     "addPayment": {
       "amountLabel": "Summa (UZS)",
       "methodLabel": "Usul",
+      "categoryLabel": "Kategoriya",
       "noteLabel": "Izoh (ixtiyoriy)",
       "successMessage": "✓ To'lov saqlandi, ro'yxat yangilanmoqda…"
     },
@@ -395,6 +401,27 @@
       "savingButton": "Saqlanmoqda…",
       "redirectingButton": "Yo'naltirilmoqda…",
       "saveButton": "Mehmonni saqlash"
+    },
+    "crm": {
+      "sectionTitle": "CRM — Izohlar, teglar va ballar",
+      "tagsTitle": "Teglar",
+      "tagsEmpty": "Teglar yo'q.",
+      "customTagPlaceholder": "O'z tegingiz…",
+      "notesTitle": "Xodim izohlari",
+      "notesEmpty": "Izohlar yo'q.",
+      "notePlaceholder": "Izoh qo'shish…",
+      "addNote": "Qo'shish",
+      "delete": "O'chirish",
+      "loyaltyTitle": "Sodiqlik ballari",
+      "loyaltyEmpty": "Hisoblash yo'q.",
+      "points": "ball",
+      "adjustPoints": "Ballarni sozlash",
+      "deltaPlaceholder": "±balllar",
+      "reasonPlaceholder": "Sabab…",
+      "save": "Saqlash",
+      "saving": "Saqlanmoqda…",
+      "saved": "Saqlandi ✓",
+      "cancelBtn": "Bekor"
     },
     "editForm": {
       "sectionTitle": "Shaxsiy ma'lumotlar",
@@ -598,6 +625,41 @@
       "goToList": "Roʻyxatga oʻtish →",
       "creating": "Yaratilmoqda…",
       "createButton": "+ Roʻyxat yaratish"
+    },
+    "detailLink": "Tafsilotlar →",
+    "detail": {
+      "backLink": "← Roʻyxatga qaytish",
+      "title": "Mehmon registratsiyasi",
+      "guestSection": "Mehmon hujjatlari",
+      "regSection": "Registratsiya maʼlumotlari",
+      "docSection": "Hujjat (PDF)",
+      "editButton": "Tahrirlash",
+      "saveButton": "Saqlash",
+      "savingButton": "Saqlanmoqda…",
+      "cancelButton": "Bekor qilish",
+      "submittedAtPrefix": "Topshirilgan: ",
+      "yes": "Ha",
+      "no": "Yoʻq",
+      "fields": {
+        "passportSeries": "Pasport seriyasi",
+        "passportNumber": "Pasport raqami",
+        "visaNumber": "Viza raqami",
+        "visaExpiry": "Viza amal qiladi",
+        "pinfl": "PINFL",
+        "nationality": "Fuqarolik",
+        "dob": "Tugʻilgan sana",
+        "registrationNumber": "Registratsiya raqami (OVIR)",
+        "touristTaxAmount": "Turistik yigʻim",
+        "touristTaxPaid": "Yigʻim toʻlangan"
+      },
+      "document": {
+        "uploadLabel": "Registratsiya PDF faylini yuklash",
+        "uploadButton": "Yuklash",
+        "uploading": "Yuklanmoqda…",
+        "viewButton": "Hujjatni ochish →",
+        "noDocument": "Hujjat yuklanmagan",
+        "replaceButton": "Hujjatni almashtirish"
+      }
     }
   },
   "staff": {
@@ -807,14 +869,33 @@
     "empty": "Bajarilgan to'lovlar yo'q.",
     "expenseEmpty": "Ombor xaridlari yo'q.",
     "filterClear": "Filtrlarni tozalash",
+    "filterApply": "Qo'llash",
     "showMore": "+{n} ko'proq",
     "showAll": "Barchasi ({n})",
     "noFilterResult": "Filtr bo'yicha yozuv yo'q.",
     "filterAll": "Barchasi",
+    "monthFilter": "Oy",
+    "allTime": "Barcha vaqt",
+    "categoryBreakdown": "Kategoriya bo'yicha daromadlar",
+    "monthlySummary": "Oylik xulosа (so'ngi 12 oy)",
+    "categories": {
+      "accommodation": "Turar joy",
+      "breakfast": "Nonushta",
+      "extra_service": "Qo'sh. xizmatlar",
+      "deposit": "Depozit",
+      "other": "Boshqa"
+    },
+    "monthlyTable": {
+      "month": "Oy",
+      "income": "Daromadlar",
+      "expense": "Xarajatlar",
+      "net": "Sof"
+    },
     "headers": {
       "date": "Sana",
       "product": "Mahsulot",
       "category": "Kategoriya",
+      "revenueCategory": "Daromad kategoriyasi",
       "area": "Maydon",
       "place": "Joy",
       "entered": "Kim kiritdi",
@@ -834,6 +915,107 @@
       "enteredBy": "Kim kiritdi (tizim)",
       "broughtBy": "Kim olib keldi (jismoniy)"
     }
+  },
+  "timesheet": {
+    "title": "Ish vaqti davomati jadvali",
+    "subtitle": "Keldi: {present}, kelmadi: {absent} (hafta uchun)",
+    "staffColumn": "Xodim",
+    "prevWeek": "Oldingi hafta",
+    "nextWeek": "Keyingi hafta",
+    "thisWeek": "Joriy hafta",
+    "payrollLink": "Ish haqi →",
+    "add": "Qo'shish",
+    "edit": "O'zg.",
+    "delete": "O'chirish",
+    "save": "Saqlash",
+    "saving": "Saqlanmoqda…",
+    "saved": "Saqlandi ✓",
+    "fields": {
+      "date": "Sana",
+      "status": "Holat",
+      "startTime": "Boshlanish",
+      "endTime": "Tugash",
+      "breakMin": "Tanaffus (daqiqa)",
+      "notes": "Izoh"
+    },
+    "statuses": {
+      "present": "Keldi",
+      "absent": "Kelmadi",
+      "sick": "Kasallik",
+      "leave": "Ta'til",
+      "holiday": "Dam olish"
+    }
+  },
+  "payroll": {
+    "title": "Ish haqi hisobi",
+    "subtitle": "{n} ta hisob-kitob davri",
+    "timesheetLink": "← Davomat",
+    "newPeriod": "Yangi davr",
+    "create": "Yaratish",
+    "created": "Yaratildi ✓",
+    "duplicateError": "Bu davr allaqachon mavjud.",
+    "empty": "Hisob-kitob davrlari yo'q.",
+    "save": "Saqlash",
+    "saving": "Saqlanmoqda…",
+    "saved": "Saqlandi ✓",
+    "notSet": "Ko'rsatilmagan",
+    "finalize": "Tasdiqlash",
+    "markPaid": "To'landi",
+    "fields": {
+      "year": "Yil",
+      "month": "Oy",
+      "base_salary": "Asosiy ish haqi",
+      "bonus": "Mukofot",
+      "deduction": "Ushlab qolish",
+      "currency": "Valyuta",
+      "notesPlaceholder": "Izoh…"
+    },
+    "statuses": {
+      "draft": "Qoralama",
+      "finalized": "Tasdiqlangan",
+      "paid": "To'langan"
+    }
+  },
+  "bills": {
+    "title": "To'lanishi kerak bo'lgan schyotlar",
+    "subtitle": "Oylik doimiy xarajatlar",
+    "addBill": "Schyot qo'shish",
+    "addBillTitle": "Yangi schyot",
+    "currentMonth": "Bu oyda",
+    "history": "To'lovlar tarixi (so'ngi 3 oy)",
+    "historyEmpty": "To'langan schyotlar yo'q.",
+    "empty": "Faol schyotlar yo'q.",
+    "paidTotal": "To'langan (jami)",
+    "fields": {
+      "name": "Nomi",
+      "category": "Kategoriya",
+      "estimatedAmount": "Taxminiy summa",
+      "currency": "Valyuta",
+      "dueDay": "To'lov kuni (1–28)",
+      "notes": "Izoh",
+      "amount": "To'lov summasi",
+      "paidDate": "To'lov sanasi",
+      "paidBy": "Kim to'ladi"
+    },
+    "categories": {
+      "utility": "Kommunal",
+      "rent": "Ijara",
+      "salary": "Ish haqi",
+      "subscription": "Obuna",
+      "other": "Boshqa"
+    },
+    "statuses": {
+      "pending": "Kutilmoqda",
+      "paid": "To'landi",
+      "overdue": "Muddati o'tgan"
+    },
+    "markPaid": "To'landi",
+    "cancelBtn": "Bekor",
+    "dueDate": "Muddat: {date}",
+    "historyDate": "Sana",
+    "historyBill": "Schyot",
+    "historyAmount": "Summa",
+    "historyPaidBy": "Kim to'ladi"
   },
   "login": {
     "panelTitle": "Boshqaruv paneli",
@@ -955,6 +1137,11 @@
     "unauthorized": "Ruxsat yoʻq.",
     "duplicateRegistration": "Bu mehmon uchun roʻyxatdan oʻtkazish allaqachon yaratilgan.",
     "registrationCreateFailed": "Roʻyxatdan oʻtkazishni yaratib boʻlmadi: {msg}",
+    "registrationSaveFailed": "Registratsiyani saqlab boʻlmadi: {msg}",
+    "fileRequired": "Fayl tanlang",
+    "fileTooLarge": "Fayl juda katta (maks. 10 MB)",
+    "invalidFileType": "Faqat PDF yoki rasm",
+    "uploadFailed": "Faylni yuklab boʻlmadi: {msg}",
     "emailAlreadyRegistered": "Bu e-mail allaqachon roʻyxatdan oʻtgan.",
     "cannotChangeOwnRole": "Oʻz rolingizni oʻzgartira olmaysiz.",
     "cannotDeleteOwnAccount": "Oʻz akkauntingizni oʻchira olmaysiz.",

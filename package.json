@@ -9,6 +9,12 @@
     "test": "pnpm -r test",
     "lint": "pnpm -r lint"
   },
-  "devDependencies": {},
-  "packageManager": "pnpm@11.9.0"
+  "packageManager": "pnpm@11.9.0",
+  "dependencies": {
+    "@gsap/react": "^2.1.2",
+    "@splinetool/react-spline": "^4.1.0",
+    "@splinetool/runtime": "^1.12.98",
+    "framer-motion": "^12.42.2",
+    "gsap": "^3.15.0"
+  }
 }

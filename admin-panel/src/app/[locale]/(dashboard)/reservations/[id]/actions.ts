@@ -148,6 +148,7 @@ export async function updateReservationStatusAction(
 const paymentSchema = z.object({
   amount: z.coerce.number().positive(),
   method: z.enum(['payme', 'click', 'uzum', 'cash', 'transfer']),
+  revenue_category: z.enum(['accommodation', 'breakfast', 'extra_service', 'deposit', 'other']).default('accommodation'),
   notes: z.string().optional(),
 })
 
@@ -183,6 +184,7 @@ export async function addPaymentAction(
     amount: parsed.data.amount,
     currency: 'UZS',
     method: parsed.data.method,
+    revenue_category: parsed.data.revenue_category,
     status: 'completed',
     paid_at: new Date().toISOString(),
     received_by: profile ? user.id : null,

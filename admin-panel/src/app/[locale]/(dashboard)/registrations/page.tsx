@@ -210,7 +210,16 @@ export default async function RegistrationsPage({
                         </span>
                       </td>
                       <td className="py-3 px-4">
-                        <RegistrationStatusButtons id={row.id} currentStatus={row.status} />
+                        <div className="flex items-center gap-3 whitespace-nowrap">
+                          <RegistrationStatusButtons id={row.id} currentStatus={row.status} />
+                          <Link
+                            href={`/registrations/${row.id}`}
+                            className="text-xs font-medium hover:opacity-80"
+                            style={{ color: 'var(--color-accent)' }}
+                          >
+                            {t('detailLink')}
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   )

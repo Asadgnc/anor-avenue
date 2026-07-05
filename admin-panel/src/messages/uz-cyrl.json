@@ -42,6 +42,9 @@
     "warehouse": "Омбор",
     "garden": "Боғ ишлари",
     "cashFlow": "Пул оқими",
+    "timesheet": "Давомат жадвали",
+    "payroll": "Иш ҳақи ҳисоби",
+    "bills": "Ҳисоб-фактуралар",
     "staff": "Ходимлар",
     "settings": "Созламалар",
     "logout": "Чиқиш",
@@ -130,7 +133,9 @@
     "guestFallback": "Меҳмон",
     "userFallback": "Фойдаланувчи",
     "recentTitle": "Янги бронлар",
-    "noBookings": "Ҳозирча брон йўқ"
+    "noBookings": "Ҳозирча брон йўқ",
+    "upcomingBills": "{n} та тўлов — 7 кун ичида",
+    "viewBills": "Барча ҳисоб-фактуралар →"
   },
   "reservations": {
     "calendar": {
@@ -264,6 +269,7 @@
     "addPayment": {
       "amountLabel": "Сумма (UZS)",
       "methodLabel": "Усул",
+      "categoryLabel": "Категория",
       "noteLabel": "Изоҳ (ихтиёрий)",
       "successMessage": "✓ Тўлов сақланди, рўйхат янгиланмоқда…"
     },
@@ -395,6 +401,27 @@
       "savingButton": "Сақланмоқда…",
       "redirectingButton": "Йўналтирилмоқда…",
       "saveButton": "Меҳмонни сақлаш"
+    },
+    "crm": {
+      "sectionTitle": "CRM — Изоҳлар, теглар ва баллар",
+      "tagsTitle": "Теглар",
+      "tagsEmpty": "Теглар йўқ.",
+      "customTagPlaceholder": "Ўз теглингиз…",
+      "notesTitle": "Ходим изоҳлари",
+      "notesEmpty": "Изоҳлар йўқ.",
+      "notePlaceholder": "Изоҳ қўшиш…",
+      "addNote": "Қўшиш",
+      "delete": "Ўчириш",
+      "loyaltyTitle": "Садоқат баллари",
+      "loyaltyEmpty": "Ҳисоблаш йўқ.",
+      "points": "балл",
+      "adjustPoints": "Балларни созлаш",
+      "deltaPlaceholder": "±баллар",
+      "reasonPlaceholder": "Сабаб…",
+      "save": "Сақлаш",
+      "saving": "Сақланмоқда…",
+      "saved": "Сақланди ✓",
+      "cancelBtn": "Бекор"
     },
     "editForm": {
       "sectionTitle": "Шахсий маълумотлар",
@@ -598,6 +625,41 @@
       "goToList": "Рўйхатга ўтиш →",
       "creating": "Яратилмоқда…",
       "createButton": "+ Рўйхат яратиш"
+    },
+    "detailLink": "Тафсилотлар →",
+    "detail": {
+      "backLink": "← Рўйхатга қайтиш",
+      "title": "Меҳмон регистрацияси",
+      "guestSection": "Меҳмон ҳужжатлари",
+      "regSection": "Регистрация маълумотлари",
+      "docSection": "Ҳужжат (PDF)",
+      "editButton": "Таҳрирлаш",
+      "saveButton": "Сақлаш",
+      "savingButton": "Сақланмоқда…",
+      "cancelButton": "Бекор қилиш",
+      "submittedAtPrefix": "Топширилган: ",
+      "yes": "Ҳа",
+      "no": "Йўқ",
+      "fields": {
+        "passportSeries": "Паспорт серияси",
+        "passportNumber": "Паспорт рақами",
+        "visaNumber": "Виза рақами",
+        "visaExpiry": "Виза амал қилади",
+        "pinfl": "ПИНФЛ",
+        "nationality": "Фуқаролик",
+        "dob": "Туғилган сана",
+        "registrationNumber": "Регистрация рақами (ОВИР)",
+        "touristTaxAmount": "Туристик йиғим",
+        "touristTaxPaid": "Йиғим тўланган"
+      },
+      "document": {
+        "uploadLabel": "Регистрация PDF файлини юклаш",
+        "uploadButton": "Юклаш",
+        "uploading": "Юкланмоқда…",
+        "viewButton": "Ҳужжатни очиш →",
+        "noDocument": "Ҳужжат юкланмаган",
+        "replaceButton": "Ҳужжатни алмаштириш"
+      }
     }
   },
   "staff": {
@@ -807,14 +869,33 @@
     "empty": "Бажарилган тўловлар йўқ.",
     "expenseEmpty": "Омбор харидлари йўқ.",
     "filterClear": "Фильтрларни тозалаш",
+    "filterApply": "Қўллаш",
     "showMore": "+{n} кўпроқ",
     "showAll": "Барчаси ({n})",
     "noFilterResult": "Фильтр бўйича ёзув йўқ.",
     "filterAll": "Барчаси",
+    "monthFilter": "Ой",
+    "allTime": "Барча вақт",
+    "categoryBreakdown": "Категория бўйича даромадлар",
+    "monthlySummary": "Ойлик хулоса (сўнгги 12 ой)",
+    "categories": {
+      "accommodation": "Туrar жой",
+      "breakfast": "Нонушта",
+      "extra_service": "Қўш. хизматлар",
+      "deposit": "Депозит",
+      "other": "Бошқа"
+    },
+    "monthlyTable": {
+      "month": "Ой",
+      "income": "Даромадлар",
+      "expense": "Харажатлар",
+      "net": "Соф"
+    },
     "headers": {
       "date": "Сана",
       "product": "Маҳсулот",
       "category": "Категория",
+      "revenueCategory": "Даромад категорияси",
       "area": "Майдон",
       "place": "Жой",
       "entered": "Ким киритди",
@@ -834,6 +915,107 @@
       "enteredBy": "Ким киритди (тизим)",
       "broughtBy": "Ким олиб келди (жисмоний)"
     }
+  },
+  "timesheet": {
+    "title": "Иш вақти давомати жадвали",
+    "subtitle": "Келди: {present}, келмади: {absent} (ҳафта учун)",
+    "staffColumn": "Ходим",
+    "prevWeek": "Олдинги ҳафта",
+    "nextWeek": "Кейинги ҳафта",
+    "thisWeek": "Жорий ҳафта",
+    "payrollLink": "Иш ҳақи →",
+    "add": "Қўшиш",
+    "edit": "Ўзг.",
+    "delete": "Ўчириш",
+    "save": "Сақлаш",
+    "saving": "Сақланмоқда…",
+    "saved": "Сақланди ✓",
+    "fields": {
+      "date": "Сана",
+      "status": "Ҳолат",
+      "startTime": "Бошланиш",
+      "endTime": "Тугаш",
+      "breakMin": "Танаффус (дақиқа)",
+      "notes": "Изоҳ"
+    },
+    "statuses": {
+      "present": "Келди",
+      "absent": "Келмади",
+      "sick": "Касаллик",
+      "leave": "Таътил",
+      "holiday": "Дам олиш"
+    }
+  },
+  "payroll": {
+    "title": "Иш ҳақи ҳисоби",
+    "subtitle": "{n} та ҳисоб-китоб даври",
+    "timesheetLink": "← Даромат",
+    "newPeriod": "Янги давр",
+    "create": "Яратиш",
+    "created": "Яратилди ✓",
+    "duplicateError": "Бу давр аллақачон мавжуд.",
+    "empty": "Ҳисоб-китоб даврлари йўқ.",
+    "save": "Сақлаш",
+    "saving": "Сақланмоқда…",
+    "saved": "Сақланди ✓",
+    "notSet": "Кўрсатилмаган",
+    "finalize": "Тасдиқлаш",
+    "markPaid": "Тўланди",
+    "fields": {
+      "year": "Йил",
+      "month": "Ой",
+      "base_salary": "Асосий иш ҳақи",
+      "bonus": "Мукофот",
+      "deduction": "Ушлаб қолиш",
+      "currency": "Валюта",
+      "notesPlaceholder": "Изоҳ…"
+    },
+    "statuses": {
+      "draft": "Қоралама",
+      "finalized": "Тасдиқланган",
+      "paid": "Тўланган"
+    }
+  },
+  "bills": {
+    "title": "Тўланиши керак бўлган ҳисоблар",
+    "subtitle": "Ойлик доимий харажатлар",
+    "addBill": "Ҳисоб қўшиш",
+    "addBillTitle": "Янги ҳисоб",
+    "currentMonth": "Бу ойда",
+    "history": "Тўловлар тарихи (сўнги 3 ой)",
+    "historyEmpty": "Тўланган ҳисоблар йўқ.",
+    "empty": "Фаол ҳисоблар йўқ.",
+    "paidTotal": "Тўланган (жами)",
+    "fields": {
+      "name": "Номи",
+      "category": "Категория",
+      "estimatedAmount": "Тахминий сумма",
+      "currency": "Валюта",
+      "dueDay": "Тўлов куни (1–28)",
+      "notes": "Изоҳ",
+      "amount": "Тўлов суммаси",
+      "paidDate": "Тўлов санаси",
+      "paidBy": "Ким тўлади"
+    },
+    "categories": {
+      "utility": "Коммунал",
+      "rent": "Ижара",
+      "salary": "Иш ҳақи",
+      "subscription": "Обуна",
+      "other": "Бошқа"
+    },
+    "statuses": {
+      "pending": "Кутилмоқда",
+      "paid": "Тўланди",
+      "overdue": "Муддати ўтган"
+    },
+    "markPaid": "Тўланди",
+    "cancelBtn": "Бекор",
+    "dueDate": "Муддат: {date}",
+    "historyDate": "Сана",
+    "historyBill": "Ҳисоб",
+    "historyAmount": "Сумма",
+    "historyPaidBy": "Ким тўлади"
   },
   "login": {
     "panelTitle": "Бошқарув панели",
@@ -955,6 +1137,11 @@
     "unauthorized": "Рухсат йўқ.",
     "duplicateRegistration": "Бу меҳмон учун рўйхатдан ўтказиш аллақачон яратилган.",
     "registrationCreateFailed": "Рўйхатдан ўтказишни яратиб бўлмади: {msg}",
+    "registrationSaveFailed": "Регистрацияни сақлаб бўлмади: {msg}",
+    "fileRequired": "Файл танланг",
+    "fileTooLarge": "Файл жуда катта (макс. 10 MB)",
+    "invalidFileType": "Фақат PDF ёки расм",
+    "uploadFailed": "Файлни юклаб бўлмади: {msg}",
     "emailAlreadyRegistered": "Бу e-mail аллақачон рўйхатдан ўтган.",
     "cannotChangeOwnRole": "Ўз ролингизни ўзгартира олмайсиз.",
     "cannotDeleteOwnAccount": "Ўз аккаунтингизни ўчира олмайсиз.",

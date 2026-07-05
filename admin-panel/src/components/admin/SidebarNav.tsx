@@ -1,6 +1,6 @@
 'use client'
 
-import { Link, usePathname, useRouter } from '@/i18n/navigation'
+import { Link, usePathname } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 import { useState } from 'react'
 import {
@@ -23,8 +23,11 @@ import {
   Package,
   Leaf,
   Wallet,
+  Receipt,
+  Clock,
+  Banknote,
 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { logoutAction } from '@/app/actions/logout'
 import { cn } from '@/lib/utils'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 
@@ -55,6 +58,9 @@ const NAV_LINKS: NavLink[] = [
   { href: '/depo',                  labelKey: 'warehouse',        icon: Package,         roles: ['admin', 'manager', 'receptionist', 'housekeeper', 'accountant'] },
   { href: '/garden',                labelKey: 'garden',           icon: Leaf,            roles: ['admin', 'manager', 'receptionist', 'housekeeper'] },
   { href: '/finance',               labelKey: 'cashFlow',         icon: Wallet,          roles: ['admin'] },
+  { href: '/bills',                 labelKey: 'bills',            icon: Receipt,         roles: ['admin', 'manager', 'accountant', 'receptionist'] },
+  { href: '/timesheet',             labelKey: 'timesheet',        icon: Clock,           roles: ['admin', 'manager', 'receptionist', 'housekeeper', 'accountant'] },
+  { href: '/payroll',               labelKey: 'payroll',          icon: Banknote,        roles: ['admin', 'manager', 'accountant'] },
   { href: '/staff',                 labelKey: 'staff',            icon: UserCog,         roles: ['admin'] },
   { href: '/settings',              labelKey: 'settings',         icon: Settings,        roles: ['admin'] },
 ]
@@ -68,17 +74,11 @@ type Props = {
 export default function SidebarNav({ role, userEmail, badges = {} }: Props) {
   const userRole = (role as UserRole) ?? 'receptionist'
   const pathname = usePathname()
-  const router = useRouter()
   const t = useTranslations('nav')
   const tRoles = useTranslations('roles')
   const [mobileOpen, setMobileOpen] = useState(false)
 
   const visibleLinks = NAV_LINKS.filter((link) => link.roles.includes(userRole))
-
-  async function handleLogout() {
-    await supabase.auth.signOut()
-    router.push('/login')
-  }
 
   const navContent = (
     <>
@@ -138,13 +138,15 @@ export default function SidebarNav({ role, userEmail, badges = {} }: Props) {
           </span>
         </div>
 
-        <button
-          onClick={handleLogout}
-          className="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm w-full transition-colors duration-150 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
-        >
-          <LogOut size={16} />
-          {t('logout')}
-        </button>
+        <form action={logoutAction}>
+          <button
+            type="submit"
+            className="flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm w-full transition-colors duration-150 text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground"
+          >
+            <LogOut size={16} />
+            {t('logout')}
+          </button>
+        </form>
       </div>
     </>
   )

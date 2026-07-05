@@ -4,6 +4,7 @@ import { Link } from '@/i18n/navigation'
 import { getTranslations } from 'next-intl/server'
 import type { ReservationStatus } from '@/types/hotel'
 import EditGuestFormClient from './EditGuestFormClient'
+import GuestCRMSection, { type GuestNote, type GuestTag, type LoyaltyEntry } from './GuestCRMSection'
 
 interface GuestDetail {
   id: string
@@ -53,7 +54,9 @@ export default async function GuestDetailPage({ params }: { params: Promise<{ id
   const t = await getTranslations('guests.detail')
   const tStatus = await getTranslations('status.reservation')
 
-  const [guestResult, reservationsResult] = await Promise.all([
+  const role = (user.user_metadata?.role as string) ?? 'receptionist'
+
+  const [guestResult, reservationsResult, notesResult, tagsResult, loyaltyResult] = await Promise.all([
     supabase
       .from('guests')
       .select('id, first_name, last_name, email, phone, nationality, passport_number, passport_series, date_of_birth, address, notes, created_at')
@@ -64,12 +67,32 @@ export default async function GuestDetailPage({ params }: { params: Promise<{ id
       .select('id, reservation_code, status, check_in, check_out, nights, total_amount, rooms(room_number, room_types(name))')
       .eq('guest_id', id)
       .order('check_in', { ascending: false }),
+    supabase
+      .from('guest_notes')
+      .select('id, note, created_at, profiles(full_name)')
+      .eq('guest_id', id)
+      .order('created_at', { ascending: false }),
+    supabase
+      .from('guest_tags')
+      .select('id, tag')
+      .eq('guest_id', id)
+      .order('tag'),
+    supabase
+      .from('loyalty_points')
+      .select('id, delta, reason, created_at, profiles(full_name)')
+      .eq('guest_id', id)
+      .order('created_at', { ascending: false })
+      .limit(20),
   ])
 
   if (guestResult.error || !guestResult.data) notFound()
 
   const guest = guestResult.data as unknown as GuestDetail
   const reservations = (reservationsResult.data ?? []) as unknown as GuestReservation[]
+  const guestNotes = (notesResult.data ?? []) as unknown as GuestNote[]
+  const guestTags = (tagsResult.data ?? []) as unknown as GuestTag[]
+  const loyaltyHistory = (loyaltyResult.data ?? []) as unknown as LoyaltyEntry[]
+  const loyaltyBalance = loyaltyHistory.reduce((s, e) => s + e.delta, 0)
 
   const totalSpent = reservations
     .filter((r) => !['cancelled', 'no_show'].includes(r.status))
@@ -98,6 +121,16 @@ export default async function GuestDetailPage({ params }: { params: Promise<{ id
 
       {/* Personal info — editable */}
       <EditGuestFormClient guest={guest} />
+
+      {/* CRM: tags, loyalty, notes */}
+      <GuestCRMSection
+        guestId={id}
+        notes={guestNotes}
+        tags={guestTags}
+        loyaltyHistory={loyaltyHistory}
+        loyaltyBalance={loyaltyBalance}
+        role={role}
+      />
 
       {/* Reservations */}
       <div className="rounded-2xl" style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}>

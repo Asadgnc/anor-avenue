@@ -10,6 +10,7 @@ export default function AddPaymentFormClient({ reservationId }: { reservationId:
   const router = useRouter()
   const t = useTranslations('reservations.addPayment')
   const tm = useTranslations('reservations.methods')
+  const tcat = useTranslations('finance.categories')
   const tc = useTranslations('common')
   const boundAction = addPaymentAction.bind(null, reservationId)
   const [state, action, isPending] = useActionState<AddPaymentState, FormData>(boundAction, {})
@@ -20,6 +21,14 @@ export default function AddPaymentFormClient({ reservationId }: { reservationId:
     { value: 'click', label: 'Click' },
     { value: 'uzum', label: 'Uzum' },
     { value: 'transfer', label: tm('transfer') },
+  ] as const
+
+  const categories = [
+    { value: 'accommodation', label: tcat('accommodation') },
+    { value: 'breakfast', label: tcat('breakfast') },
+    { value: 'extra_service', label: tcat('extra_service') },
+    { value: 'deposit', label: tcat('deposit') },
+    { value: 'other', label: tcat('other') },
   ] as const
 
   useEffect(() => {
@@ -76,6 +85,21 @@ export default function AddPaymentFormClient({ reservationId }: { reservationId:
         >
           {methods.map((m) => (
             <option key={m.value} value={m.value}>{m.label}</option>
+          ))}
+        </select>
+      </div>
+
+      {/* Revenue category */}
+      <div className="w-44">
+        <label className="block text-xs mb-1" style={{ color: 'var(--color-admin-muted)' }}>{t('categoryLabel')}</label>
+        <select
+          name="revenue_category"
+          disabled={isPending}
+          className={inputClass}
+          style={inputStyle}
+        >
+          {categories.map((c) => (
+            <option key={c.value} value={c.value}>{c.label}</option>
           ))}
         </select>
       </div>

@@ -453,8 +453,60 @@ Mert "nar çarpışması" konsepti önerdi. Konsept henüz karara bağlanmadı �
   - Not: Önceki oturumun önekli `redirect(\`/${locale}/login\`)` yamaları artık gereksiz ama zararsız
     (next-intl 'never' modunda önekli URL'i öneksize geri yönlendirir). Churn olmasın diye dokunulmadı.
 
-## Sonraki Adımlar (Kalan — sadece merchant hesabı sonrası)
-1. Payme/Click/Uzum gerçek entegrasyon — UI + endpoint hazır, sadece merchant credentials bekleniyor
+- [x] Açılış öncesi ERP genişleme planı onaylandı (5 Temmuz 2026) — plan: `.claude/plans/adaptive-noodling-petal.md`
+  - Karar: açmadan önce 4 ERP modülü (Muhasebe+Vergi, Kamu faturaları, CRM+sadakat, Puantaj+Bordro)
+    + registratsiya manuel akışı tamamlanacak. E-Mehmon API / channel manager / kamu-fatura API'si
+    kullanıcı araştırması bekliyor (kodu bloklamaz).
+
+- [x] Faz 0 — Şema hijyeni (5 Temmuz 2026)
+  - Keşif: canlı DB'de room_items/room_inspections/inventory_purchases/garden_tasks/reservation_companions
+    tablolarının RLS'i AÇIK ve politikaları var — "korumasız PII" açığı YOK (repo DDL'i eksikti sadece).
+  - `docs/migrations/009_schema_hygiene.sql` eklendi — canlı durumu birebir belgeler (idempotent, CANLIYA
+    UYGULANMADI, sadece tekrarlanabilirlik). get_advisors: kritik açık yok (rooms_with_effective_price
+    SECURITY DEFINER view ERROR'u ayrı iş — fiyat view'i, riskli, elleme).
+
+- [x] Faz 1 — Registratsiya (yabancı kayıt) manuel akışı tamamlandı (5 Temmuz 2026)
+  - `docs/migrations/010_registration_fields.sql` CANLIYA UYGULANDI: guests +visa_number/visa_expiry/pinfl;
+    guest_registrations +registration_number/submitted_at/tourist_tax_amount/tourist_tax_paid; private
+    storage bucket `registrations` (PII, public değil).
+  - Yeni detay sayfası `registrations/[id]/page.tsx` + `RegistrationDetailForm.tsx`: pasaport/vize/PINFL,
+    kayıt no, turist vergisi düzenleme (inline-edit); "Podana"ya geçince submitted_at damgalanıyor;
+    E-Mehmon PDF/görsel yükleme → private bucket, imzalı URL ile görüntüleme.
+  - `registrations/actions.ts`: saveRegistrationDetailsAction + uploadRegistrationDocumentAction (Zod +
+    service_role + rol geçidi admin/manager/receptionist). Liste sayfasına "Detay →" linki.
+  - 3 dile (ru/uz/uz-cyrl) `registrations.detail` namespace + errors anahtarları eklendi.
+  - `next build` başarılı (yeni ƒ /[locale]/registrations/[id] rotası). Middleware /registrations/* zaten kapsıyor.
+  - ⚠️ Tarayıcı doğrulaması kullanıcıda: gerçek yabancı rezervasyonda kayıt → alan doldur → PDF yükle → görüntüle.
+
+- [x] Faz 2 — Muhasebe defteri + Vergi raporu (5 Temmuz 2026)
+  - `docs/migrations/011_accounting_ledger.sql` CANLIYA UYGULANDI
+  - `payments.revenue_category` alanı + CHECK constraint; `accounting_ledger` VIEW (3-yönlü UNION)
+  - Finance sayfası: ay filtresi + kategori breakdown çubuğu + 12 aylık özet tablo
+  - Ödeme formu: revenue_category dropdown eklendi
+
+- [x] Faz 3 — Kamu faturaları + Yaklaşan ödemeler (5 Temmuz 2026)
+  - `docs/migrations/012_recurring_bills.sql` CANLIYA UYGULANDI
+  - `recurring_bills` + `bill_payments` tabloları + RLS + accounting_ledger'a eklendi
+  - `/bills` sayfası: aylık ödemeler, durumlar (pending/paid/overdue), geçmiş 3 ay
+  - Dashboard: 7 günlük yaklaşan fatura uyarı banner'ı
+  - SidebarNav + middleware: tüm rollere bills eklendi
+
+- [x] Faz 4 — CRM + Misafir sadakati (5 Temmuz 2026)
+  - `docs/migrations/013_crm_loyalty.sql` — CANLIYA UYGULANMALI
+  - `guest_notes` + `guest_tags` + `loyalty_points` tabloları + RLS + `guest_loyalty_balance` view
+  - Misafir detay sayfasına CRM bölümü: preset/özel teglar, sadakat puanı geçmişi + manuel ayar, personel notları
+  - 3 dilde `guests.crm` namespace eklendi
+
+- [x] Faz 5 — Puantaj + Bordro (5 Temmuz 2026)
+  - `docs/migrations/014_timesheet_payroll.sql` — CANLIYA UYGULANMALI
+  - `staff_shifts` + `payroll_periods` + `payroll_items` tabloları + RLS
+  - `/timesheet` sayfası: haftalık görünüm, gün × personel matrisi, vardiya ekle/düzenle/sil
+  - `/payroll` sayfası: dönem oluştur (draft→finalized→paid), personel başına maaş/prim/kesinti
+  - SidebarNav + middleware güncellendi; `pnpm build` başarılı ✓
+
+## Sonraki Adımlar
+- Migration 013 ve 014 Supabase Dashboard'a uygulanacak (kullanıcı yapacak)
+- Payme/Click/Uzum gerçek entegrasyon — UI + endpoint hazır, sadece merchant credentials bekleniyor
 
 ## Deploy Bilgisi
 - Vercel: her iki uygulama canlıda ✅

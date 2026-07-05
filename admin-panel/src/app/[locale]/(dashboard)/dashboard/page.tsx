@@ -13,6 +13,7 @@ import {
   Users,
   DoorOpen,
   DoorClosed,
+  Receipt,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import StatCard from '@/components/admin/StatCard'
@@ -179,6 +180,47 @@ async function fetchPendingReservations(): Promise<PendingRow[]> {
   return (data ?? []) as unknown as PendingRow[]
 }
 
+interface UpcomingBill { id: string; name: string; dueDateStr: string }
+
+async function fetchUpcomingBills(): Promise<UpcomingBill[]> {
+  const supabase = await createClient()
+  const { data: bills } = await supabase
+    .from('recurring_bills')
+    .select('id, name, due_day')
+    .eq('is_active', true)
+
+  if (!bills?.length) return []
+
+  const today = new Date()
+  const todayStr = toDateStr(today)
+  const in7Days = new Date(today)
+  in7Days.setDate(today.getDate() + 7)
+  const in7DaysStr = toDateStr(in7Days)
+  const monthStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`
+  const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate()
+
+  const upcoming = (bills as Array<{ id: string; name: string; due_day: number }>)
+    .map((b) => {
+      const day = Math.min(b.due_day, lastDay)
+      const dueDateStr = `${monthStr}-${String(day).padStart(2, '0')}`
+      return { ...b, dueDateStr }
+    })
+    .filter((b) => b.dueDateStr >= todayStr && b.dueDateStr <= in7DaysStr)
+
+  if (!upcoming.length) return []
+
+  const { data: paid } = await supabase
+    .from('bill_payments')
+    .select('bill_id')
+    .in('bill_id', upcoming.map((b) => b.id))
+    .gte('due_date', `${monthStr}-01`)
+    .lte('due_date', `${monthStr}-${String(lastDay).padStart(2, '0')}`)
+    .eq('status', 'paid')
+
+  const paidIds = new Set((paid ?? []).map((p: { bill_id: string }) => p.bill_id))
+  return upcoming.filter((b) => !paidIds.has(b.id))
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function DashboardPage({
@@ -199,7 +241,7 @@ export default async function DashboardPage({
   const { blocked } = await searchParams
   const t = await getTranslations('dashboard')
 
-  const [stats, roomStatusList, cleaningRooms, recentBookings, pendingReservations, userName, occupancy] = await Promise.all([
+  const [stats, roomStatusList, cleaningRooms, recentBookings, pendingReservations, userName, occupancy, upcomingBills] = await Promise.all([
     fetchStatCardsData(),
     fetchRoomStatusList(),
     fetchCleaningRooms(),
@@ -207,6 +249,7 @@ export default async function DashboardPage({
     fetchPendingReservations(),
     fetchUserName(user.id, user.email ?? t('userFallback')),
     fetchRoomOccupancy(),
+    fetchUpcomingBills().catch(() => [] as UpcomingBill[]),
   ])
 
   const todayLabel = new Date().toLocaleDateString(LOCALE_BCP47[locale] ?? 'ru-RU', {
@@ -263,6 +306,37 @@ export default async function DashboardPage({
                     {t('morePending', { n: pendingReservations.length - 5 })}
                   </Link>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Upcoming bills banner */}
+      {upcomingBills.length > 0 && (
+        <div className="rounded-lg p-4 bg-blue-500/10">
+          <div className="flex items-start gap-3">
+            <Receipt size={18} className="text-blue-700 shrink-0 mt-px" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground">
+                {t('upcomingBills', { n: upcomingBills.length })}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {upcomingBills.map((b) => (
+                  <span
+                    key={b.id}
+                    className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-card ring-1 ring-foreground/10 text-foreground"
+                  >
+                    {b.name}
+                    <span className="ml-1.5 text-muted-foreground">· {b.dueDateStr.slice(8)}</span>
+                  </span>
+                ))}
+                <Link
+                  href="/bills"
+                  className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium text-blue-700 hover:underline"
+                >
+                  {t('viewBills')}
+                </Link>
               </div>
             </div>
           </div>

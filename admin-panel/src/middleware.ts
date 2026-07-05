@@ -10,15 +10,15 @@ const ROLE_ALLOWED_PATHS: Record<UserRole, string[]> = {
   manager: [
     '/dashboard', '/reservations', '/rooms', '/guests',
     '/registrations', '/housekeeping', '/payments', '/reports',
-    '/depo', '/garden',
+    '/depo', '/garden', '/bills', '/timesheet', '/payroll',
   ],
   receptionist: [
     '/dashboard', '/reservations', '/rooms', '/guests',
     '/registrations', '/housekeeping', '/payments',
-    '/depo', '/garden',
+    '/depo', '/garden', '/bills', '/timesheet',
   ],
-  housekeeper: ['/dashboard', '/housekeeping', '/depo', '/garden'],
-  accountant: ['/dashboard', '/payments', '/reports', '/depo'],
+  housekeeper: ['/dashboard', '/housekeeping', '/depo', '/garden', '/timesheet'],
+  accountant: ['/dashboard', '/payments', '/reports', '/depo', '/bills', '/timesheet', '/payroll'],
 }
 
 function isAllowed(role: UserRole, pathname: string): boolean {

@@ -42,6 +42,9 @@
     "warehouse": "Склад",
     "garden": "Сад",
     "cashFlow": "Движение средств",
+    "timesheet": "Табель учёта",
+    "payroll": "Расчёт зарплат",
+    "bills": "Счета",
     "staff": "Персонал",
     "settings": "Настройки",
     "logout": "Выйти",
@@ -130,7 +133,110 @@
     "guestFallback": "Гость",
     "userFallback": "Пользователь",
     "recentTitle": "Новые брони",
-    "noBookings": "Броней пока нет"
+    "noBookings": "Броней пока нет",
+    "upcomingBills": "{n} счёт(ов) — срок в течение 7 дней",
+    "viewBills": "Все счета →"
+  },
+  "timesheet": {
+    "title": "Табель учёта рабочего времени",
+    "subtitle": "Присутствие: {present}, отсутствие: {absent} (за неделю)",
+    "staffColumn": "Сотрудник",
+    "prevWeek": "Пред. неделя",
+    "nextWeek": "След. неделя",
+    "thisWeek": "Текущая",
+    "payrollLink": "Зарплаты →",
+    "add": "Добавить",
+    "edit": "Изм.",
+    "delete": "Удалить",
+    "save": "Сохранить",
+    "saving": "Сохранение…",
+    "saved": "Сохранено ✓",
+    "fields": {
+      "date": "Дата",
+      "status": "Статус",
+      "startTime": "Начало",
+      "endTime": "Конец",
+      "breakMin": "Перерыв (мин.)",
+      "notes": "Примечание"
+    },
+    "statuses": {
+      "present": "Присутствует",
+      "absent": "Отсутствует",
+      "sick": "Больничный",
+      "leave": "Отпуск",
+      "holiday": "Выходной"
+    }
+  },
+  "payroll": {
+    "title": "Расчёт зарплат",
+    "subtitle": "{n} расчётных периодов",
+    "timesheetLink": "← Табель",
+    "newPeriod": "Новый период",
+    "create": "Создать",
+    "created": "Создано ✓",
+    "duplicateError": "Период уже существует.",
+    "empty": "Расчётных периодов нет.",
+    "save": "Сохранить",
+    "saving": "Сохранение…",
+    "saved": "Сохранено ✓",
+    "notSet": "Не указано",
+    "finalize": "Зафиксировать",
+    "markPaid": "Выплачено",
+    "fields": {
+      "year": "Год",
+      "month": "Месяц",
+      "base_salary": "Оклад",
+      "bonus": "Премия",
+      "deduction": "Вычет",
+      "currency": "Валюта",
+      "notesPlaceholder": "Примечание…"
+    },
+    "statuses": {
+      "draft": "Черновик",
+      "finalized": "Зафиксировано",
+      "paid": "Выплачено"
+    }
+  },
+  "bills": {
+    "title": "Счета к оплате",
+    "subtitle": "Ежемесячные регулярные расходы",
+    "addBill": "Добавить счёт",
+    "addBillTitle": "Новый счёт",
+    "currentMonth": "В этом месяце",
+    "history": "История оплат (последние 3 мес.)",
+    "historyEmpty": "Нет оплаченных счетов.",
+    "empty": "Нет активных счетов.",
+    "paidTotal": "Оплачено (сумма)",
+    "fields": {
+      "name": "Название",
+      "category": "Категория",
+      "estimatedAmount": "Ожидаемая сумма",
+      "currency": "Валюта",
+      "dueDay": "День оплаты (1–28)",
+      "notes": "Примечание",
+      "amount": "Сумма оплаты",
+      "paidDate": "Дата оплаты",
+      "paidBy": "Кто оплатил"
+    },
+    "categories": {
+      "utility": "Коммунальные",
+      "rent": "Аренда",
+      "salary": "Зарплата",
+      "subscription": "Подписки",
+      "other": "Прочее"
+    },
+    "statuses": {
+      "pending": "Ожидает",
+      "paid": "Оплачено",
+      "overdue": "Просрочено"
+    },
+    "markPaid": "Оплачено",
+    "cancelBtn": "Отмена",
+    "dueDate": "Срок: {date}",
+    "historyDate": "Дата",
+    "historyBill": "Счёт",
+    "historyAmount": "Сумма",
+    "historyPaidBy": "Кто оплатил"
   },
   "reservations": {
     "calendar": {
@@ -264,6 +370,7 @@
     "addPayment": {
       "amountLabel": "Сумма (UZS)",
       "methodLabel": "Способ",
+      "categoryLabel": "Категория",
       "noteLabel": "Примечание (необязательно)",
       "successMessage": "✓ Платёж сохранён, список обновляется…"
     },
@@ -395,6 +502,27 @@
       "savingButton": "Сохранение…",
       "redirectingButton": "Перенаправление…",
       "saveButton": "Сохранить гостя"
+    },
+    "crm": {
+      "sectionTitle": "CRM — Заметки, теги и баллы",
+      "tagsTitle": "Теги",
+      "tagsEmpty": "Тегов нет.",
+      "customTagPlaceholder": "Свой тег…",
+      "notesTitle": "Заметки персонала",
+      "notesEmpty": "Заметок нет.",
+      "notePlaceholder": "Добавить заметку…",
+      "addNote": "Добавить",
+      "delete": "Удалить",
+      "loyaltyTitle": "Баллы лояльности",
+      "loyaltyEmpty": "Нет начислений.",
+      "points": "балл(ов)",
+      "adjustPoints": "Скорректировать баллы",
+      "deltaPlaceholder": "±баллы",
+      "reasonPlaceholder": "Причина…",
+      "save": "Сохранить",
+      "saving": "Сохранение…",
+      "saved": "Сохранено ✓",
+      "cancelBtn": "Отмена"
     },
     "editForm": {
       "sectionTitle": "Личные данные",
@@ -598,6 +726,41 @@
       "goToList": "Открыть список регистраций →",
       "creating": "Создание…",
       "createButton": "+ Создать регистрацию"
+    },
+    "detailLink": "Детали →",
+    "detail": {
+      "backLink": "← К регистрациям",
+      "title": "Регистрация гостя",
+      "guestSection": "Документы гостя",
+      "regSection": "Данные регистрации",
+      "docSection": "Документ (PDF)",
+      "editButton": "Изменить",
+      "saveButton": "Сохранить",
+      "savingButton": "Сохранение…",
+      "cancelButton": "Отмена",
+      "submittedAtPrefix": "Подана: ",
+      "yes": "Да",
+      "no": "Нет",
+      "fields": {
+        "passportSeries": "Серия паспорта",
+        "passportNumber": "Номер паспорта",
+        "visaNumber": "Номер визы",
+        "visaExpiry": "Виза действует до",
+        "pinfl": "ПИНФЛ",
+        "nationality": "Гражданство",
+        "dob": "Дата рождения",
+        "registrationNumber": "Номер регистрации (ОВИР)",
+        "touristTaxAmount": "Туристический сбор",
+        "touristTaxPaid": "Сбор оплачен"
+      },
+      "document": {
+        "uploadLabel": "Загрузить PDF регистрации",
+        "uploadButton": "Загрузить",
+        "uploading": "Загрузка…",
+        "viewButton": "Открыть документ →",
+        "noDocument": "Документ не загружен",
+        "replaceButton": "Заменить документ"
+      }
     }
   },
   "staff": {
@@ -807,14 +970,33 @@
     "empty": "Завершённых платежей нет.",
     "expenseEmpty": "Закупок на складе нет.",
     "filterClear": "Сбросить фильтры",
+    "filterApply": "Применить",
     "showMore": "+{n} ещё",
     "showAll": "Все ({n})",
     "noFilterResult": "По фильтру записей нет.",
     "filterAll": "Все",
+    "monthFilter": "Месяц",
+    "allTime": "За всё время",
+    "categoryBreakdown": "Доходы по категориям",
+    "monthlySummary": "Ежемесячная сводка (посл. 12 мес.)",
+    "categories": {
+      "accommodation": "Проживание",
+      "breakfast": "Завтрак",
+      "extra_service": "Доп. услуги",
+      "deposit": "Депозит",
+      "other": "Прочее"
+    },
+    "monthlyTable": {
+      "month": "Месяц",
+      "income": "Доходы",
+      "expense": "Расходы",
+      "net": "Нетто"
+    },
     "headers": {
       "date": "Дата",
       "product": "Товар",
       "category": "Категория",
+      "revenueCategory": "Категория дохода",
       "area": "Область",
       "place": "Место",
       "entered": "Кто внёс",
@@ -955,6 +1137,11 @@
     "unauthorized": "Нет доступа.",
     "duplicateRegistration": "Для этого гостя регистрация уже создана.",
     "registrationCreateFailed": "Не удалось создать регистрацию: {msg}",
+    "registrationSaveFailed": "Не удалось сохранить регистрацию: {msg}",
+    "fileRequired": "Выберите файл",
+    "fileTooLarge": "Файл слишком большой (макс. 10 МБ)",
+    "invalidFileType": "Только PDF или изображение",
+    "uploadFailed": "Не удалось загрузить файл: {msg}",
     "emailAlreadyRegistered": "Этот e-mail уже зарегистрирован.",
     "cannotChangeOwnRole": "Вы не можете изменить свою роль.",
     "cannotDeleteOwnAccount": "Вы не можете удалить свой аккаунт.",
