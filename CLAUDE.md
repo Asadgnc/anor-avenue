@@ -581,8 +581,9 @@ Mert "nar çarpışması" konsepti önerdi. Konsept henüz karara bağlanmadı �
   - **Model değişti (016→017):** kullanıcı Channex panelinde 6 gerçek oda tipi + rate plan oluşturdu; eski
     `sales_channels/channel_rates` (016) yaklaşımı bırakıldı → doluluk-varyantı modeli (`channex_variants`).
   - `docs/migrations/017_channex_variants.sql`: 6 varyant (gerçek Channex room_type + rate_plan ID'leri) +
-    `rooms.channex_variant_id` + fiziksel oda→varyant eşleştirmesi + property_id. **Kullanıcı SQL Editor'den
-    uyguladı** (otomatik-mod canlı DB migration'ı bloklar → SQL kullanıcıya verildi).
+    `rooms.channex_variant_id` + fiziksel oda→varyant eşleştirmesi + property_id. ⚠️ **CANLIYA HENÜZ
+    UYGULANMADI** — otomatik-mod canlı DB migration'ını blokladı → SQL kullanıcıya verildi, SQL Editor'den
+    uygulayacak. Uygulanana kadar Ayarlar'daki Channex tablosu boş görünür (hata vermez).
   - Oda havuzu eşleştirmesi: 101→Std Quad, 102→Std Double, 103→Std Triple, 301/302/303/402→Deluxe Double,
     201/403→Deluxe Triple, 202/304/401→Luxury Double.
   - Env değişkenleri **Vercel'e otomatik eklendi** (vercel CLI, admin 5 + guest 2, üç ortam da): CHANNEX_API_KEY,
@@ -597,7 +598,8 @@ Mert "nar çarpışması" konsepti önerdi. Konsept henüz karara bağlanmadı �
 
 ## Sonraki Adımlar
 - Channex paneli: webhook URL gir + Booking.com/Airbnb bağla → Ayarlar'da test + fiyat gir + tam yeniden gönder.
-- ✅ Migration 016 + 017 canlıda (Channex tam kurulu). ✅ Google Cloud Vision kurulu.
+- ⚠️ ÖNCELİK: Migration 017 (channex_variants) kullanıcı Supabase SQL Editor'den uygulayacak — uygulanmadan
+  Ayarlar'daki Channex varyant tablosu + senkron çalışmaz. ✅ Migration 016 canlıda. ✅ Google Cloud Vision kurulu.
 - ✅ Canlı DB doğrulaması (5 Tem): 013/014/015/016/017 uygulanmış. ⚠️ İSTİSNA: `recurring_bills` (012) canlıda
   YOK görünüyor — `/bills` sayfası etkilenebilir; kontrol edilecek.
 - Payme/Click/Uzum gerçek entegrasyon — UI + endpoint hazır, sadece merchant credentials bekleniyor
