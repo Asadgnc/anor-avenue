@@ -1272,6 +1272,7 @@
     "addButton": "Қўшиш"
   },
   "reportExport": {
+    "csv": "CSV юклаб олиш",
     "reportTitle": "Anor Avenue Hotel — Кунлик ҳисобот — {date}",
     "summary": "=== ХУЛОСА ===",
     "dateRow": "Сана",

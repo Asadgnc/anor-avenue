@@ -1272,6 +1272,7 @@
     "addButton": "Добавить"
   },
   "reportExport": {
+    "csv": "Скачать CSV",
     "reportTitle": "Anor Avenue Hotel — Ежедневный отчёт — {date}",
     "summary": "=== СВОДКА ===",
     "dateRow": "Дата",

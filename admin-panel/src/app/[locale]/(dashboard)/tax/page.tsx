@@ -4,6 +4,7 @@ import { getTranslations } from 'next-intl/server'
 import { Coins, TrendingUp, CalendarDays } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import AccountingTabs from '@/components/admin/AccountingTabs'
+import TaxExportButton from './TaxExportButton'
 
 function formatUZS(n: number): string {
   return new Intl.NumberFormat('uz-UZ', { maximumFractionDigits: 0 }).format(n) + ' UZS'
@@ -58,9 +59,21 @@ export default async function TaxPage() {
     <div className="space-y-8">
       <AccountingTabs />
 
-      <div>
-        <h1 className="text-2xl font-semibold text-foreground">{t('title')}</h1>
-        <p className="text-sm text-muted-foreground mt-1">{t('subtitle')}</p>
+      <div className="flex items-start justify-between gap-4 flex-wrap">
+        <div>
+          <h1 className="text-2xl font-semibold text-foreground">{t('title')}</h1>
+          <p className="text-sm text-muted-foreground mt-1">{t('subtitle')}</p>
+        </div>
+        <TaxExportButton
+          headers={[t('colGuest'), t('colNationality'), t('colReservation'), t('colAmount'), t('colStatus')]}
+          rows={rows.map((r) => ({
+            guest: r.guests ? `${r.guests.first_name} ${r.guests.last_name}` : '',
+            nationality: r.guests?.nationality ?? '',
+            reservation: r.reservations?.reservation_code ?? '',
+            amount: Number(r.tourist_tax_amount ?? 0),
+            paid: !!r.tourist_tax_paid,
+          }))}
+        />
       </div>
 
       {/* Summary cards */}

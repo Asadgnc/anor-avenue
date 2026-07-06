@@ -1272,6 +1272,7 @@
     "addButton": "Qoʻshish"
   },
   "reportExport": {
+    "csv": "CSV yuklab olish",
     "reportTitle": "Anor Avenue Hotel — Kunlik hisobot — {date}",
     "summary": "=== XULOSA ===",
     "dateRow": "Sana",
