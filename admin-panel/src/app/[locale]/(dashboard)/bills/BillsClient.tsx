@@ -73,7 +73,7 @@ function MarkPaidForm({ bill, onDone }: { bill: BillWithStatus; onDone: () => vo
         <input
           name="amount"
           type="number"
-          step="1000"
+          step="any"
           min="1"
           defaultValue={bill.estimated_amount ?? ''}
           required
@@ -131,7 +131,7 @@ function AddBillForm({ onDone }: { onDone: () => void }) {
         </div>
         <div>
           <label className={labelCls}>{t('fields.estimatedAmount')}</label>
-          <input name="estimated_amount" type="number" step="1000" min="1" disabled={isPending} className={inputCls} />
+          <input name="estimated_amount" type="number" step="any" min="1" disabled={isPending} className={inputCls} />
         </div>
         <div>
           <label className={labelCls}>{t('fields.dueDay')}</label>

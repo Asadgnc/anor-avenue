@@ -40,7 +40,7 @@ const baseInputStyle = {
 const cardStyle = { backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }
 
 function Field({
-  label, name, value, onChange, type = 'text', warn = false,
+  label, name, value, onChange, type = 'text', warn = false, step,
 }: {
   label: string
   name: string
@@ -48,6 +48,7 @@ function Field({
   onChange: (v: string) => void
   type?: string
   warn?: boolean
+  step?: string
 }) {
   return (
     <div>
@@ -57,6 +58,7 @@ function Field({
       <input
         name={name}
         type={type}
+        step={step}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         className={inputCls}
@@ -256,7 +258,7 @@ export default function RegistrationDetailForm({
               <Field label={tf('nationality')} name="nationality" value={nationality} onChange={setNationality} />
               <Field label={tf('dob')} name="dateOfBirth" type="date" value={dateOfBirth} onChange={setDateOfBirth} warn={warn.has('dateOfBirth')} />
               <Field label={tf('registrationNumber')} name="registrationNumber" value={registrationNumber} onChange={setRegistrationNumber} />
-              <Field label={tf('touristTaxAmount')} name="touristTaxAmount" type="number" value={touristTaxAmount} onChange={setTouristTaxAmount} />
+              <Field label={tf('touristTaxAmount')} name="touristTaxAmount" type="number" step="any" value={touristTaxAmount} onChange={setTouristTaxAmount} />
               <label className="flex items-center gap-2 text-sm self-end pb-2" style={{ color: 'var(--foreground)' }}>
                 <input type="checkbox" name="touristTaxPaid" checked={touristTaxPaid} onChange={(e) => setTouristTaxPaid(e.target.checked)} />
                 {tf('touristTaxPaid')}

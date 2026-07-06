@@ -115,7 +115,7 @@ function ItemRow({
                   name={field}
                   type="number"
                   min={0}
-                  step={1000}
+                  step="any"
                   defaultValue={existing?.[field] ?? 0}
                   className="w-full rounded-lg px-2 py-1.5 text-sm outline-none focus:ring-1 focus:ring-[var(--color-accent)] tabular-nums"
                   style={{ backgroundColor: 'white', border: '1px solid var(--color-admin-border)', color: 'var(--foreground)' }}

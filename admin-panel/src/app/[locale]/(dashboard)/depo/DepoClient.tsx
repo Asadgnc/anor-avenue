@@ -148,15 +148,15 @@ export default function DepoClient({ purchases, profiles, areaFilter }: Props) {
                 </div>
                 <div>
                   <label className={labelCls}>{t('fields.quantity')}</label>
-                  <input name="quantity" type="number" step="0.01" min="0.01" className={inputCls} required placeholder="1" />
+                  <input name="quantity" type="number" step="any" min="0.01" className={inputCls} required placeholder="1" />
                 </div>
                 <div>
                   <label className={labelCls}>{t('fields.unitPrice')}</label>
-                  <input name="unit_price" type="number" step="0.01" min="0" className={inputCls} placeholder="0" />
+                  <input name="unit_price" type="number" step="any" min="0" className={inputCls} placeholder="0" />
                 </div>
                 <div>
                   <label className={labelCls}>{t('fields.totalAmount')}</label>
-                  <input name="total_amount" type="number" step="0.01" min="0.01" className={inputCls} required placeholder="0" />
+                  <input name="total_amount" type="number" step="any" min="0.01" className={inputCls} required placeholder="0" />
                 </div>
                 <div>
                   <label className={labelCls}>{t('fields.currency')}</label>

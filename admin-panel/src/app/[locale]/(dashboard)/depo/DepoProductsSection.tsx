@@ -92,7 +92,7 @@ function ConsumeForm({
         <input
           name="quantity"
           type="number"
-          step="1"
+          step="any"
           min="1"
           max={String(product.on_hand)}
           defaultValue="1"

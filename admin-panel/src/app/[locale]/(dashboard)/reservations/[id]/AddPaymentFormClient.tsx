@@ -61,7 +61,7 @@ export default function AddPaymentFormClient({ reservationId }: { reservationId:
           name="amount"
           type="number"
           min="1"
-          step="1000"
+          step="any"
           placeholder="500000"
           required
           disabled={isPending}

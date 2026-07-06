@@ -108,7 +108,7 @@ export default function EditReservationFormClient(props: ReservationEditProps) {
             <label className="block text-xs font-medium mb-1" style={{ color: 'var(--color-admin-muted)' }}>
               {tf('pricePerNight')}
             </label>
-            <input name="roomRate" type="number" min={1} defaultValue={props.roomRate} required className={inputCls} style={inputStyle} />
+            <input name="roomRate" type="number" min={1} step="any" defaultValue={props.roomRate} required className={inputCls} style={inputStyle} />
           </div>
         </div>
 

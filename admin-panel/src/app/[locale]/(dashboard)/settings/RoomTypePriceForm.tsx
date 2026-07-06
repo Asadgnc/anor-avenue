@@ -30,7 +30,7 @@ export default function RoomTypePriceForm({ id, name, basePrice }: Props) {
           type="number"
           defaultValue={basePrice}
           min={1}
-          step={1000}
+          step="any"
           className="px-3 py-2 rounded-lg text-sm border outline-none w-40 tabular-nums"
           style={{
             backgroundColor: 'var(--color-admin-card)',

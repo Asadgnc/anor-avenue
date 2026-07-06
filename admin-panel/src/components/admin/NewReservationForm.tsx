@@ -365,7 +365,7 @@ export default function NewReservationForm({ rooms }: Props) {
                 name="advanceAmount"
                 type="number"
                 min="0"
-                step="1000"
+                step="any"
                 placeholder="0"
                 value={advanceAmount}
                 onChange={(e) => setAdvanceAmount(e.target.value)}

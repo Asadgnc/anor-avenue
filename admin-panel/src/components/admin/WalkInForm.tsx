@@ -290,7 +290,7 @@ function WalkInGuestForm({ rooms, onBack }: { rooms: Room[]; onBack: () => void 
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <Field label={t('amountLabel')}>
-                <Input type="number" name="advanceAmount" min={0} step={1000} placeholder="0" />
+                <Input type="number" name="advanceAmount" min={0} step="any" placeholder="0" />
               </Field>
               <Field label={t('methodLabel')}>
                 <Select name="paymentMethod">
