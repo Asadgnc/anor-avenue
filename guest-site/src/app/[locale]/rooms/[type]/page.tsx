@@ -11,14 +11,14 @@ import type { Metadata } from 'next'
 // ─── Oda Verisi ──────────────────────────────────────────────────────────────
 
 const TYPE_TO_DB_NAME: Record<string, string> = {
-  standard: 'Standart',
-  luxury: 'Lüks',
-  mansard: 'Delüks',
+  standard: 'Standard',
+  deluxe: 'Deluxe',
+  luxury: 'Luxury',
 }
 
 const ROOM_DATA = {
   standard: {
-    price: 350_000,
+    price: 300_000,
     floor: -1,
     maxOccupancy: 2,
     area: 22,
@@ -40,8 +40,8 @@ const ROOM_DATA = {
       en: 'Our Standard rooms are located on the basement floor (-1) and offer a comfortable and cozy environment. Equipped with all essential amenities, these rooms are ideal for budget-conscious travelers. The quiet surroundings create perfect conditions for rest.',
     },
   },
-  luxury: {
-    price: 600_000,
+  deluxe: {
+    price: 500_000,
     floor: 2,
     maxOccupancy: 2,
     area: 35,
@@ -67,9 +67,9 @@ const ROOM_DATA = {
       en: 'Our Luxury rooms are located on floors 2-3 and offer more spacious accommodations with premium amenities. Decorated in a blend of modern design and classic luxury, these rooms offer beautiful views of Tashkent. The bathroom is fully stocked with toiletries, and the room includes a minibar.',
     },
   },
-  mansard: {
-    price: 850_000,
-    floor: 4,
+  luxury: {
+    price: 800_000,
+    floor: 3,
     maxOccupancy: 2,
     area: 42,
     count: 3,
@@ -88,12 +88,12 @@ const ROOM_DATA = {
       { icon: '🛋', uz: 'Yotoq xonasi bilan mehmon xonasi', ru: 'Гостиная и спальня', en: 'Living Room + Bedroom' },
       { icon: '🏙', uz: 'Panoramik manzara', ru: 'Панорамный вид', en: 'Panoramic View' },
       { icon: '🛁', uz: 'Xalat va shippaklar', ru: 'Халат и тапочки', en: 'Bathrobe & Slippers' },
-      { icon: '🌙', uz: 'Mansard tom — alohida atmosfera', ru: 'Мансардная крыша — особая атмосфера', en: 'Mansard roof — unique atmosphere' },
+      { icon: '🏙', uz: 'Panoramik derazalar', ru: 'Панорамные окна', en: 'Panoramic windows' },
     ],
     description: {
-      uz: '4-qavatda joylashgan Mansard Lyuks xonalarimiz — mehmonxonamizning eng noyob va hashamatli takliflari. Qiyshiq tom va panoramik derazalar bu xonalarga alohida romantik ruh beradi. Keng mehmon xonasi va ajratilgan yotoqxona bilan u kichkina apartamentga o\'xshaydi. Toshkentning to\'liq panoramasini tomosha qiling.',
-      ru: 'Наши номера Мансардный Люкс, расположенные на 4-м этаже — самые уникальные и роскошные предложения нашего отеля. Скошенный потолок и панорамные окна придают этим номерам особый романтический дух. С просторной гостиной и отдельной спальней они напоминают небольшие апартаменты. Наслаждайтесь полной панорамой Ташкента.',
-      en: 'Our Mansard Luxury rooms on the 4th floor are the most unique and lavish offerings of our hotel. The sloped ceiling and panoramic windows give these rooms a special romantic character. With a spacious living area and separate bedroom, they feel like a small apartment. Enjoy the full panorama of Tashkent.',
+      uz: 'Lyuks xonalarimiz — mehmonxonamizning eng keng va hashamatli takliflari. Panoramik derazalar alohida romantik ruh beradi. Keng mehmon xonasi va ajratilgan yotoqxona bilan u kichkina apartamentga o\'xshaydi. Toshkent manzarasidan bahramand bo\'ling.',
+      ru: 'Наши номера Люкс — самые просторные и роскошные предложения нашего отеля. Панорамные окна создают особую романтическую атмосферу. С просторной гостиной и отдельной спальней они напоминают небольшие апартаменты. Наслаждайтесь видом на Ташкент.',
+      en: 'Our Luxury rooms are the most spacious and lavish offerings of our hotel. Panoramic windows create a special atmosphere. With a spacious living area and separate bedroom, they feel like a small apartment. Enjoy the view of Tashkent.',
     },
   },
 } as const
@@ -119,7 +119,7 @@ const ROOM_PHOTOS: Record<RoomType, { hero: string; gallery: { src: string; labe
       { src: '/hotel-photos/woman-laying-bed-enjoys-breakfast-tray-hotel-room.jpg', labelKey: 'view' },
     ],
   },
-  mansard: {
+  deluxe: {
     hero: '/hotel-photos/woman-laying-bed-enjoys-breakfast-tray-hotel-room.jpg',
     gallery: [
       { src: '/hotel-photos/woman-laying-bed-enjoys-breakfast-tray-hotel-room.jpg', labelKey: 'bedroom' },
@@ -142,8 +142,8 @@ export async function generateMetadata({
   const room = ROOM_DATA[type as RoomType]
   const names: Record<string, Record<string, string>> = {
     standard: { uz: 'Standart xona', ru: 'Стандартный номер', en: 'Standard Room' },
+    deluxe:   { uz: 'Delyuks xona',  ru: 'Номер делюкс',      en: 'Deluxe Room' },
     luxury:   { uz: 'Lyuks xona',    ru: 'Люкс',             en: 'Luxury Room' },
-    mansard:  { uz: 'Mansard lyuks', ru: 'Мансардный люкс',  en: 'Mansard Luxury' },
   }
   const name = names[type]?.[locale] ?? type
   return {
@@ -203,8 +203,8 @@ export default async function RoomDetailPage({
 
   const names: Record<string, Record<string, string>> = {
     standard: { uz: 'Standart xona', ru: 'Стандартный номер', en: 'Standard Room' },
+    deluxe:   { uz: 'Delyuks xona',  ru: 'Номер делюкс',      en: 'Deluxe Room' },
     luxury:   { uz: 'Lyuks xona',    ru: 'Люкс',             en: 'Luxury Room' },
-    mansard:  { uz: 'Mansard lyuks', ru: 'Мансардный люкс',  en: 'Mansard Luxury' },
   }
   const roomName = names[type]?.[locale] ?? type
 

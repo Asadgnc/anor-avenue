@@ -34,9 +34,9 @@ export default async function BookPage({ params, searchParams }: Props) {
   }
 
   const roomPrices = {
-    standard: minPrice('Standart', 350000),
-    luxury: minPrice('Lüks', 600000),
-    mansard: minPrice('Delüks', 850000),
+    standard: minPrice('Standard', 300000),
+    deluxe: minPrice('Deluxe', 500000),
+    luxury: minPrice('Luxury', 800000),
   }
 
   return (

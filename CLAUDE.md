@@ -600,12 +600,35 @@ Mert "nar çarpışması" konsepti önerdi. Konsept henüz karara bağlanmadı �
   - Prod admin URL: `anor-avenue-admin-panel.vercel.app`. **Webhook URL (Channex panele girilecek):**
     `https://anor-avenue-admin-panel.vercel.app/api/webhooks/channex?secret=<CHANNEX_WEBHOOK_SECRET>`.
   - `pnpm build` ✓ (admin + guest). Commit + push yapıldı.
-  - ⚠️ Kullanıcıda kalan (Channex paneli): webhook URL'i gir + Booking.com/Airbnb kanallarını property'ye bağla.
-    Sonra Ayarlar → "Bağlantıyı test et" + varyant OTA fiyatlarını gir + "Tam yeniden gönder".
+
+- [x] Oda tipi tek model (Standard < Deluxe < Luxury) + tek noktadan fiyat senkronu (6 Temmuz 2026)
+  - **Teşhis:** "Ayarlar'da Channex yok" şikayeti → Playwright ile gerçek girişle localhost VE production
+    kontrol edildi: Channex bölümü İKİSİNDE DE VAR (6 varyant, bağlantı kartı). Sorun kullanıcı tarayıcı
+    önbelleği (Ctrl+Shift+R çözer). Kanıt ekran görüntüsü alındı.
+  - **Kök sorun (guest-site booking KOPUK):** `rename_room_types_international` sonrası DB adları İngilizce
+    (Standard/Deluxe/Luxury) ama guest-site kodu hâlâ eski Türkçe (`Standart/Lüks/Delüks`) + `mansard` slug
+    arıyordu → `.eq('room_type_name','Standart')` boş dönüyordu. DB fiyatları da ters (Deluxe 850k > Luxury 600k).
+  - **Karar (kullanıcı onaylı):** 3 katman, baz=2 kişilik, ekstra kişi +150.000. Fiyatlar: Standard 300k,
+    Deluxe 500k, Luxury 800k. Tek fiyat noktası = panel; kaydedince guest-site (room_types okur) + Channex push.
+  - `docs/migrations/018_room_type_tiers.sql` (canlıya execute_sql ile UYGULANDI — DML): room_types fiyat/açıklama
+    düzelt + channex_variants.ota_price = base+(occ-2)*150000 türet. Sonuç: 300/450/600 · 500/650 · 800.
+  - Admin: `updateRoomTypePriceAction` artık tipin Channex varyantlarını +150k ile günceller + syncRates/
+    availability push. ChannexSettings fiyat sütunu salt-okunur (tek giriş noktası). saveVariantsAction sadece
+    enabled. `roomTypePrices.syncNote` + `channex.variants.priceHint` 3 dilde güncellendi.
+  - Guest-site: `standard/luxury/mansard` → `standard/deluxe/luxury`, DB adları İngilizce, enum + TYPE_SLUG +
+    isim/foto/etiket haritaları + oda detay açıklamaları (luxury'den yanlış "4. kat/mansard" iddiaları temizlendi,
+    uydurma yok). Dosyalar: book/actions.ts, rooms/page.tsx, rooms/[type]/page.tsx, page.tsx, book/page.tsx,
+    BookingForm.tsx, messages/{ru,uz,en}.json.
+  - ✅ **UÇTAN UCA DOĞRULANDI (Playwright + curl):** guest booking dropdown "Стандартный 300k / делюкс 500k /
+    Люкс 800k" (isim+fiyat+sıra doğru); rooms sayfası 3 tip doğru; prod cron → `ratesPushed:6` (fiyatlar Channex'e
+    gitti). `pnpm build` ✓ (admin+guest). Commit + push.
+  - ⚠️ Kullanıcıda kalan: admin panel + guest-site **yeniden deploy** (fiyat-push kodu + oda tipi düzeltmesi canlıya
+    gitsin). Ayarlar/guest-site render kodu deploy sonrası aktif; DB fiyatları zaten canlıda.
 
 ## Sonraki Adımlar
-- ✅ Channex TAM ÇALIŞIYOR (016+017 canlı, env staging'de, uçtan uca müsaitlik senkronu doğrulandı).
-- Channex kullanıcıda kalan: Ayarlar'da varyant OTA fiyatları gir + Channex panelinde Booking.com/Airbnb bağla.
+- ⚠️ ÖNCELİK: admin-panel + guest-site yeniden deploy (oda tipi + tek-nokta fiyat senkronu kodu için).
+- ✅ Channex TAM ÇALIŞIYOR (016+017+018 canlı, env staging'de, müsaitlik + 6 fiyat senkronu doğrulandı).
+- Channex kullanıcıda kalan: Channex panelinde Booking.com/Airbnb bağla.
 - ✅ Google Cloud Vision kurulu.
 - ✅ Canlı DB doğrulaması (5 Tem): 013/014/015/016/017 uygulanmış. ⚠️ İSTİSNA: `recurring_bills` (012) canlıda
   YOK görünüyor — `/bills` sayfası etkilenebilir; kontrol edilecek.

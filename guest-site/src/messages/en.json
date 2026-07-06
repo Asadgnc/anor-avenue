@@ -20,8 +20,8 @@
     "bookNow": "Book Now",
     "types": {
       "standard": "Standard Room",
-      "luxury": "Luxury Room",
-      "mansard": "Mansard Luxury"
+      "deluxe": "Deluxe Room",
+      "luxury": "Luxury Room"
     }
   },
   "booking": {

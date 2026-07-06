@@ -121,6 +121,9 @@ export default async function SettingsPage() {
           <p className="text-xs mt-0.5" style={{ color: 'var(--color-admin-muted)' }}>
             {t('roomTypePrices.subtitle')}
           </p>
+          <p className="text-xs mt-1" style={{ color: 'var(--color-accent)' }}>
+            {t('roomTypePrices.syncNote')}
+          </p>
         </div>
         <div className="px-5 py-4 space-y-4">
           {types.map((rt) => (

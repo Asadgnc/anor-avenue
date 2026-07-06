@@ -20,8 +20,8 @@
     "bookNow": "Hozir bron qilish",
     "types": {
       "standard": "Standart xona",
-      "luxury": "Lyuks xona",
-      "mansard": "Mansard lyuks"
+      "deluxe": "Delyuks xona",
+      "luxury": "Lyuks xona"
     }
   },
   "booking": {

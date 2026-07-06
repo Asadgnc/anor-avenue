@@ -20,13 +20,12 @@ async function requireManager() {
 
 export type ChannexActionState = { error?: string; success?: boolean; message?: string }
 
-// ─── Varyant OTA fiyatı + aç/kapa ───────────────────────────────────────────
+// ─── Varyant aç/kapa (fiyat DEĞİL — fiyat oda tipi ayarlarından gelir) ───────
 
 const variantsSchema = z.array(
   z.object({
     id: z.string().uuid(),
     enabled: z.boolean(),
-    otaPrice: z.union([z.coerce.number().positive(), z.null()]),
   }),
 )
 
@@ -47,13 +46,13 @@ export async function saveVariantsAction(
   for (const v of parsed.data) {
     const { error } = await service
       .from('channex_variants')
-      .update({ enabled: v.enabled, ota_price: v.otaPrice })
+      .update({ enabled: v.enabled })
       .eq('id', v.id)
     if (error) return { error: error.message }
   }
 
   revalidatePath('/settings')
-  // OTA fiyatlarını arka planda yeniden gönder (env yoksa no-op)
+  // Aç/kapa değişince müsaitlik + fiyatları yeniden gönder (env yoksa no-op)
   const from = new Date().toISOString().slice(0, 10)
   const to = new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10)
   syncRates(from, to).catch((e) => console.error('[channex] rate sync failed:', e))

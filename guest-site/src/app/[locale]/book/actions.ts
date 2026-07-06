@@ -6,14 +6,14 @@ import { sendEmail } from '@/lib/email'
 
 const ROOM_TYPE_LABELS: Record<string, string> = {
   standard: 'Standart Xona / Стандартный / Standard',
+  deluxe:   'Delyuks Xona / Делюкс / Deluxe',
   luxury:   'Lyuks Xona / Люкс / Luxury',
-  mansard:  'Mansard Lyuks / Мансардный / Mansard',
 }
 
 const ROOM_TYPE_NAMES: Record<string, string> = {
-  standard: 'Standart',
-  luxury: 'Lüks',
-  mansard: 'Delüks',
+  standard: 'Standard',
+  deluxe: 'Deluxe',
+  luxury: 'Luxury',
 }
 
 export type BookingInquiryState = {
@@ -27,7 +27,7 @@ const schema = z.object({
   lastName: z.string().min(1).max(100),
   phone: z.string().min(7).max(30),
   email: z.string().email().optional().or(z.literal('')),
-  roomType: z.enum(['standard', 'luxury', 'mansard']),
+  roomType: z.enum(['standard', 'deluxe', 'luxury']),
   checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   adults: z.coerce.number().int().min(1).max(4),

@@ -23,8 +23,8 @@ const labels = {
     perNight: '/kecha',
     roomNames: {
       standard: 'Standart xona',
+      deluxe: 'Delyuks xona',
       luxury: 'Lyuks xona',
-      mansard: 'Mansard lyuks',
     },
     step1: 'Xona va muddat',
     step2: 'Sizning ma\'lumotlaringiz',
@@ -46,8 +46,8 @@ const labels = {
     perNight: '/ночь',
     roomNames: {
       standard: 'Стандартный номер',
+      deluxe: 'Номер делюкс',
       luxury: 'Люкс',
-      mansard: 'Мансардный люкс',
     },
     step1: 'Номер и даты',
     step2: 'Ваши данные',
@@ -69,8 +69,8 @@ const labels = {
     perNight: '/night',
     roomNames: {
       standard: 'Standard Room',
+      deluxe: 'Deluxe Room',
       luxury: 'Luxury Room',
-      mansard: 'Mansard Luxury',
     },
     step1: 'Room & Dates',
     step2: 'Your Details',
@@ -78,7 +78,7 @@ const labels = {
   },
 }
 
-type RoomPrices = { standard: number; luxury: number; mansard: number }
+type RoomPrices = { standard: number; deluxe: number; luxury: number }
 
 type Props = {
   locale: string
@@ -150,8 +150,8 @@ export default function BookingForm({
   const today = new Date().toISOString().split('T')[0]
   const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0]
 
-  const validRoomType = ['standard', 'luxury', 'mansard'].includes(defaultRoomType ?? '')
-    ? (defaultRoomType as 'standard' | 'luxury' | 'mansard')
+  const validRoomType = ['standard', 'deluxe', 'luxury'].includes(defaultRoomType ?? '')
+    ? (defaultRoomType as 'standard' | 'deluxe' | 'luxury')
     : 'standard'
 
   const checkIn = defaultCheckIn || today
@@ -295,7 +295,7 @@ export default function BookingForm({
           defaultValue={validRoomType}
           style={{ ...inputStyle, cursor: 'pointer' }}
         >
-          {(['standard', 'luxury', 'mansard'] as const).map((key) => (
+          {(['standard', 'deluxe', 'luxury'] as const).map((key) => (
             <option key={key} value={key}>
               {l.roomNames[key]} — {fmt(roomPrices[key])} UZS{l.perNight}
             </option>

@@ -36,15 +36,15 @@ type Props = {
 }
 
 const TYPE_SLUG: Record<string, string> = {
-  Standart: 'standard',
-  'Lüks': 'luxury',
-  'Delüks': 'mansard',
+  Standard: 'standard',
+  Deluxe: 'deluxe',
+  Luxury: 'luxury',
 }
 
 const TYPE_NAMES: Record<string, Record<string, string>> = {
   standard: { uz: 'Standart xona', ru: 'Стандартный номер', en: 'Standard Room' },
+  deluxe:   { uz: 'Delyuks xona',  ru: 'Номер делюкс',      en: 'Deluxe Room' },
   luxury:   { uz: 'Lyuks xona',    ru: 'Номер люкс',        en: 'Luxury Room' },
-  mansard:  { uz: 'Mansard lyuks', ru: 'Мансардный люкс',   en: 'Mansard Luxury' },
 }
 
 const VIEW_LABELS: Record<string, Record<string, string>> = {
@@ -76,7 +76,7 @@ function roomPhoto(room: RoomRow): string {
   if (room.has_jacuzzi || room.has_bathtub) return '/hotel-photos/hotel-bathroom-jacuzzi.jpeg'
   const slug = TYPE_SLUG[room.room_type_name]
   if (slug === 'standard') return '/hotel-photos/some-delicious-meal-bed-bedroom-side-view.jpg'
-  if (slug === 'mansard') return '/hotel-photos/woman-laying-bed-enjoys-breakfast-tray-hotel-room.jpg'
+  if (slug === 'deluxe') return '/hotel-photos/woman-laying-bed-enjoys-breakfast-tray-hotel-room.jpg'
   return '/hotel-photos/3d-rendering-beautiful-comtemporary-luxury-bedroom-suite-hotel-with-tv.jpg'
 }
 

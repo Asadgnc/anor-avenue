@@ -737,7 +737,8 @@
       "title": "Xona turi narxlari",
       "subtitle": "O'zgarishlar darhol kuchga kiradi — yangi bronlarga aks etadi",
       "empty": "Xona turi topilmadi. Ma'lumotlar bazasida boshlang'ich ma'lumotlar yo'q bo'lishi mumkin.",
-      "priceUnit": "UZS / kecha"
+      "priceUnit": "UZS / kecha",
+      "syncNote": "2 mehmon uchun asosiy narx. Qo`shimcha mehmon +150 000. Saqlaganda sayt va Channex ham yangilanadi."
     },
     "emailNotifications": {
       "title": "Email-bildirishnomalar",
@@ -1229,7 +1230,7 @@
       "saved": "Saqlandi ✓",
       "empty": "Variant topilmadi. 017 migratsiyasini qo'llang.",
       "pricePlaceholder": "narx",
-      "priceHint": "Bo'sh = OTA'ga narx yuborilmaydi"
+      "priceHint": "Narxlar «Xona turi narxlari» (yuqorida) dan olinadi; har qo`shimcha mehmon uchun +150 000"
     },
     "connect": {
       "title": "Channex ulanishi",

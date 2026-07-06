@@ -26,9 +26,9 @@ export default async function HomePage({ params }: Props) {
   }
 
   const prices = {
-    standard: minPrice('Standart', 350000),
-    luxury: minPrice('Lüks', 600000),
-    mansard: minPrice('Delüks', 850000),
+    standard: minPrice('Standard', 300000),
+    deluxe: minPrice('Deluxe', 500000),
+    luxury: minPrice('Luxury', 800000),
   }
 
   return (
@@ -179,16 +179,16 @@ const roomData = [
     photo: '/hotel-photos/some-delicious-meal-bed-bedroom-side-view.jpg',
   },
   {
-    key: 'luxury' as const,
-    floor: '2-3',
+    key: 'deluxe' as const,
+    floor: '2-4',
     amenities: ['WiFi', 'TV', 'A/C', 'Minibar'],
-    photo: '/hotel-photos/3d-rendering-beautiful-comtemporary-luxury-bedroom-suite-hotel-with-tv.jpg',
+    photo: '/hotel-photos/woman-laying-bed-enjoys-breakfast-tray-hotel-room.jpg',
   },
   {
-    key: 'mansard' as const,
-    floor: '4',
+    key: 'luxury' as const,
+    floor: '2-4',
     amenities: ['WiFi', 'TV', 'A/C', 'Minibar', 'Panorama'],
-    photo: '/hotel-photos/woman-laying-bed-enjoys-breakfast-tray-hotel-room.jpg',
+    photo: '/hotel-photos/3d-rendering-beautiful-comtemporary-luxury-bedroom-suite-hotel-with-tv.jpg',
   },
 ]
 

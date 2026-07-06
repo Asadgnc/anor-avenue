@@ -28,11 +28,6 @@ interface Props {
 }
 
 const cardStyle = { backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }
-const inputStyle = {
-  backgroundColor: 'var(--color-admin-card)',
-  color: 'var(--foreground)',
-  borderColor: 'var(--color-admin-border)',
-}
 
 function fmt(n: number) {
   return n.toLocaleString('ru-RU')
@@ -80,11 +75,7 @@ function VariantsCard({
     setVariants((p) => p.map((v) => (v.id === id ? { ...v, ...patch } : v)))
   }
   function save() {
-    const payload = variants.map((v) => ({
-      id: v.id,
-      enabled: v.enabled,
-      otaPrice: v.ota_price != null && v.ota_price > 0 ? v.ota_price : null,
-    }))
+    const payload = variants.map((v) => ({ id: v.id, enabled: v.enabled }))
     const fd = new FormData()
     fd.set('payload', JSON.stringify(payload))
     start(async () => setState(await saveVariantsAction({}, fd)))
@@ -109,15 +100,8 @@ function VariantsCard({
                 <td className="py-2 pr-4 text-foreground font-medium">{v.label}</td>
                 <td className="py-2 pr-4 tabular-nums">{v.occupancy}</td>
                 <td className="py-2 pr-4 tabular-nums">{v.room_count}</td>
-                <td className="py-2 pr-4">
-                  <input
-                    type="number" min={0} step={1000}
-                    className="px-2 py-1.5 rounded-lg text-sm border outline-none tabular-nums w-32"
-                    style={inputStyle}
-                    placeholder={t('variants.pricePlaceholder')}
-                    value={v.ota_price ?? ''}
-                    onChange={(e) => upd(v.id, { ota_price: e.target.value ? Number(e.target.value) : null })}
-                  />
+                <td className="py-2 pr-4 tabular-nums text-foreground">
+                  {v.ota_price != null ? fmt(v.ota_price) : '—'}
                 </td>
                 <td className="py-2 pr-4">
                   <input type="checkbox" checked={v.enabled} onChange={(e) => upd(v.id, { enabled: e.target.checked })} />
