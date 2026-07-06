@@ -680,10 +680,30 @@ Mert "nar çarpışması" konsepti önerdi. Konsept henüz karara bağlanmadı �
   - ⚠️ Tarayıcı/telefon doğrulaması + deploy kullanıcıda: gerçek girişle odaya tıkla → dolu/boş panel,
     çok-oda giriş + pasaport tarama, geçmiş; admin pasaport görseli.
 
+- [x] Guest-site: gerçek oda fotoğrafları + oda-bazlı detay + satış metinleri (6 Temmuz 2026)
+  - Plan: `.claude/plans/guest-sitede-u-an-cheeky-cocoa.md`. Karar: i18n KORUNUR (Gemini'nin "sadece
+    Türkçe" talimatı UYGULANMADI — otel Taşkent'te, misafir Türkçe konuşmuyor); foto işleme SADECE ücretsiz
+    (`sharp`, Higgsfield yok); oda gösterimi oda-bazlı (12 oda); önce foto+metin, 3D sonra.
+  - Foto hattı: `guest-site/scripts/process-photos.mjs` (sharp → WebP, dosya adındaki oda no'ya göre
+    `public/hotel-photos/rooms/{odaNo}/` + `common/`, akıllı kapak seçimi) + `photos-incoming/` gelen kutusu
+    (ham dosyalar gitignore). `src/lib/roomPhotos.ts`: klasörden gerçek foto okur, yoksa nötr fallback
+    (stok oda fotosu SUNULMAZ).
+  - 3 stok foto haritası kaldırıldı: anasayfa kartları (temsili oda 101/202/303), `/rooms` listesi kapakları,
+    oda detay galerisi — hepsi gerçek klasörden.
+  - `rooms/[type]/page.tsx` artık ODA-NUMARASI bazlı tek-oda detay: her odanın kendi galerisi + DB
+    özelliklerinden (jakuzi/küvet/izole/manzara/bağlantılı/kat) türetilmiş satış metni (uz/ru/en, uydurma yok).
+    Anasayfa tip kartı → temsili oda; `/rooms` "Detay" → `/rooms/{odaNo}`.
+  - İşlendi: 8 odanın fotoğrafı (201,202,302,303,304,401,402,403) + bahçe (common). Eksik: 101/102/103/301
+    (kullanıcı sonra) → fallback. Videolar kullanıcı kararıyla SİLİNDİ (kullanılmayacak).
+  - Doğrulandı (curl, 3 dil): gerçek WebP servis (200), 202 jakuzi/401 mansard/304 küvet metni doğru dilde,
+    101 fallback. `pnpm build` ✓ (guest-site). ⚠️ Tarayıcı ekran görüntüsü + deploy kullanıcıda.
+
 ## Sonraki Adımlar
+- Guest-site eksik oda fotoğrafları (101/102/103/301) + cephe/mutfak/resepsiyon/koridor common görselleri
+  (kullanıcı çekip `photos-incoming/`e atınca `process-photos.mjs` çalıştırılır).
+- Faz 2 (3D): Anor Baba maskotu + dönen nar — `.glb` gelince (bkz. plan Faz 2). Video kullanılmayacak.
 - ⚠️ Canlıya uygula (SQL Editor): `019_reservation_no_overlap.sql` (önce çakışma kontrol sorgusu) +
   `020_reservation_may_extend.sql`. Sonra admin-panel + guest-site yeniden deploy.
-- Gerçek oda fotoğrafları: tip sayfaları + kartlar hâlâ placeholder (kullanıcı ekleyecek).
 - ⚠️ ÖNCELİK: admin-panel + guest-site yeniden deploy (oda tipi + tek-nokta fiyat senkronu kodu için).
 - ✅ Channex TAM ÇALIŞIYOR (016+017+018 canlı, env staging'de, müsaitlik + 6 fiyat senkronu doğrulandı).
 - Channex kullanıcıda kalan: Channex panelinde Booking.com/Airbnb bağla.

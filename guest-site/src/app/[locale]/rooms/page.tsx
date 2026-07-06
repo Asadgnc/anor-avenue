@@ -8,6 +8,7 @@ import BookingWidget from '@/components/hotel/BookingWidget'
 import RoomsFilter from '@/components/hotel/RoomsFilter'
 import { supabase, createServiceClient } from '@/lib/supabase'
 import { fetchRoomCapacities } from '@/lib/availability'
+import { getRoomCover, PHOTO_FALLBACK } from '@/lib/roomPhotos'
 
 type RoomRow = {
   id: string
@@ -72,15 +73,6 @@ function floorLabel(floor: number, locale: string): string {
   return locale === 'uz' ? `${floor}-qavat` : locale === 'ru' ? `${floor} этаж` : `Floor ${floor}`
 }
 
-// Temporary photo fallback — replaced when room-specific photos arrive in /hotel-photos/rooms/
-function roomPhoto(room: RoomRow): string {
-  if (room.has_jacuzzi || room.has_bathtub) return '/hotel-photos/hotel-bathroom-jacuzzi.jpeg'
-  const slug = TYPE_SLUG[room.room_type_name]
-  if (slug === 'standard') return '/hotel-photos/some-delicious-meal-bed-bedroom-side-view.jpg'
-  if (slug === 'deluxe') return '/hotel-photos/woman-laying-bed-enjoys-breakfast-tray-hotel-room.jpg'
-  return '/hotel-photos/3d-rendering-beautiful-comtemporary-luxury-bedroom-suite-hotel-with-tv.jpg'
-}
-
 export default async function RoomsPage({ params, searchParams }: Props) {
   const { locale } = await params
   const { checkIn, checkOut, adults, sort, floor, jacuzzi, bathtub } = await searchParams
@@ -103,6 +95,13 @@ export default async function RoomsPage({ params, searchParams }: Props) {
   // oda tipinden gelir ve hepsi 2 döner — bu yüzden ayrıca çekiyoruz.
   const capMap = await fetchRoomCapacities(createServiceClient())
   const roomCapacity = (r: RoomRow) => capMap.get(r.id) ?? r.max_occupancy
+
+  // Oda-bazlı gerçek kapak görselleri (public/hotel-photos/rooms/{odaNo}/) —
+  // yoksa nötr fallback. Render senkron olduğu için önceden çözüyoruz.
+  const coverEntries = await Promise.all(
+    rooms.map(async (r) => [r.id, await getRoomCover(r.room_number)] as const)
+  )
+  const coverMap = new Map<string, string>(coverEntries)
 
   const hasValidDates = !!(checkIn && checkOut && checkIn >= today && checkOut > checkIn)
   let bookedRoomIds = new Set<string>()
@@ -301,7 +300,7 @@ export default async function RoomsPage({ params, searchParams }: Props) {
                         className="md:col-span-2"
                       >
                         <Image
-                          src={roomPhoto(room)}
+                          src={coverMap.get(room.id) ?? PHOTO_FALLBACK}
                           alt={`Room ${room.room_number}`}
                           fill
                           style={{ objectFit: 'cover' }}
@@ -542,7 +541,7 @@ export default async function RoomsPage({ params, searchParams }: Props) {
                         {/* CTAs */}
                         <div className="flex gap-3 flex-wrap">
                           <Link
-                            href={`/${locale}/rooms/${typeSlug}`}
+                            href={`/${locale}/rooms/${room.room_number}`}
                             style={{
                               display: 'inline-flex',
                               alignItems: 'center',

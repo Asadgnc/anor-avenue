@@ -36,6 +36,13 @@ yarn-error.log*
 # vercel
 .vercel
 
+# Ham foto/video teslim — işlenmiş WebP public/hotel-photos altında commit edilir.
+# Büyük ham dosyalar (jpg/MOV) repoya girmesin; sadece açıklama dosyası kalsın.
+/photos-incoming/*
+!/photos-incoming/OKU-BENI.md
+/videos-incoming/
+*.MOV
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

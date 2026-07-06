@@ -7,6 +7,7 @@ import Footer from '@/components/hotel/Footer'
 import BookingWidget from '@/components/hotel/BookingWidget'
 import LocationSection from '@/components/hotel/LocationSection'
 import { supabase } from '@/lib/supabase'
+import { getRoomCover, PHOTO_FALLBACK } from '@/lib/roomPhotos'
 
 type Props = { params: Promise<{ locale: string }> }
 
@@ -31,12 +32,19 @@ export default async function HomePage({ params }: Props) {
     luxury: minPrice('Luxury', 800000),
   }
 
+  // Tip kartları için temsili odaların gerçek kapakları (yoksa nötr fallback).
+  const covers = {
+    standard: await getRoomCover('101'),
+    deluxe: await getRoomCover('202'),
+    luxury: await getRoomCover('303'),
+  }
+
   return (
     <>
       <Navbar />
       <main>
         <HeroSection locale={locale} />
-        <RoomsPreviewSection locale={locale} prices={prices} />
+        <RoomsPreviewSection locale={locale} prices={prices} covers={covers} />
         <ExperienceSection locale={locale} />
         <AboutSection locale={locale} />
         <LocationSection />
@@ -171,33 +179,24 @@ function HeroSection({ locale }: { locale: string }) {
 
 // ─── Rooms Preview ─────────────────────────────────────────────────────────────
 
+// Her tip için temsili oda numarası — kart "Detaylar" linki bu odanın
+// detay sayfasına gider (oda-bazlı detay; tip-slug rotası yok).
+const REP_ROOM: Record<string, string> = { standard: '101', deluxe: '202', luxury: '303' }
+
 const roomData = [
-  {
-    key: 'standard' as const,
-    floor: '-1',
-    amenities: ['WiFi', 'TV', 'A/C'],
-    photo: '/hotel-photos/some-delicious-meal-bed-bedroom-side-view.jpg',
-  },
-  {
-    key: 'deluxe' as const,
-    floor: '2-4',
-    amenities: ['WiFi', 'TV', 'A/C', 'Minibar'],
-    photo: '/hotel-photos/woman-laying-bed-enjoys-breakfast-tray-hotel-room.jpg',
-  },
-  {
-    key: 'luxury' as const,
-    floor: '2-4',
-    amenities: ['WiFi', 'TV', 'A/C', 'Minibar', 'Panorama'],
-    photo: '/hotel-photos/3d-rendering-beautiful-comtemporary-luxury-bedroom-suite-hotel-with-tv.jpg',
-  },
+  { key: 'standard' as const, floor: '-1', amenities: ['WiFi', 'TV', 'A/C'] },
+  { key: 'deluxe' as const, floor: '2-4', amenities: ['WiFi', 'TV', 'A/C', 'Minibar'] },
+  { key: 'luxury' as const, floor: '2-3', amenities: ['WiFi', 'TV', 'A/C', 'Minibar', 'Panorama'] },
 ]
 
 function RoomsPreviewSection({
   locale,
   prices,
+  covers,
 }: {
   locale: string
   prices: Record<string, number>
+  covers: Record<string, string>
 }) {
   const t = useTranslations('rooms')
 
@@ -250,7 +249,7 @@ function RoomsPreviewSection({
               {/* Room photo */}
               <div style={{ position: 'relative', height: '220px', overflow: 'hidden' }}>
                 <Image
-                  src={room.photo}
+                  src={covers[room.key] ?? PHOTO_FALLBACK}
                   alt={room.key}
                   fill
                   style={{ objectFit: 'cover' }}
@@ -326,7 +325,7 @@ function RoomsPreviewSection({
                     </p>
                   </div>
                   <Link
-                    href={`/${locale}/rooms/${room.key}`}
+                    href={`/${locale}/rooms/${REP_ROOM[room.key] ?? ''}`}
                     style={{
                       backgroundColor: 'var(--color-charcoal)',
                       color: 'var(--color-white)',

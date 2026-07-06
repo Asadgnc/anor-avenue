@@ -7,128 +7,197 @@ import Navbar from '@/components/hotel/Navbar'
 import Footer from '@/components/hotel/Footer'
 import { supabase, createServiceClient } from '@/lib/supabase'
 import { fetchRoomCapacities } from '@/lib/availability'
+import { getRoomGallery, PHOTO_FALLBACK } from '@/lib/roomPhotos'
 import type { Metadata } from 'next'
 
-// ─── Oda Verisi ──────────────────────────────────────────────────────────────
+// ─── Oda-bazlı detay sayfası ──────────────────────────────────────────────────
+// Not: Klasör adı [type] ama parametre değeri artık ODA NUMARASI (101, 202, …).
+// Kaynak gerçeklik DB (rooms_with_effective_price) + odanın gerçek foto klasörü.
 
-const TYPE_TO_DB_NAME: Record<string, string> = {
-  standard: 'Standard',
-  deluxe: 'Deluxe',
-  luxury: 'Luxury',
+type Locale = 'uz' | 'ru' | 'en'
+
+const TYPE_SLUG: Record<string, 'standard' | 'deluxe' | 'luxury'> = {
+  Standard: 'standard',
+  Deluxe: 'deluxe',
+  Luxury: 'luxury',
 }
 
-const ROOM_DATA = {
-  standard: {
-    price: 300_000,
-    floor: -1,
-    maxOccupancy: 2,
-    area: 22,
-    count: 3,
-    gradient: 'linear-gradient(160deg, #2c2c2e 0%, #1c1c1e 100%)',
-    amenities: [
-      { icon: '📶', uz: 'WiFi', ru: 'WiFi', en: 'WiFi' },
-      { icon: '📺', uz: 'Smart TV', ru: 'Smart TV', en: 'Smart TV' },
-      { icon: '❄️', uz: 'Konditsioner', ru: 'Кондиционер', en: 'Air Conditioning' },
-      { icon: '🚿', uz: 'Dush', ru: 'Душ', en: 'Shower' },
-      { icon: '☕', uz: 'Choy/qahva', ru: 'Чай/кофе', en: 'Tea/Coffee' },
-      { icon: '🧴', uz: 'Gigiena to\'plami', ru: 'Средства гигиены', en: 'Toiletries' },
-      { icon: '🔒', uz: 'Seyf', ru: 'Сейф', en: 'Safe' },
-      { icon: '🛏', uz: '2 yotoq yoki 1 katta yotoq', ru: '2 кровати или 1 двуспальная', en: 'Twin or Double bed' },
-    ],
-    description: {
-      uz: 'Standart xonalarimiz -1 qavatda joylashgan bo\'lib, qulay va ixcham muhitni taqdim etadi. Barcha zaruriy qulayliklar bilan jihozlangan bu xonalar byudjet turizmi uchun ideal tanlovdir. Tinch va yashil atrofdagi xonalar, dam olish uchun mukammal sharoit yaratadi.',
-      ru: 'Наши стандартные номера расположены на цокольном этаже (-1) и предлагают уютную и комфортную обстановку. Оснащённые всеми необходимыми удобствами, эти номера идеально подходят для путешественников с ограниченным бюджетом. Тихое расположение создаёт идеальные условия для отдыха.',
-      en: 'Our Standard rooms are located on the basement floor (-1) and offer a comfortable and cozy environment. Equipped with all essential amenities, these rooms are ideal for budget-conscious travelers. The quiet surroundings create perfect conditions for rest.',
-    },
-  },
-  deluxe: {
-    price: 500_000,
-    floor: 2,
-    maxOccupancy: 2,
-    area: 35,
-    count: 6,
-    gradient: 'linear-gradient(160deg, #3a2e1e 0%, #2a2018 100%)',
-    amenities: [
-      { icon: '📶', uz: 'WiFi', ru: 'WiFi', en: 'WiFi' },
-      { icon: '📺', uz: 'Smart TV (55")', ru: 'Smart TV (55")', en: 'Smart TV (55")' },
-      { icon: '❄️', uz: 'Konditsioner', ru: 'Кондиционер', en: 'Air Conditioning' },
-      { icon: '🛁', uz: 'Vanna', ru: 'Ванна', en: 'Bathtub' },
-      { icon: '🚿', uz: 'Dush', ru: 'Душ', en: 'Shower' },
-      { icon: '🍾', uz: 'Minibar', ru: 'Мини-бар', en: 'Minibar' },
-      { icon: '🛎', uz: 'Xona xizmati', ru: 'Обслуживание номеров', en: 'Room Service' },
-      { icon: '☕', uz: 'Kapuchino mashinasi', ru: 'Кофемашина', en: 'Coffee Machine' },
-      { icon: '🧴', uz: 'Premium gigiena to\'plami', ru: 'Premium средства гигиены', en: 'Premium Toiletries' },
-      { icon: '🔒', uz: 'Seyf', ru: 'Сейф', en: 'Safe' },
-      { icon: '🪑', uz: 'Mehmon xonasi', ru: 'Гостиная зона', en: 'Living Area' },
-      { icon: '🏙', uz: 'Shahar manzarasi', ru: 'Вид на город', en: 'City View' },
-    ],
-    description: {
-      uz: 'Lyuks xonalarimiz 2-3 qavatlarda joylashgan bo\'lib, kengroq makon va yuqori sifatli qulayliklarni taqdim etadi. Zamonaviy dизаyn va klassik lüks birikmasida bezatilgan bu xonalar, Toshkentning go\'zal manzarasini taqdim etadi. Vanna xonasida to\'liq komplekt gigiena mahsulotlari va minibar xizmati bilan ta\'minlangan.',
-      ru: 'Наши номера люкс расположены на 2-3 этажах и предлагают более просторное пространство и удобства высшего класса. Оформленные в сочетании современного дизайна и классической роскоши, эти номера открывают великолепный вид на Ташкент. Ванная комната полностью укомплектована средствами гигиены, и в номере есть мини-бар.',
-      en: 'Our Luxury rooms are located on floors 2-3 and offer more spacious accommodations with premium amenities. Decorated in a blend of modern design and classic luxury, these rooms offer beautiful views of Tashkent. The bathroom is fully stocked with toiletries, and the room includes a minibar.',
-    },
-  },
-  luxury: {
-    price: 800_000,
-    floor: 3,
-    maxOccupancy: 2,
-    area: 42,
-    count: 3,
-    gradient: 'linear-gradient(160deg, #2a1e0e 0%, #1c1208 100%)',
-    amenities: [
-      { icon: '📶', uz: 'WiFi', ru: 'WiFi', en: 'WiFi' },
-      { icon: '📺', uz: 'Smart TV (65")', ru: 'Smart TV (65")', en: 'Smart TV (65")' },
-      { icon: '❄️', uz: 'Konditsioner', ru: 'Кондиционер', en: 'Air Conditioning' },
-      { icon: '🛁', uz: 'Premium vanna', ru: 'Премиум ванна', en: 'Premium Bathtub' },
-      { icon: '🚿', uz: 'Rain shower', ru: 'Тропический душ', en: 'Rain Shower' },
-      { icon: '🍾', uz: 'Premium minibar', ru: 'Премиум мини-бар', en: 'Premium Minibar' },
-      { icon: '🛎', uz: 'VIP xona xizmati', ru: 'VIP обслуживание', en: 'VIP Room Service' },
-      { icon: '☕', uz: 'Kapuchino mashinasi', ru: 'Кофемашина Nespresso', en: 'Nespresso Machine' },
-      { icon: '🧴', uz: 'Luxury gigiena to\'plami', ru: 'Luxury средства гигиены', en: 'Luxury Toiletries' },
-      { icon: '🔒', uz: 'Seyf', ru: 'Сейф', en: 'Safe' },
-      { icon: '🛋', uz: 'Yotoq xonasi bilan mehmon xonasi', ru: 'Гостиная и спальня', en: 'Living Room + Bedroom' },
-      { icon: '🏙', uz: 'Panoramik manzara', ru: 'Панорамный вид', en: 'Panoramic View' },
-      { icon: '🛁', uz: 'Xalat va shippaklar', ru: 'Халат и тапочки', en: 'Bathrobe & Slippers' },
-      { icon: '🏙', uz: 'Panoramik derazalar', ru: 'Панорамные окна', en: 'Panoramic windows' },
-    ],
-    description: {
-      uz: 'Lyuks xonalarimiz — mehmonxonamizning eng keng va hashamatli takliflari. Panoramik derazalar alohida romantik ruh beradi. Keng mehmon xonasi va ajratilgan yotoqxona bilan u kichkina apartamentga o\'xshaydi. Toshkent manzarasidan bahramand bo\'ling.',
-      ru: 'Наши номера Люкс — самые просторные и роскошные предложения нашего отеля. Панорамные окна создают особую романтическую атмосферу. С просторной гостиной и отдельной спальней они напоминают небольшие апартаменты. Наслаждайтесь видом на Ташкент.',
-      en: 'Our Luxury rooms are the most spacious and lavish offerings of our hotel. Panoramic windows create a special atmosphere. With a spacious living area and separate bedroom, they feel like a small apartment. Enjoy the view of Tashkent.',
-    },
-  },
-} as const
+const TYPE_NAMES: Record<string, Record<Locale, string>> = {
+  standard: { uz: 'Standart', ru: 'Стандарт', en: 'Standard' },
+  deluxe: { uz: 'Delyuks', ru: 'Делюкс', en: 'Deluxe' },
+  luxury: { uz: 'Lyuks', ru: 'Люкс', en: 'Luxury' },
+}
 
-type RoomType = keyof typeof ROOM_DATA
+// Tip bazlı olanaklar (odalar arası ortak konfor). Her odada mevcut olanlar.
+const AMENITIES: Record<'standard' | 'deluxe' | 'luxury', { icon: string; uz: string; ru: string; en: string }[]> = {
+  standard: [
+    { icon: '📶', uz: 'WiFi', ru: 'WiFi', en: 'WiFi' },
+    { icon: '📺', uz: 'Smart TV', ru: 'Smart TV', en: 'Smart TV' },
+    { icon: '❄️', uz: 'Konditsioner', ru: 'Кондиционер', en: 'Air Conditioning' },
+    { icon: '🚿', uz: 'Dush', ru: 'Душ', en: 'Shower' },
+    { icon: '☕', uz: 'Choy/qahva to‘plami', ru: 'Чай/кофе', en: 'Tea/Coffee set' },
+    { icon: '🪟', uz: 'Zebra parda', ru: 'Зебра-шторы', en: 'Zebra blinds' },
+    { icon: '🧴', uz: 'Gigiena to‘plami', ru: 'Средства гигиены', en: 'Toiletries' },
+    { icon: '🛏', uz: 'Yumshoq to‘shak', ru: 'Удобная кровать', en: 'Comfortable bed' },
+  ],
+  deluxe: [
+    { icon: '📶', uz: 'WiFi', ru: 'WiFi', en: 'WiFi' },
+    { icon: '📺', uz: 'Smart TV', ru: 'Smart TV', en: 'Smart TV' },
+    { icon: '❄️', uz: 'Konditsioner', ru: 'Кондиционер', en: 'Air Conditioning' },
+    { icon: '🚿', uz: 'Dush / vanna', ru: 'Душ / ванна', en: 'Shower / bathtub' },
+    { icon: '☕', uz: 'Choy/qahva to‘plami', ru: 'Чай/кофе', en: 'Tea/Coffee set' },
+    { icon: '🧊', uz: 'Mini muzlatgich', ru: 'Мини-холодильник', en: 'Mini-fridge' },
+    { icon: '🛋', uz: 'Dam olish burchagi', ru: 'Зона отдыха', en: 'Seating area' },
+    { icon: '🪟', uz: 'Zebra parda', ru: 'Зебра-шторы', en: 'Zebra blinds' },
+    { icon: '🧴', uz: 'Premium gigiena', ru: 'Premium гигиена', en: 'Premium toiletries' },
+  ],
+  luxury: [
+    { icon: '📶', uz: 'WiFi', ru: 'WiFi', en: 'WiFi' },
+    { icon: '📺', uz: 'Smart TV', ru: 'Smart TV', en: 'Smart TV' },
+    { icon: '❄️', uz: 'Konditsioner', ru: 'Кондиционер', en: 'Air Conditioning' },
+    { icon: '🚿', uz: 'Yomg‘ir dush', ru: 'Тропический душ', en: 'Rain shower' },
+    { icon: '☕', uz: 'Choy/qahva to‘plami', ru: 'Чай/кофе', en: 'Tea/Coffee set' },
+    { icon: '🛋', uz: 'Keng dam olish zonasi', ru: 'Просторная зона отдыха', en: 'Spacious lounge area' },
+    { icon: '🪟', uz: 'Zebra parda', ru: 'Зебра-шторы', en: 'Zebra blinds' },
+    { icon: '🧴', uz: 'Luxury gigiena', ru: 'Luxury гигиена', en: 'Luxury toiletries' },
+  ],
+}
 
-const ROOM_PHOTOS: Record<RoomType, { hero: string; gallery: { src: string; labelKey: string }[] }> = {
-  standard: {
-    hero: '/hotel-photos/some-delicious-meal-bed-bedroom-side-view.jpg',
-    gallery: [
-      { src: '/hotel-photos/some-delicious-meal-bed-bedroom-side-view.jpg', labelKey: 'bedroom' },
-      { src: '/hotel-photos/hotel-bathroom-jacuzzi.jpeg', labelKey: 'bathroom' },
-      { src: '/hotel-photos/breakfast-set-with-various-food-table.jpg', labelKey: 'service' },
-      { src: '/hotel-photos/hotel-courtyard.jpeg', labelKey: 'view' },
-    ],
-  },
-  luxury: {
-    hero: '/hotel-photos/3d-rendering-beautiful-comtemporary-luxury-bedroom-suite-hotel-with-tv.jpg',
-    gallery: [
-      { src: '/hotel-photos/3d-rendering-beautiful-comtemporary-luxury-bedroom-suite-hotel-with-tv.jpg', labelKey: 'bedroom' },
-      { src: '/hotel-photos/hotel-bathroom-jacuzzi.jpeg', labelKey: 'bathroom' },
-      { src: '/hotel-photos/croissant-boiled-egg-orange-juice-yogurt-breakfast-tray-bed-hotel-room.jpg', labelKey: 'service' },
-      { src: '/hotel-photos/woman-laying-bed-enjoys-breakfast-tray-hotel-room.jpg', labelKey: 'view' },
-    ],
-  },
-  deluxe: {
-    hero: '/hotel-photos/woman-laying-bed-enjoys-breakfast-tray-hotel-room.jpg',
-    gallery: [
-      { src: '/hotel-photos/woman-laying-bed-enjoys-breakfast-tray-hotel-room.jpg', labelKey: 'bedroom' },
-      { src: '/hotel-photos/hotel-bathroom-jacuzzi.jpeg', labelKey: 'bathroom' },
-      { src: '/hotel-photos/top-view-assorted-breakfast-with-oatmeal-fried-eggs-human-hand-white-plate.jpg', labelKey: 'service' },
-      { src: '/hotel-photos/some-delicious-meal-bed-bedroom-side-view.jpg', labelKey: 'view' },
-    ],
-  },
+type RoomRow = {
+  id: string
+  room_number: string
+  floor: number
+  room_type_name: string
+  effective_price: number
+  view_quality: 'standard' | 'good' | 'premium'
+  has_jacuzzi: boolean
+  has_bathtub: boolean
+  is_isolated: boolean
+  connecting_room_id: string | null
+  max_occupancy: number
+}
+
+async function fetchRoom(roomNumber: string): Promise<RoomRow | null> {
+  const { data } = await supabase
+    .from('rooms_with_effective_price')
+    .select(
+      'id, room_number, floor, room_type_name, effective_price, view_quality, has_jacuzzi, has_bathtub, is_isolated, connecting_room_id, max_occupancy, is_active'
+    )
+    .eq('room_number', roomNumber)
+    .eq('is_active', true)
+    .maybeSingle()
+  return (data as RoomRow) ?? null
+}
+
+// ─── Metin üretimi (fotoğraf + DB'den, uydurma yok) ───────────────────────────
+
+function floorLabel(floor: number, locale: Locale): string {
+  if (floor < 0) return locale === 'uz' ? 'Bog‘ zamin qavati' : locale === 'ru' ? 'Садовый этаж' : 'Garden floor'
+  if (floor === 4) return locale === 'uz' ? '4-qavat · mansard' : locale === 'ru' ? '4 этаж · мансарда' : 'Floor 4 · mansard'
+  return locale === 'uz' ? `${floor}-qavat` : locale === 'ru' ? `${floor} этаж` : `Floor ${floor}`
+}
+
+function viewLabel(v: RoomRow['view_quality'], locale: Locale): string {
+  if (v === 'premium') return locale === 'uz' ? 'Panoramik manzara' : locale === 'ru' ? 'Панорамный вид' : 'Panoramic view'
+  if (v === 'good') return locale === 'uz' ? 'Yaxshi manzara' : locale === 'ru' ? 'Хороший вид' : 'Good view'
+  return locale === 'uz' ? 'Tinch hovli' : locale === 'ru' ? 'Тихий двор' : 'Quiet courtyard'
+}
+
+// Odanın satış açıklaması — sadece DB'de kesin olan özelliklerden.
+function buildDescription(room: RoomRow, locale: Locale): string {
+  const slug = TYPE_SLUG[room.room_type_name] ?? 'luxury'
+  const parts: string[] = []
+
+  // 1) Giriş — kat + tip
+  if (room.floor < 0) {
+    parts.push(
+      locale === 'uz'
+        ? 'Bog‘ zamin qavatidagi keng va ferah xona — tabiiy yorug‘lik oladi, tinch va sokin muhit taqdim etadi.'
+        : locale === 'ru'
+        ? 'Просторный и светлый номер на садовом этаже — с естественным освещением, в тихой и спокойной атмосфере.'
+        : 'A spacious, airy room on the garden floor — filled with natural light in a calm, quiet setting.'
+    )
+  } else if (room.floor === 4) {
+    parts.push(
+      locale === 'uz'
+        ? 'Mansard (tom osti) qavatdagi eng o‘ziga xos xonalarimizdan biri — qiya shift, temir panjarali derazalar va dam olish burchagi bilan uy-villa hissini beradi.'
+        : locale === 'ru'
+        ? 'Один из самых характерных номеров под крышей (мансарда) — со скошенным потолком, окнами с ковкой и зоной отдыха, создающими атмосферу уюта, как на вилле.'
+        : 'One of our most characterful rooms, tucked under the roof (mansard) — sloped ceiling, wrought-iron windows and a seating nook give it a warm, villa-like feel.'
+    )
+  } else {
+    parts.push(
+      locale === 'uz'
+        ? 'Yuqori qavatda joylashgan keng va zamonaviy xona — nozik bezak va qulay jihozlar bilan.'
+        : locale === 'ru'
+        ? 'Просторный современный номер на верхнем этаже — с изящной отделкой и комфортной обстановкой.'
+        : 'A spacious, modern room on an upper floor — with refined finishes and comfortable furnishings.'
+    )
+  }
+
+  // 2) Ayırt edici özellikler (DB'den kesin)
+  if (room.has_jacuzzi) {
+    parts.push(
+      locale === 'uz'
+        ? 'Vanna xonasida jetli jakuzi bilan alohida dam olish imkoniyati.'
+        : locale === 'ru'
+        ? 'В ванной комнате — джакузи с гидромассажем для особого отдыха.'
+        : 'The bathroom features a jetted jacuzzi for a special soak.'
+    )
+  }
+  if (room.has_bathtub) {
+    parts.push(
+      locale === 'uz'
+        ? 'Keng burchakli vanna bilan jihozlangan hammom.'
+        : locale === 'ru'
+        ? 'Ванная комната с просторной угловой ванной.'
+        : 'The bathroom is fitted with a spacious corner bathtub.'
+    )
+  }
+  if (room.is_isolated) {
+    parts.push(
+      locale === 'uz'
+        ? 'Bino burchagida, alohida va eng sokin joylashuv.'
+        : locale === 'ru'
+        ? 'Угловое расположение — самый уединённый и тихий номер.'
+        : 'A corner location — the most private and quiet room.'
+    )
+  }
+  if (room.connecting_room_id) {
+    parts.push(
+      locale === 'uz'
+        ? 'Yonidagi xona bilan ichki eshik orqali bog‘lanishi mumkin — oila yoki guruh uchun qulay (eshikni xodimlar ochadi, ikkala xona alohida bron qilinadi).'
+        : locale === 'ru'
+        ? 'Может соединяться с соседним номером внутренней дверью — удобно для семьи или группы (дверь открывает персонал, номера бронируются отдельно).'
+        : 'Can be linked to the adjacent room via an internal door — handy for a family or group (staff open the door; the rooms are booked separately).'
+    )
+  }
+
+  // 3) Kapanış — ortak konfor (tüm odalarda gerçek)
+  parts.push(
+    locale === 'uz'
+      ? 'Har bir xonada WiFi, konditsioner, Smart TV va choy/qahva to‘plami mavjud; kunlik tozalash va nonushta imkoniyati bilan.'
+      : locale === 'ru'
+      ? 'В каждом номере — WiFi, кондиционер, Smart TV и чайно-кофейный набор; ежедневная уборка и возможность завтрака.'
+      : 'Every room includes WiFi, air conditioning, a Smart TV and a tea/coffee set; with daily cleaning and a breakfast option.'
+  )
+
+  void slug
+  return parts.join(' ')
+}
+
+function galleryLabel(kind: string, locale: Locale): string {
+  const m: Record<string, Record<Locale, string>> = {
+    cover: { uz: 'Xona', ru: 'Номер', en: 'Room' },
+    bedroom: { uz: 'Yotoqxona', ru: 'Спальня', en: 'Bedroom' },
+    bathroom: { uz: 'Hammom', ru: 'Ванная', en: 'Bathroom' },
+    jacuzzi: { uz: 'Jakuzi', ru: 'Джакузи', en: 'Jacuzzi' },
+    bathtub: { uz: 'Vanna', ru: 'Ванна', en: 'Bathtub' },
+    view: { uz: 'Manzara', ru: 'Вид', en: 'View' },
+    suite: { uz: 'Dam olish zonasi', ru: 'Зона отдыха', en: 'Lounge' },
+    entrance: { uz: 'Kirish', ru: 'Вход', en: 'Entrance' },
+  }
+  return (m[kind] ?? m.bedroom)[locale]
 }
 
 // ─── Metadata ────────────────────────────────────────────────────────────────
@@ -138,23 +207,17 @@ export async function generateMetadata({
 }: {
   params: Promise<{ locale: string; type: string }>
 }): Promise<Metadata> {
-  const { type, locale } = await params
-  if (!(type in ROOM_DATA)) return {}
-  const room = ROOM_DATA[type as RoomType]
-  const names: Record<string, Record<string, string>> = {
-    standard: { uz: 'Standart xona', ru: 'Стандартный номер', en: 'Standard Room' },
-    deluxe:   { uz: 'Delyuks xona',  ru: 'Номер делюкс',      en: 'Deluxe Room' },
-    luxury:   { uz: 'Lyuks xona',    ru: 'Люкс',             en: 'Luxury Room' },
-  }
-  const name = names[type]?.[locale] ?? type
+  const { type: roomNumber, locale } = await params
+  const room = await fetchRoom(roomNumber)
+  if (!room) return {}
+  const loc = (locale as Locale) ?? 'uz'
+  const slug = TYPE_SLUG[room.room_type_name] ?? 'luxury'
+  const typeName = TYPE_NAMES[slug]?.[loc] ?? slug
+  const name = loc === 'ru' ? `Номер ${room.room_number}` : loc === 'en' ? `Room ${room.room_number}` : `${room.room_number}-xona`
   return {
-    title: `${name} — Anor Avenue Hotel`,
-    description: room.description[locale as keyof typeof room.description] ?? room.description.en,
+    title: `${name} · ${typeName} — Anor Avenue Hotel`,
+    description: buildDescription(room, loc).slice(0, 160),
   }
-}
-
-export function generateStaticParams() {
-  return Object.keys(ROOM_DATA).map((type) => ({ type }))
 }
 
 // ─── Sayfa ───────────────────────────────────────────────────────────────────
@@ -166,93 +229,57 @@ export default async function RoomDetailPage({
   params: Promise<{ locale: string; type: string }>
   searchParams: Promise<{ checkIn?: string; checkOut?: string; adults?: string }>
 }) {
-  const { locale, type } = await params
+  const { locale: rawLocale, type: roomNumber } = await params
   const { checkIn, checkOut, adults } = await searchParams
-  setRequestLocale(locale)
+  const locale = (rawLocale as Locale) ?? 'uz'
+  setRequestLocale(rawLocale)
 
-  if (!(type in ROOM_DATA)) notFound()
-  const roomStatic = ROOM_DATA[type as RoomType]
+  const room = await fetchRoom(roomNumber)
+  if (!room) notFound()
 
-  const dbName = TYPE_TO_DB_NAME[type]
-  const { data: roomFeatureRows } = await supabase
-    .from('rooms_with_effective_price')
-    .select('id, has_jacuzzi, has_bathtub, is_isolated, view_quality, connecting_room_id, effective_price')
-    .eq('room_type_name', dbName)
-    .eq('is_active', true)
+  const slug = TYPE_SLUG[room.room_type_name] ?? 'luxury'
+  const amenities = AMENITIES[slug]
 
-  // Gerçek per-oda kapasiteleri (channex_variants.occupancy) — bu tip içindeki aralık
+  // Gerçek kapasite (channex_variants.occupancy)
   const capMap = await fetchRoomCapacities(createServiceClient())
-  const typeCaps = (roomFeatureRows ?? [])
-    .map((r) => capMap.get(r.id as string) ?? roomStatic.maxOccupancy)
-  const capMin = typeCaps.length ? Math.min(...typeCaps) : roomStatic.maxOccupancy
-  const capMax = typeCaps.length ? Math.max(...typeCaps) : roomStatic.maxOccupancy
-  const occupancyLabel =
-    capMin === capMax
-      ? locale === 'uz'
-        ? `${capMax} kishi`
-        : locale === 'ru'
-        ? `${capMax} чел.`
-        : `${capMax} guests`
-      : locale === 'uz'
-      ? `${capMin}–${capMax} kishi`
-      : locale === 'ru'
-      ? `${capMin}–${capMax} чел.`
-      : `${capMin}–${capMax} guests`
+  const capacity = capMap.get(room.id) ?? room.max_occupancy
+
+  const gallery = await getRoomGallery(room.room_number)
+  const heroSrc = gallery[0]?.src ?? PHOTO_FALLBACK
 
   const roomFeatures = {
-    jacuzzi: roomFeatureRows?.some((r) => r.has_jacuzzi) ?? false,
-    bathtub: roomFeatureRows?.some((r) => r.has_bathtub) ?? false,
-    isolated: roomFeatureRows?.some((r) => r.is_isolated) ?? false,
-    premiumShower: roomFeatureRows?.some((r) => r.has_jacuzzi) ?? false,
-    viewPremium: roomFeatureRows?.some((r) => r.view_quality === 'premium') ?? false,
-    connecting: roomFeatureRows?.some((r) => r.connecting_room_id != null) ?? false,
+    jacuzzi: room.has_jacuzzi,
+    bathtub: room.has_bathtub,
+    isolated: room.is_isolated,
+    premiumShower: room.has_jacuzzi,
+    viewPremium: room.view_quality === 'premium',
+    connecting: room.connecting_room_id != null,
   }
 
-  const minEffectivePrice =
-    roomFeatureRows && roomFeatureRows.length > 0
-      ? Math.min(...roomFeatureRows.map((r) => Number(r.effective_price)))
-      : roomStatic.price
+  const roomName =
+    locale === 'ru' ? `Номер ${room.room_number}` : locale === 'en' ? `Room ${room.room_number}` : `${room.room_number}-xona`
+  const typeName = TYPE_NAMES[slug]?.[locale] ?? slug
+  const description = buildDescription(room, locale)
 
-  const room = {
-    ...roomStatic,
-    price: minEffectivePrice,
-    count: roomFeatureRows?.length ?? roomStatic.count,
-  }
-
-  const roomPhotos = ROOM_PHOTOS[type as RoomType]
-
-  const names: Record<string, Record<string, string>> = {
-    standard: { uz: 'Standart xona', ru: 'Стандартный номер', en: 'Standard Room' },
-    deluxe:   { uz: 'Delyuks xona',  ru: 'Номер делюкс',      en: 'Deluxe Room' },
-    luxury:   { uz: 'Lyuks xona',    ru: 'Люкс',             en: 'Luxury Room' },
-  }
-  const roomName = names[type]?.[locale] ?? type
-
-  // Kitap bağlantısı — tarihleri URL'den geçir
-  const bookParams = new URLSearchParams({ roomType: type })
+  // Kitap bağlantısı — tarihleri + oda tipini geçir
+  const bookParams = new URLSearchParams({ roomType: slug })
   if (checkIn) bookParams.set('checkIn', checkIn)
   if (checkOut) bookParams.set('checkOut', checkOut)
   if (adults) bookParams.set('adults', adults)
   const bookHref = `/${locale}/book?${bookParams.toString()}`
 
-  const floorLabel = (floor: number) => {
-    if (floor < 0) return locale === 'uz' ? 'Yer osti (-1 qavat)' : locale === 'ru' ? 'Цокольный (-1 этаж)' : 'Basement (-1F)'
-    return locale === 'uz' ? `${floor}-qavat` : locale === 'ru' ? `${floor} этаж` : `Floor ${floor}`
-  }
-
-  const description = room.description[locale as keyof typeof room.description] ?? room.description.en
+  const occupancyLabel =
+    locale === 'uz' ? `${capacity} kishi` : locale === 'ru' ? `${capacity} чел.` : `${capacity} guests`
 
   const labels = {
     backToRooms: locale === 'uz' ? '← Barcha xonalar' : locale === 'ru' ? '← Все номера' : '← All Rooms',
-    area: locale === 'uz' ? `${room.area} m²` : `${room.area} m²`,
-    occupancy: occupancyLabel,
-    rooms: locale === 'uz' ? `${room.count} ta xona` : locale === 'ru' ? `${room.count} номера` : `${room.count} rooms`,
     from: locale === 'uz' ? 'dan boshlab' : locale === 'ru' ? 'от' : 'from',
     perNight: locale === 'uz' ? '/ bir kecha' : locale === 'ru' ? '/ за ночь' : '/ per night',
     bookNow: locale === 'uz' ? 'Hozir bron qilish' : locale === 'ru' ? 'Забронировать' : 'Book Now',
     amenities: locale === 'uz' ? 'Xona imkoniyatlari' : locale === 'ru' ? 'Удобства номера' : 'Room Amenities',
     description: locale === 'uz' ? 'Xona haqida' : locale === 'ru' ? 'О номере' : 'About the Room',
     gallery: locale === 'uz' ? 'Galereya' : locale === 'ru' ? 'Галерея' : 'Gallery',
+    available: locale === 'uz' ? 'mavjud' : locale === 'ru' ? 'доступно' : 'available',
   }
 
   return (
@@ -271,7 +298,7 @@ export default async function RoomDetailPage({
         <div>
           <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{labels.from}</p>
           <p style={{ fontWeight: '800', color: 'var(--color-gold-dark)', fontSize: 'var(--text-lg)', lineHeight: '1.2' }}>
-            {new Intl.NumberFormat().format(room.price)}{' '}
+            {new Intl.NumberFormat().format(room.effective_price)}{' '}
             <span style={{ fontSize: 'var(--text-xs)', fontWeight: '500', color: 'var(--color-text-muted)' }}>UZS</span>
           </p>
         </div>
@@ -296,7 +323,7 @@ export default async function RoomDetailPage({
         {/* ── Hero ─────────────────────────────────────────────────────── */}
         <div style={{ minHeight: '420px', position: 'relative', overflow: 'hidden' }}>
           <Image
-            src={roomPhotos.hero}
+            src={heroSrc}
             alt={roomName}
             fill
             style={{ objectFit: 'cover', objectPosition: 'center' }}
@@ -306,14 +333,17 @@ export default async function RoomDetailPage({
           />
           <div
             style={{
-              position: 'absolute', inset: 0,
+              position: 'absolute',
+              inset: 0,
               background: 'linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.25) 55%, rgba(0,0,0,0.15) 100%)',
             }}
           />
           <div
             style={{
-              position: 'relative', zIndex: 1,
-              maxWidth: 'var(--max-width)', margin: '0 auto',
+              position: 'relative',
+              zIndex: 1,
+              maxWidth: 'var(--max-width)',
+              margin: '0 auto',
               padding: '2rem var(--spacing-container)',
             }}
           >
@@ -322,7 +352,9 @@ export default async function RoomDetailPage({
               style={{
                 color: 'rgba(255,255,255,0.7)',
                 fontSize: 'var(--text-sm)',
-                display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.5rem',
                 transition: 'var(--transition-fast)',
               }}
               className="hover:opacity-100"
@@ -332,8 +364,12 @@ export default async function RoomDetailPage({
           </div>
           <div
             style={{
-              position: 'absolute', bottom: 0, left: 0, right: 0,
-              maxWidth: 'var(--max-width)', margin: '0 auto',
+              position: 'absolute',
+              bottom: 0,
+              left: 0,
+              right: 0,
+              maxWidth: 'var(--max-width)',
+              margin: '0 auto',
               padding: '2rem var(--spacing-container) 3rem',
             }}
           >
@@ -347,7 +383,7 @@ export default async function RoomDetailPage({
                 marginBottom: '0.5rem',
               }}
             >
-              {floorLabel(room.floor)}
+              {floorLabel(room.floor, locale)} · {typeName}
             </p>
             <h1
               style={{
@@ -362,9 +398,9 @@ export default async function RoomDetailPage({
             </h1>
             <div className="flex items-center gap-6 mt-3 flex-wrap">
               {[
-                { icon: '👤', text: labels.occupancy },
-                { icon: '📐', text: labels.area },
-                { icon: '🏨', text: labels.rooms },
+                { icon: '👤', text: occupancyLabel },
+                { icon: '🌅', text: viewLabel(room.view_quality, locale) },
+                { icon: '🏢', text: floorLabel(room.floor, locale) },
               ].map((s) => (
                 <span key={s.text} style={{ color: 'rgba(255,255,255,0.8)', fontSize: 'var(--text-sm)' }}>
                   {s.icon} {s.text}
@@ -381,13 +417,9 @@ export default async function RoomDetailPage({
             padding: 'var(--spacing-section) var(--spacing-container)',
           }}
         >
-          <div
-            style={{ maxWidth: 'var(--max-width)', margin: '0 auto' }}
-            className="grid grid-cols-1 lg:grid-cols-3 gap-10"
-          >
-            {/* Sol sütun — 2 kolon */}
+          <div style={{ maxWidth: 'var(--max-width)', margin: '0 auto' }} className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+            {/* Sol sütun */}
             <div className="lg:col-span-2 space-y-10">
-
               {/* Açıklama */}
               <div>
                 <h2
@@ -408,72 +440,68 @@ export default async function RoomDetailPage({
               {/* Oda özellik etiketleri */}
               <RoomFeatureTags features={roomFeatures} />
 
-              {/* Galeri */}
-              <div>
-                <h2
-                  style={{
-                    fontFamily: 'var(--font-display)',
-                    fontSize: 'var(--text-2xl)',
-                    color: 'var(--color-text-primary)',
-                    marginBottom: '1rem',
-                  }}
-                >
-                  {labels.gallery}
-                </h2>
-                <div className="grid grid-cols-2 gap-3">
-                  {roomPhotos.gallery.map((item, i) => {
-                    const galleryLabel =
-                      item.labelKey === 'bedroom'
-                        ? locale === 'uz' ? 'Yotoqxona' : locale === 'ru' ? 'Спальня' : 'Bedroom'
-                        : item.labelKey === 'bathroom'
-                        ? locale === 'uz' ? 'Vanna xonasi' : locale === 'ru' ? 'Ванная' : 'Bathroom'
-                        : item.labelKey === 'service'
-                        ? locale === 'uz' ? 'Xizmat' : locale === 'ru' ? 'Сервис' : 'Service'
-                        : locale === 'uz' ? 'Ko\'rinish' : locale === 'ru' ? 'Вид' : 'View'
-                    return (
-                      <div
-                        key={i}
-                        style={{
-                          position: 'relative',
-                          borderRadius: 'var(--radius-md)',
-                          minHeight: i === 0 ? '220px' : '140px',
-                          gridColumn: i === 0 ? 'span 2' : 'span 1',
-                          overflow: 'hidden',
-                        }}
-                      >
-                        <Image
-                          src={item.src}
-                          alt={galleryLabel}
-                          fill
-                          style={{ objectFit: 'cover' }}
-                          sizes="(max-width: 768px) 100vw, 50vw"
-                          quality={80}
-                        />
+              {/* Galeri — sadece gerçek foto varsa */}
+              {gallery.length > 0 && (
+                <div>
+                  <h2
+                    style={{
+                      fontFamily: 'var(--font-display)',
+                      fontSize: 'var(--text-2xl)',
+                      color: 'var(--color-text-primary)',
+                      marginBottom: '1rem',
+                    }}
+                  >
+                    {labels.gallery}
+                  </h2>
+                  <div className="grid grid-cols-2 gap-3">
+                    {gallery.map((item, i) => {
+                      const label = galleryLabel(item.kind, locale)
+                      return (
                         <div
+                          key={item.src}
                           style={{
-                            position: 'absolute', inset: 0,
-                            background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)',
-                          }}
-                        />
-                        <span
-                          style={{
-                            position: 'absolute',
-                            bottom: '0.75rem',
-                            left: '0.75rem',
-                            zIndex: 1,
-                            color: 'rgba(255,255,255,0.9)',
-                            fontSize: 'var(--text-xs)',
-                            fontWeight: '600',
-                            letterSpacing: '0.05em',
+                            position: 'relative',
+                            borderRadius: 'var(--radius-md)',
+                            minHeight: i === 0 ? '220px' : '140px',
+                            gridColumn: i === 0 ? 'span 2' : 'span 1',
+                            overflow: 'hidden',
                           }}
                         >
-                          {galleryLabel}
-                        </span>
-                      </div>
-                    )
-                  })}
+                          <Image
+                            src={item.src}
+                            alt={label}
+                            fill
+                            style={{ objectFit: 'cover' }}
+                            sizes="(max-width: 768px) 100vw, 50vw"
+                            quality={80}
+                          />
+                          <div
+                            style={{
+                              position: 'absolute',
+                              inset: 0,
+                              background: 'linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 60%)',
+                            }}
+                          />
+                          <span
+                            style={{
+                              position: 'absolute',
+                              bottom: '0.75rem',
+                              left: '0.75rem',
+                              zIndex: 1,
+                              color: 'rgba(255,255,255,0.9)',
+                              fontSize: 'var(--text-xs)',
+                              fontWeight: '600',
+                              letterSpacing: '0.05em',
+                            }}
+                          >
+                            {label}
+                          </span>
+                        </div>
+                      )
+                    })}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Olanaklar */}
               <div>
@@ -488,25 +516,22 @@ export default async function RoomDetailPage({
                   {labels.amenities}
                 </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {room.amenities.map((a) => {
-                    const label = a[locale as keyof typeof a] ?? a.en
-                    return (
-                      <div
-                        key={a.en}
-                        className="flex items-center gap-3 px-4 py-3 rounded-lg"
-                        style={{
-                          backgroundColor: 'var(--color-white)',
-                          border: '1px solid var(--color-cream-dark)',
-                          boxShadow: 'var(--shadow-soft)',
-                        }}
-                      >
-                        <span style={{ fontSize: '1.25rem' }}>{a.icon}</span>
-                        <span style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)' }}>
-                          {label}
-                        </span>
-                      </div>
-                    )
-                  })}
+                  {amenities.map((a) => (
+                    <div
+                      key={a.en}
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg"
+                      style={{
+                        backgroundColor: 'var(--color-white)',
+                        border: '1px solid var(--color-cream-dark)',
+                        boxShadow: 'var(--shadow-soft)',
+                      }}
+                    >
+                      <span style={{ fontSize: '1.25rem' }}>{a.icon}</span>
+                      <span style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)' }}>
+                        {a[locale] ?? a.en}
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -524,7 +549,6 @@ export default async function RoomDetailPage({
                   top: '2rem',
                 }}
               >
-                {/* Fiyat */}
                 <div style={{ borderBottom: '1px solid var(--color-cream-dark)', paddingBottom: '1.25rem', marginBottom: '1.25rem' }}>
                   <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)', marginBottom: '0.25rem' }}>
                     {labels.from}
@@ -539,7 +563,7 @@ export default async function RoomDetailPage({
                         lineHeight: '1',
                       }}
                     >
-                      {new Intl.NumberFormat().format(room.price)}
+                      {new Intl.NumberFormat().format(room.effective_price)}
                     </span>
                     <span style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', paddingBottom: '2px' }}>
                       UZS {labels.perNight}
@@ -547,22 +571,24 @@ export default async function RoomDetailPage({
                   </div>
                 </div>
 
-                {/* Özellikler */}
                 <div style={{ marginBottom: '1.5rem' }} className="space-y-2">
                   {[
-                    { icon: '👤', text: labels.occupancy },
-                    { icon: '📐', text: labels.area },
-                    { icon: '🏨', text: `${labels.rooms} ${locale === 'uz' ? 'mavjud' : locale === 'ru' ? 'доступно' : 'available'}` },
-                    { icon: '🏢', text: floorLabel(room.floor) },
+                    { icon: '👤', text: occupancyLabel },
+                    { icon: '🌅', text: viewLabel(room.view_quality, locale) },
+                    { icon: '🏢', text: floorLabel(room.floor, locale) },
+                    { icon: '🏨', text: `${typeName}` },
                   ].map((s) => (
-                    <div key={s.text} className="flex items-center gap-2" style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)' }}>
+                    <div
+                      key={s.text}
+                      className="flex items-center gap-2"
+                      style={{ color: 'var(--color-text-secondary)', fontSize: 'var(--text-sm)' }}
+                    >
                       <span>{s.icon}</span>
                       <span>{s.text}</span>
                     </div>
                   ))}
                 </div>
 
-                {/* CTA */}
                 <Link
                   href={bookHref}
                   style={{
