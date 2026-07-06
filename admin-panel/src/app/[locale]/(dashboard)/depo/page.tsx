@@ -4,6 +4,7 @@ import { Link } from '@/i18n/navigation'
 import { getTranslations } from 'next-intl/server'
 import DepoClient from './DepoClient'
 import DepoProductsSection from './DepoProductsSection'
+import StockRequestSection, { type StockRequest } from './StockRequestSection'
 import GardenClient from '@/app/[locale]/(dashboard)/garden/GardenClient'
 import type { InventoryPurchase, InventoryProduct, GardenTask } from '@/types/hotel'
 
@@ -64,12 +65,20 @@ export default async function DepoPage({
         .order('created_at', { ascending: false })
     : null
 
-  const [productsResult, roomsResult, purchasesResult, profilesResult, gardenTasksResult] = await Promise.all([
+  // Pending stock need-requests (receptionist/housekeeper → admin)
+  const requestsQuery = supabase
+    .from('inventory_requests')
+    .select('id, product_name, quantity, needed_by, note, created_at, profiles(full_name)')
+    .eq('status', 'pending')
+    .order('created_at', { ascending: false })
+
+  const [productsResult, roomsResult, purchasesResult, profilesResult, gardenTasksResult, requestsResult] = await Promise.all([
     productsQuery,
     roomsQuery,
     purchasesQuery ?? Promise.resolve({ data: null, error: null }),
     profilesQuery ?? Promise.resolve({ data: null, error: null }),
     gardenTasksQuery ?? Promise.resolve({ data: null, error: null }),
+    requestsQuery,
   ])
 
   const products = (productsResult.data ?? []) as InventoryProduct[]
@@ -77,6 +86,7 @@ export default async function DepoPage({
   const purchases = (purchasesResult.data ?? []) as unknown as InventoryPurchase[]
   const profiles  = (profilesResult.data ?? []) as Array<{ id: string; full_name: string }>
   const gardenTasks = (gardenTasksResult.data ?? []) as unknown as GardenTask[]
+  const requests = (requestsResult.data ?? []) as unknown as StockRequest[]
 
   const t = await getTranslations('depo')
   const tArea = await getTranslations('depo.areas')
@@ -122,6 +132,9 @@ export default async function DepoPage({
           <GardenClient tasks={gardenTasks} />
         </div>
       )}
+
+      {/* Stock need-requests */}
+      <StockRequestSection requests={requests} isAdmin={isAdmin} />
 
       {/* Products section */}
       <div className="space-y-3">

@@ -50,15 +50,17 @@ export default async function DashboardLayout({ children }: { children: React.Re
     (user?.user_metadata?.full_name as string | undefined) ||
     (userEmail ? userEmail.split('@')[0] : 'User')
 
-  const [pendingReservations, pendingPayments] = await Promise.all([
+  const [pendingReservations, pendingPayments, pendingRequests] = await Promise.all([
     supabase.from('reservations').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
     supabase.from('payments').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+    supabase.from('inventory_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
   ])
 
   const badges = {
     reservations: pendingReservations.count ?? 0,
     payments: pendingPayments.count ?? 0,
   }
+  const stockRequests = pendingRequests.count ?? 0
 
   return (
     <div className="min-h-screen flex bg-background">
@@ -70,6 +72,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           role={role}
           pendingReservations={badges.reservations}
           pendingPayments={badges.payments}
+          stockRequests={stockRequests}
         />
         <RealtimeRefresher />
         {/* pt-[calc(3.5rem+1rem)] = mobil top bar (56px) + padding */}

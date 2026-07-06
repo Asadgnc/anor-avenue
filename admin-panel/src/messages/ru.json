@@ -123,7 +123,8 @@
     "reservationDetail": "Детали брони",
     "guestDetail": "Профиль гостя",
     "pendingReservations": "Ожидающие брони",
-    "pendingPayments": "Ожидающие платежи"
+    "pendingPayments": "Ожидающие платежи",
+    "stockRequests": "Заявки на закупку"
   },
   "status": {
     "reservation": {
@@ -955,6 +956,19 @@
       "currency": "Валюта *",
       "area": "Область",
       "broughtBy": "Кто принёс (необязательно)"
+    },
+    "requests": {
+      "button": "Заявка на закупку",
+      "formTitle": "Новая заявка на закупку",
+      "product": "Товар / материал",
+      "quantity": "Сколько нужно",
+      "neededBy": "К какому сроку",
+      "note": "Примечание (необязательно)",
+      "submit": "Отправить",
+      "pendingTitle": "Заявки на закупку",
+      "resolve": "Получено",
+      "empty": "Нет заявок",
+      "neededByShort": "к"
     },
     "areas": {
       "general": "Общее",

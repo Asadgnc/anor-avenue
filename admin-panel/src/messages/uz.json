@@ -123,7 +123,8 @@
     "reservationDetail": "Bron tafsiloti",
     "guestDetail": "Mehmon profili",
     "pendingReservations": "Kutilayotgan bronlar",
-    "pendingPayments": "Kutilayotgan to'lovlar"
+    "pendingPayments": "Kutilayotgan to'lovlar",
+    "stockRequests": "Ta'minot so'rovlari"
   },
   "status": {
     "reservation": {
@@ -854,6 +855,19 @@
       "currency": "Valyuta *",
       "area": "Maydon",
       "broughtBy": "Kim olib keldi (ixtiyoriy)"
+    },
+    "requests": {
+      "button": "Ehtiyoj bildirish",
+      "formTitle": "Yangi ehtiyoj so'rovi",
+      "product": "Mahsulot / material",
+      "quantity": "Qancha kerak",
+      "neededBy": "Qaysi muddatgacha",
+      "note": "Izoh (ixtiyoriy)",
+      "submit": "Yuborish",
+      "pendingTitle": "Ehtiyoj so'rovlari",
+      "resolve": "Olindi",
+      "empty": "So'rov yo'q",
+      "neededByShort": "gacha"
     },
     "areas": {
       "general": "Umumiy",

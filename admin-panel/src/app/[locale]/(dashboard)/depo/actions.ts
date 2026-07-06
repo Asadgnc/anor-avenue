@@ -184,3 +184,61 @@ export async function getProductMovementsAction(productId: string): Promise<{
   if (error) return { error: error.message }
   return { movements: (data ?? []) as unknown as InventoryMovement[] }
 }
+
+// ─── Stock need requests (receptionist/housekeeper → admin notification) ──────
+
+const requestSchema = z.object({
+  product_name: z.string().min(1),
+  quantity: z.coerce.number().positive().optional(),
+  needed_by: z.string().optional(),
+  note: z.string().max(500).optional(),
+})
+
+export async function addStockRequestAction(
+  _prev: { error?: string; success?: boolean },
+  formData: FormData
+): Promise<{ error?: string; success?: boolean }> {
+  const t = await getTranslations('errors')
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: t('sessionInvalid') }
+
+  const parsed = requestSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) return { error: t('validationError') }
+
+  const service = createServiceClient()
+  const { error } = await service.from('inventory_requests').insert({
+    product_name: parsed.data.product_name,
+    quantity: parsed.data.quantity ?? null,
+    needed_by: parsed.data.needed_by || null,
+    note: parsed.data.note || null,
+    requested_by: user.id,
+  })
+  if (error) return { error: error.message }
+
+  revalidatePath('/depo')
+  revalidatePath('/dashboard')
+  return { success: true }
+}
+
+export async function resolveStockRequestAction(requestId: string): Promise<{ error?: string }> {
+  const t = await getTranslations('errors')
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: t('sessionInvalid') }
+
+  // Only admin closes a request ("received").
+  const role = (user.user_metadata?.role as string | undefined) ?? ''
+  if (role !== 'admin') return { error: t('permissionDenied') }
+
+  const service = createServiceClient()
+  const { error } = await service
+    .from('inventory_requests')
+    .update({ status: 'resolved', resolved_at: new Date().toISOString(), resolved_by: user.id })
+    .eq('id', requestId)
+  if (error) return { error: error.message }
+
+  revalidatePath('/depo')
+  revalidatePath('/dashboard')
+  return {}
+}

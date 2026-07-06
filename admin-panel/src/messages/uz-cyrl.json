@@ -123,7 +123,8 @@
     "reservationDetail": "Брон тафсилоти",
     "guestDetail": "Меҳмон профили",
     "pendingReservations": "Кутилаётган бронлар",
-    "pendingPayments": "Кутилаётган тўловлар"
+    "pendingPayments": "Кутилаётган тўловлар",
+    "stockRequests": "Таъминот сўровлари"
   },
   "status": {
     "reservation": {
@@ -854,6 +855,19 @@
       "currency": "Валюта *",
       "area": "Майдон",
       "broughtBy": "Ким олиб келди (ихтиёрий)"
+    },
+    "requests": {
+      "button": "Эҳтиёж билдириш",
+      "formTitle": "Янги эҳтиёж сўрови",
+      "product": "Маҳсулот / материал",
+      "quantity": "Қанча керак",
+      "neededBy": "Қайси муддатгача",
+      "note": "Изоҳ (ихтиёрий)",
+      "submit": "Юбориш",
+      "pendingTitle": "Эҳтиёж сўровлари",
+      "resolve": "Олинди",
+      "empty": "Сўров йўқ",
+      "neededByShort": "гача"
     },
     "areas": {
       "general": "Умумий",

@@ -6,12 +6,14 @@
 
 import { Link, usePathname } from '@/i18n/navigation'
 import { useTranslations, useLocale } from 'next-intl'
-import { Bell, Mail } from 'lucide-react'
+import { Bell, Mail, Package } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 
-// Bell (pending reservations) → front-desk roles; Mail (pending payments) → money roles.
+// Bell (pending reservations) → front-desk roles; Mail (pending payments) → money roles;
+// Package (stock need-requests) → admin.
 const BELL_ROLES = new Set(['admin', 'receptionist'])
 const MAIL_ROLES = new Set(['admin', 'accountant'])
+const STOCK_ROLES = new Set(['admin'])
 
 type Props = {
   userName: string
@@ -19,6 +21,7 @@ type Props = {
   role: string
   pendingReservations: number
   pendingPayments: number
+  stockRequests: number
 }
 
 const LOCALE_LABELS: Record<string, string> = {
@@ -33,6 +36,7 @@ export default function AppTopbar({
   role,
   pendingReservations,
   pendingPayments,
+  stockRequests,
 }: Props) {
   const pathname = usePathname()
   const locale = useLocale()
@@ -41,6 +45,7 @@ export default function AppTopbar({
 
   const showBell = BELL_ROLES.has(role)
   const showMail = MAIL_ROLES.has(role)
+  const showStock = STOCK_ROLES.has(role)
 
   // Resolve the page title from the current pathname (without locale prefix)
   function resolveTitle(p: string): string {
@@ -128,6 +133,24 @@ export default function AppTopbar({
                 className="absolute -top-1 -right-1 h-4 min-w-4 px-1 justify-center"
               >
                 {pendingPayments > 9 ? '9+' : pendingPayments}
+              </Badge>
+            )}
+          </Link>
+        )}
+
+        {showStock && (
+          <Link
+            href="/depo"
+            className="relative w-9 h-9 rounded-full flex items-center justify-center bg-card ring-1 ring-foreground/10 hover:ring-foreground/20 transition-shadow duration-150"
+            aria-label={t('stockRequests')}
+          >
+            <Package size={15} className="text-foreground" />
+            {stockRequests > 0 && (
+              <Badge
+                variant="warning"
+                className="absolute -top-1 -right-1 h-4 min-w-4 px-1 justify-center"
+              >
+                {stockRequests > 9 ? '9+' : stockRequests}
               </Badge>
             )}
           </Link>
