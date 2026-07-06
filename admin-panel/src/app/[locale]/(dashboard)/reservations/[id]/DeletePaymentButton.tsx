@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { deletePaymentAction } from './actions'
+import { cancelPaymentAction } from './actions'
 import { dash } from '@/lib/dashboardTheme'
 
 export default function DeletePaymentButton({
@@ -20,7 +20,7 @@ export default function DeletePaymentButton({
   async function handleDelete() {
     if (!confirm(t('confirmDialog'))) return
     setPending(true)
-    await deletePaymentAction(paymentId, reservationId)
+    await cancelPaymentAction(paymentId, reservationId)
     setPending(false)
     router.refresh()
   }

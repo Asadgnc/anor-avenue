@@ -7,7 +7,7 @@
 
 import { Link, usePathname } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
-import { LayoutGrid, CreditCard, Receipt, Banknote, BarChart3 } from 'lucide-react'
+import { LayoutGrid, CreditCard, Receipt, Banknote, BarChart3, Coins } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
 const TABS = [
@@ -15,6 +15,7 @@ const TABS = [
   { href: '/payments', key: 'tabIncome',   icon: CreditCard },
   { href: '/bills',    key: 'tabExpense',  icon: Receipt },
   { href: '/payroll',  key: 'tabPayroll',  icon: Banknote },
+  { href: '/tax',      key: 'tabTax',      icon: Coins },
   { href: '/reports',  key: 'tabReports',  icon: BarChart3 },
 ] as const
 

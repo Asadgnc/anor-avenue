@@ -30,7 +30,24 @@
     "tabIncome": "Доходы",
     "tabExpense": "Расходы",
     "tabPayroll": "Зарплата",
-    "tabReports": "Отчёты"
+    "tabReports": "Отчёты",
+    "tabTax": "Налоги"
+  },
+  "tax": {
+    "title": "Налоги",
+    "subtitle": "Туристический налог и база дохода",
+    "collected": "Собрано",
+    "pending": "Ожидает",
+    "ratePerNight": "Ставка за ночь",
+    "incomeBase": "База дохода (месяц)",
+    "colGuest": "Гость",
+    "colNationality": "Гражданство",
+    "colReservation": "Бронь",
+    "colAmount": "Налог",
+    "colStatus": "Статус",
+    "paid": "Оплачен",
+    "unpaid": "Не оплачен",
+    "empty": "Записей о налоге нет"
   },
   "unauthorized": {
     "title": "Аккаунт не авторизован",
@@ -415,8 +432,8 @@
       "errorPrefix": "Ошибка: "
     },
     "deletePayment": {
-      "confirmDialog": "Вы уверены, что хотите удалить эту запись о платеже?",
-      "deleteButton": "Удалить"
+      "confirmDialog": "Отменить этот платёж? Запись сохранится как возврат.",
+      "deleteButton": "Отменить"
     },
     "channels": {
       "all": "Все каналы",

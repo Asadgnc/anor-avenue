@@ -81,9 +81,9 @@ export async function updateReservationAction(
   return { success: true }
 }
 
-// ─── Delete payment ──────────────────────────────────────────────────────────
+// ─── Cancel payment (never hard-delete — keep an audit trail) ─────────────────
 
-export async function deletePaymentAction(
+export async function cancelPaymentAction(
   paymentId: string,
   reservationId: string
 ): Promise<{ error?: string }> {
@@ -92,8 +92,19 @@ export async function deletePaymentAction(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: te('sessionInvalid') }
 
+  const role = (user.user_metadata?.role as string | undefined) ?? ''
+  if (!['admin', 'accountant', 'receptionist'].includes(role)) return { error: te('forbidden') }
+
+  // Payments are never deleted (accounting integrity). Mark as refunded + who/when.
   const service = createServiceClient()
-  const { error } = await service.from('payments').delete().eq('id', paymentId)
+  const { error } = await service
+    .from('payments')
+    .update({
+      status: 'refunded',
+      cancelled_at: new Date().toISOString(),
+      cancelled_by: user.id,
+    })
+    .eq('id', paymentId)
   if (error) return { error: error.message }
 
   revalidatePath(`/reservations/${reservationId}`)

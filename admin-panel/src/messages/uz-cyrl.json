@@ -30,7 +30,24 @@
     "tabIncome": "Даромад",
     "tabExpense": "Харажат",
     "tabPayroll": "Ойлик",
-    "tabReports": "Ҳисоботлар"
+    "tabReports": "Ҳисоботлар",
+    "tabTax": "Солиқлар"
+  },
+  "tax": {
+    "title": "Солиқлар",
+    "subtitle": "Туристик солиқ ва даромад базаси",
+    "collected": "Йиғилди",
+    "pending": "Кутилмоқда",
+    "ratePerNight": "Кечалик ставка",
+    "incomeBase": "Даромад базаси (ой)",
+    "colGuest": "Меҳмон",
+    "colNationality": "Фуқаролик",
+    "colReservation": "Брон",
+    "colAmount": "Солиқ",
+    "colStatus": "Ҳолат",
+    "paid": "Тўланган",
+    "unpaid": "Тўланмаган",
+    "empty": "Солиқ ёзувлари йўқ"
   },
   "unauthorized": {
     "title": "Ҳисоб тасдиқланмаган",
@@ -314,8 +331,8 @@
       "errorPrefix": "Хатолик: "
     },
     "deletePayment": {
-      "confirmDialog": "Бу тўлов ёзувини ўчиришни истайсизми?",
-      "deleteButton": "Ўчириш"
+      "confirmDialog": "Бу тўлов бекор қилинсинми? Ёзув қайтарилган сифатида сақланади.",
+      "deleteButton": "Бекор қилиш"
     },
     "channels": {
       "all": "Барча каналлар",

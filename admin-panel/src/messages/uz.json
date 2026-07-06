@@ -30,7 +30,24 @@
     "tabIncome": "Daromad",
     "tabExpense": "Xarajat",
     "tabPayroll": "Oylik",
-    "tabReports": "Hisobotlar"
+    "tabReports": "Hisobotlar",
+    "tabTax": "Soliqlar"
+  },
+  "tax": {
+    "title": "Soliqlar",
+    "subtitle": "Turistik soliq va daromad bazasi",
+    "collected": "Yig'ildi",
+    "pending": "Kutilmoqda",
+    "ratePerNight": "Kechalik stavka",
+    "incomeBase": "Daromad bazasi (oy)",
+    "colGuest": "Mehmon",
+    "colNationality": "Fuqarolik",
+    "colReservation": "Bron",
+    "colAmount": "Soliq",
+    "colStatus": "Holat",
+    "paid": "To'langan",
+    "unpaid": "To'lanmagan",
+    "empty": "Soliq yozuvlari yo'q"
   },
   "unauthorized": {
     "title": "Hisob tasdiqlanmagan",
@@ -314,8 +331,8 @@
       "errorPrefix": "Xatolik: "
     },
     "deletePayment": {
-      "confirmDialog": "Bu to'lov yozuvini o'chirishni istaysizmi?",
-      "deleteButton": "O'chirish"
+      "confirmDialog": "Bu to'lov bekor qilinsinmi? Yozuv qaytarilgan sifatida saqlanadi.",
+      "deleteButton": "Bekor qilish"
     },
     "channels": {
       "all": "Barcha kanallar",

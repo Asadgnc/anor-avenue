@@ -16,7 +16,7 @@ const ROLE_ALLOWED_PATHS: Record<UserRole, string[]> = {
   housekeeper: ['/dashboard', '/housekeeping', '/depo', '/garden'],
   accountant: [
     '/dashboard', '/finance', '/payments', '/reports',
-    '/bills', '/payroll', '/depo', '/timesheet',
+    '/bills', '/payroll', '/tax', '/depo', '/timesheet',
   ],
 }
 
