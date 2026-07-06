@@ -144,7 +144,11 @@
     "recentTitle": "Новые брони",
     "noBookings": "Броней пока нет",
     "upcomingBills": "{n} счёт(ов) — срок в течение 7 дней",
-    "viewBills": "Все счета →"
+    "viewBills": "Все счета →",
+    "financeSection": "Финансы",
+    "todayRevenue": "Выручка сегодня",
+    "monthRevenue": "Выручка за месяц",
+    "pendingPaymentsCount": "Ожидают оплаты"
   },
   "timesheet": {
     "title": "Табель учёта рабочего времени",

@@ -19,7 +19,6 @@ import {
   Hotel,
   CalendarCheck,
   Package,
-  Leaf,
   Wallet,
   Receipt,
   Clock,
@@ -73,7 +72,6 @@ const MODULES: NavModule[] = [
       { href: '/housekeeping',          labelKey: 'housekeeping', icon: Sparkles,      roles: ['admin', 'receptionist', 'housekeeper'] },
       { href: '/housekeeping/overview', labelKey: 'dailyOverview',icon: CalendarCheck, roles: ['admin', 'receptionist', 'housekeeper'] },
       { href: '/depo',                  labelKey: 'warehouse',    icon: Package,       roles: ['admin', 'receptionist', 'housekeeper', 'accountant'] },
-      { href: '/garden',                labelKey: 'garden',       icon: Leaf,          roles: ['admin', 'receptionist', 'housekeeper'] },
     ],
   },
   {

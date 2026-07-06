@@ -144,7 +144,11 @@
     "recentTitle": "Yangi bronlar",
     "noBookings": "Hozircha bron yoʻq",
     "upcomingBills": "{n} ta to'lov — 7 kun ichida",
-    "viewBills": "Barcha schyotlar →"
+    "viewBills": "Barcha schyotlar →",
+    "financeSection": "Moliya",
+    "todayRevenue": "Bugungi tushum",
+    "monthRevenue": "Oylik tushum",
+    "pendingPaymentsCount": "Toʻlov kutilmoqda"
   },
   "reservations": {
     "calendar": {

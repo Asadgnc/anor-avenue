@@ -144,7 +144,11 @@
     "recentTitle": "Янги бронлар",
     "noBookings": "Ҳозирча брон йўқ",
     "upcomingBills": "{n} та тўлов — 7 кун ичида",
-    "viewBills": "Барча ҳисоб-фактуралар →"
+    "viewBills": "Барча ҳисоб-фактуралар →",
+    "financeSection": "Молия",
+    "todayRevenue": "Бугунги тушум",
+    "monthRevenue": "Ойлик тушум",
+    "pendingPaymentsCount": "Тўлов кутилмоқда"
   },
   "reservations": {
     "calendar": {

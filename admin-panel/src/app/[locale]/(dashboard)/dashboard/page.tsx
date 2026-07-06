@@ -14,6 +14,7 @@ import {
   DoorOpen,
   DoorClosed,
   Receipt,
+  Wallet,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import StatCard from '@/components/admin/StatCard'
@@ -221,6 +222,33 @@ async function fetchUpcomingBills(): Promise<UpcomingBill[]> {
   return upcoming.filter((b) => !paidIds.has(b.id))
 }
 
+async function fetchFinanceSummary() {
+  const supabase = await createClient()
+  const today = new Date()
+  const todayStr = toDateStr(today)
+  const tomorrow = new Date(today)
+  tomorrow.setDate(today.getDate() + 1)
+  const tomorrowStr = toDateStr(tomorrow)
+  const monthStart = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-01`
+
+  const [todayRes, monthRes, pendingRes] = await Promise.all([
+    supabase.from('payments').select('amount, currency').eq('status', 'completed').gte('paid_at', todayStr).lt('paid_at', tomorrowStr),
+    supabase.from('payments').select('amount, currency').eq('status', 'completed').gte('paid_at', monthStart),
+    supabase.from('payments').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+  ])
+  const sumUZS = (rows: Array<{ amount: number; currency: string }> | null) =>
+    (rows ?? []).filter((r) => r.currency === 'UZS').reduce((s, r) => s + Number(r.amount), 0)
+  return {
+    todayRevenue: sumUZS(todayRes.data as Array<{ amount: number; currency: string }> | null),
+    monthRevenue: sumUZS(monthRes.data as Array<{ amount: number; currency: string }> | null),
+    pendingPayments: pendingRes.count ?? 0,
+  }
+}
+
+function formatUZS(n: number): string {
+  return new Intl.NumberFormat('uz-UZ', { maximumFractionDigits: 0 }).format(n) + ' UZS'
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function DashboardPage({
@@ -237,9 +265,17 @@ export default async function DashboardPage({
 
   if (!user) redirect('/login')
 
+  const role = (user.user_metadata?.role as string | undefined) ?? ''
+  const isAdmin = role === 'admin'
+  const frontDesk = isAdmin || role === 'receptionist'
+  const money = isAdmin || role === 'accountant'
+  const ops = isAdmin || role === 'receptionist' || role === 'housekeeper'
+
   const { locale } = await params
   const { blocked } = await searchParams
   const t = await getTranslations('dashboard')
+
+  const financeSummary = money ? await fetchFinanceSummary() : null
 
   const [stats, roomStatusList, cleaningRooms, recentBookings, pendingReservations, userName, occupancy, upcomingBills] = await Promise.all([
     fetchStatCardsData(),
@@ -275,7 +311,7 @@ export default async function DashboardPage({
         </div>
       )}
 
-      {pendingReservations.length > 0 && (
+      {frontDesk && pendingReservations.length > 0 && (
         <div className="rounded-lg p-4 bg-amber-500/10">
           <div className="flex items-start gap-3">
             <AlertCircle size={18} className="text-amber-700 dark:text-amber-400 shrink-0 mt-px" />
@@ -313,7 +349,7 @@ export default async function DashboardPage({
       )}
 
       {/* Upcoming bills banner */}
-      {upcomingBills.length > 0 && (
+      {money && upcomingBills.length > 0 && (
         <div className="rounded-lg p-4 bg-blue-500/10">
           <div className="flex items-start gap-3">
             <Receipt size={18} className="text-blue-700 shrink-0 mt-px" />
@@ -343,7 +379,22 @@ export default async function DashboardPage({
         </div>
       )}
 
+      {/* Finance summary — money roles only (admin + accountant) */}
+      {money && financeSummary && (
+        <section className="space-y-3">
+          <h2 className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            <Wallet size={14} /> {t('financeSection')}
+          </h2>
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+            <StatCard icon={<Wallet size={16} />} label={t('todayRevenue')} value={formatUZS(financeSummary.todayRevenue)} />
+            <StatCard icon={<TrendingUp size={16} />} label={t('monthRevenue')} value={formatUZS(financeSummary.monthRevenue)} />
+            <StatCard icon={<Receipt size={16} />} label={t('pendingPaymentsCount')} value={String(financeSummary.pendingPayments)} href="/payments" />
+          </div>
+        </section>
+      )}
+
       {/* Overview — room & guest counts (non-clickable, no badges) */}
+      {ops && (
       <section className="space-y-3">
         <h2 className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
           <LayoutGrid size={14} /> {t('overview')}
@@ -371,8 +422,10 @@ export default async function DashboardPage({
           />
         </div>
       </section>
+      )}
 
-      {/* Today's movement */}
+      {/* Today's movement — front desk only */}
+      {frontDesk && (
       <section className="space-y-3">
         <h2 className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
           <CalendarPlus size={14} /> {t('todayMovement')}
@@ -408,8 +461,10 @@ export default async function DashboardPage({
           />
         </div>
       </section>
+      )}
 
-      {/* Operation */}
+      {/* Operation — room status + cleaning (operational roles) */}
+      {ops && (
       <section className="space-y-3">
         <h2 className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
           <BedDouble size={14} /> {t('operation')}
@@ -429,9 +484,10 @@ export default async function DashboardPage({
           </Card>
         </div>
       </section>
+      )}
 
-      {/* Recent reservations */}
-      <RecentBookingsList bookings={recentBookings} />
+      {/* Recent reservations — front desk only */}
+      {frontDesk && <RecentBookingsList bookings={recentBookings} />}
     </div>
   )
 }
