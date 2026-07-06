@@ -31,7 +31,22 @@
     "tabExpense": "Xarajat",
     "tabPayroll": "Oylik",
     "tabReports": "Hisobotlar",
-    "tabTax": "Soliqlar"
+    "tabTax": "Soliqlar",
+    "tabFolio": "Folio"
+  },
+  "folio": {
+    "title": "Folio",
+    "subtitle": "Mehmon hisoblari — hisoblangan / to'langan / qoldiq",
+    "totalCharges": "Hisoblangan",
+    "totalPaid": "To'langan",
+    "outstanding": "To'lanadigan qoldiq",
+    "colGuest": "Mehmon",
+    "colRoom": "Xona",
+    "colDates": "Sanalar",
+    "colCharges": "Hisoblangan",
+    "colPaid": "To'langan",
+    "colBalance": "Qoldiq",
+    "empty": "Bronlar yo'q"
   },
   "tax": {
     "title": "Soliqlar",

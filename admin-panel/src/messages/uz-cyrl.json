@@ -31,7 +31,22 @@
     "tabExpense": "Харажат",
     "tabPayroll": "Ойлик",
     "tabReports": "Ҳисоботлар",
-    "tabTax": "Солиқлар"
+    "tabTax": "Солиқлар",
+    "tabFolio": "Фолио"
+  },
+  "folio": {
+    "title": "Фолио",
+    "subtitle": "Меҳмон ҳисоблари — ҳисобланган / тўланган / қолдиқ",
+    "totalCharges": "Ҳисобланган",
+    "totalPaid": "Тўланган",
+    "outstanding": "Тўланадиган қолдиқ",
+    "colGuest": "Меҳмон",
+    "colRoom": "Хона",
+    "colDates": "Саналар",
+    "colCharges": "Ҳисобланган",
+    "colPaid": "Тўланган",
+    "colBalance": "Қолдиқ",
+    "empty": "Бронлар йўқ"
   },
   "tax": {
     "title": "Солиқлар",

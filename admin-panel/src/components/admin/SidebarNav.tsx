@@ -83,7 +83,7 @@ const MODULES: NavModule[] = [
         icon: Wallet,
         roles: ['admin', 'accountant'],
         badgeKey: 'payments',
-        match: ['/finance', '/payments', '/bills', '/payroll', '/tax', '/reports'],
+        match: ['/finance', '/payments', '/bills', '/payroll', '/tax', '/folio', '/reports'],
       },
     ],
   },

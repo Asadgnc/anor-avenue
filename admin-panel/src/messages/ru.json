@@ -31,7 +31,22 @@
     "tabExpense": "Расходы",
     "tabPayroll": "Зарплата",
     "tabReports": "Отчёты",
-    "tabTax": "Налоги"
+    "tabTax": "Налоги",
+    "tabFolio": "Фолио"
+  },
+  "folio": {
+    "title": "Фолио",
+    "subtitle": "Счета гостей — начислено / оплачено / остаток",
+    "totalCharges": "Начислено",
+    "totalPaid": "Оплачено",
+    "outstanding": "Остаток к оплате",
+    "colGuest": "Гость",
+    "colRoom": "Номер",
+    "colDates": "Даты",
+    "colCharges": "Начислено",
+    "colPaid": "Оплачено",
+    "colBalance": "Остаток",
+    "empty": "Нет броней"
   },
   "tax": {
     "title": "Налоги",
