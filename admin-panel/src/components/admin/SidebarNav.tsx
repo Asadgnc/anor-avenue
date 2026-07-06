@@ -9,8 +9,6 @@ import {
   BedDouble,
   Users,
   Sparkles,
-  CreditCard,
-  BarChart3,
   LogOut,
   ClipboardList,
   Menu,
@@ -20,9 +18,7 @@ import {
   CalendarCheck,
   Package,
   Wallet,
-  Receipt,
   Clock,
-  Banknote,
 } from 'lucide-react'
 import { logoutAction } from '@/app/actions/logout'
 import { cn } from '@/lib/utils'
@@ -38,6 +34,9 @@ type NavLink = {
   icon: React.ComponentType<{ size?: number; className?: string }>
   roles: UserRole[]
   badgeKey?: BadgeKey
+  // Extra paths that should mark this link active (e.g. the accounting module's
+  // single link stays active across all its tab pages).
+  match?: string[]
 }
 
 type NavModule = {
@@ -75,14 +74,17 @@ const MODULES: NavModule[] = [
     ],
   },
   {
+    // Single entry — opens the tabbed accounting module (tabs handle sub-navigation).
     id: 'accounting',
-    labelKey: 'moduleAccounting',
     links: [
-      { href: '/payments', labelKey: 'payments', icon: CreditCard, roles: ['admin', 'accountant'], badgeKey: 'payments' },
-      { href: '/finance',  labelKey: 'cashFlow', icon: Wallet,     roles: ['admin', 'accountant'] },
-      { href: '/reports',  labelKey: 'reports',  icon: BarChart3,  roles: ['admin', 'accountant'] },
-      { href: '/bills',    labelKey: 'bills',    icon: Receipt,    roles: ['admin', 'accountant'] },
-      { href: '/payroll',  labelKey: 'payroll',  icon: Banknote,   roles: ['admin', 'accountant'] },
+      {
+        href: '/finance',
+        labelKey: 'moduleAccounting',
+        icon: Wallet,
+        roles: ['admin', 'accountant'],
+        badgeKey: 'payments',
+        match: ['/finance', '/payments', '/bills', '/payroll', '/reports'],
+      },
     ],
   },
   {
@@ -113,10 +115,12 @@ export default function SidebarNav({ role, userEmail, badges = {} }: Props) {
   // '/reservations' link stays active on its list/new sub-tabs (startsWith); these stay exact.
   const exactOnly = ['/dashboard', '/housekeeping']
 
-  function renderLink({ href, labelKey, icon: Icon, badgeKey }: NavLink) {
-    const active = exactOnly.includes(href)
-      ? pathname === href
-      : pathname === href || pathname.startsWith(href + '/')
+  function renderLink({ href, labelKey, icon: Icon, badgeKey, match }: NavLink) {
+    const active = match
+      ? match.some((m) => pathname === m || pathname.startsWith(m + '/'))
+      : exactOnly.includes(href)
+        ? pathname === href
+        : pathname === href || pathname.startsWith(href + '/')
     const badgeValue = badgeKey ? badges[badgeKey] : undefined
     return (
       <Link

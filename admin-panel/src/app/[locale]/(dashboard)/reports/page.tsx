@@ -4,6 +4,7 @@ import { Link } from '@/i18n/navigation'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { BarChart3, Download } from 'lucide-react'
 import SectionZone from '@/components/admin/SectionZone'
+import AccountingTabs from '@/components/admin/AccountingTabs'
 
 const LOCALE_BCP47: Record<string, string> = {
   ru: 'ru-RU',
@@ -119,6 +120,7 @@ export default async function ReportsPage({
 
   return (
     <div className="space-y-8 max-w-3xl">
+      <AccountingTabs />
       {/* Header + date picker */}
       <div className="flex items-center justify-between gap-4 flex-wrap">
         <div>

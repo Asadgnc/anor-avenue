@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
+import AccountingTabs from '@/components/admin/AccountingTabs'
 import PayrollClient, { type PayrollPeriod, type PayrollItem, type StaffOption } from './PayrollClient'
 
 export default async function PayrollPage() {
@@ -43,6 +44,7 @@ export default async function PayrollPage() {
 
   return (
     <div className="space-y-6">
+      <AccountingTabs />
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h1 className="text-2xl font-semibold text-foreground">{t('title')}</h1>

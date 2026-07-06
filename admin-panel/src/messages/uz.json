@@ -25,6 +25,13 @@
     "redirecting": "Yo'naltirilmoqda…",
     "confirm": "Tasdiqlash"
   },
+  "accounting": {
+    "tabOverview": "Umumiy",
+    "tabIncome": "Daromad",
+    "tabExpense": "Xarajat",
+    "tabPayroll": "Oylik",
+    "tabReports": "Hisobotlar"
+  },
   "unauthorized": {
     "title": "Hisob tasdiqlanmagan",
     "message": "Hisobingizga hali rol berilmagan. Administrator bilan bog'laning."

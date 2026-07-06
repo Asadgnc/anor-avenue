@@ -4,6 +4,7 @@ import { getLocale, getTranslations } from 'next-intl/server'
 import { Wallet, CreditCard } from 'lucide-react'
 import type { PaymentMethod, PaymentStatus } from '@/types/hotel'
 import SectionZone from '@/components/admin/SectionZone'
+import AccountingTabs from '@/components/admin/AccountingTabs'
 import PaymentsClient, { type PaymentRowData } from './PaymentsClient'
 
 const LOCALE_BCP47: Record<string, string> = {
@@ -83,6 +84,7 @@ export default async function PaymentsPage() {
 
   return (
     <div className="space-y-6">
+      <AccountingTabs />
       {/* Header */}
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">{t('title')}</h1>

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import { getLocale, getTranslations } from 'next-intl/server'
+import AccountingTabs from '@/components/admin/AccountingTabs'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingDown, TrendingUp, Minus, Calendar, FileText } from 'lucide-react'
 import FinanceExpenseTable from './FinanceExpenseTable'
@@ -18,8 +19,9 @@ function fmt(amount: number) {
   return amount.toLocaleString('uz-UZ')
 }
 
-function fmtUSD(amount: number) {
-  return `$${amount.toLocaleString('en-US', { minimumFractionDigits: 2 })}`
+// Convert any amount to UZS using the configured USD rate (single-currency reporting).
+function toUZS(amount: number, currency: string, rate: number): number {
+  return currency === 'USD' ? amount * rate : amount
 }
 
 function getMonthStr(dateStr: string | null | undefined): string {
@@ -27,7 +29,9 @@ function getMonthStr(dateStr: string | null | undefined): string {
   return dateStr.slice(0, 7)
 }
 
-function computeMonthSummary(allPayments: PaymentRow[], allPurchases: PurchaseRow[]) {
+type ExpenseSource = { amount: number; currency: string; monthStr: string }
+
+function computeMonthSummary(allPayments: PaymentRow[], expenseSources: ExpenseSource[], rate: number) {
   const now = new Date()
   const months: string[] = []
   for (let i = 0; i < 12; i++) {
@@ -41,13 +45,12 @@ function computeMonthSummary(allPayments: PaymentRow[], allPurchases: PurchaseRo
   for (const p of allPayments) {
     const m = getMonthStr(p.paid_at || p.created_at)
     if (!m) continue
-    if (p.currency === 'UZS') incomeByMonth[m] = (incomeByMonth[m] || 0) + Number(p.amount)
+    incomeByMonth[m] = (incomeByMonth[m] || 0) + toUZS(Number(p.amount), p.currency, rate)
   }
 
-  for (const p of allPurchases) {
-    const m = getMonthStr(p.created_at)
-    if (!m) continue
-    if (p.currency === 'UZS') expenseByMonth[m] = (expenseByMonth[m] || 0) + Number(p.total_amount)
+  for (const e of expenseSources) {
+    if (!e.monthStr) continue
+    expenseByMonth[e.monthStr] = (expenseByMonth[e.monthStr] || 0) + toUZS(e.amount, e.currency, rate)
   }
 
   return months.map((m) => ({
@@ -82,7 +85,7 @@ export default async function FinancePage({
   const dateLocale = LOCALE_BCP47[locale] ?? 'ru-RU'
   const t = await getTranslations('finance')
 
-  const [paymentsResult, purchasesResult] = await Promise.all([
+  const [paymentsResult, purchasesResult, settingsResult, billsResult, payrollResult] = await Promise.all([
     supabase
       .from('payments')
       .select('id, amount, currency, method, status, paid_at, created_at, reservation_id, revenue_category')
@@ -92,10 +95,32 @@ export default async function FinancePage({
       .from('inventory_purchases')
       .select('id, product_name, category, area, quantity, unit_price, total_amount, currency, place, brought_by_name, created_at, profiles(full_name)')
       .order('created_at', { ascending: false }),
+    supabase.from('hotel_settings').select('usd_rate').eq('id', 1).single(),
+    supabase.from('bill_payments').select('amount, currency, paid_date, due_date').eq('status', 'paid'),
+    supabase.from('payroll_items').select('net_amount, currency, payroll_periods(year, month, status)'),
   ])
 
   const allPayments = (paymentsResult.data ?? []) as unknown as PaymentRow[]
   const allPurchases = (purchasesResult.data ?? []) as unknown as PurchaseRow[]
+  const rate = Number((settingsResult.data as { usd_rate?: number } | null)?.usd_rate) || 12000
+
+  type BillRow = { amount: number; currency: string; paid_date: string | null; due_date: string }
+  const allBills = (billsResult.data ?? []) as unknown as BillRow[]
+  type PayrollRow = { net_amount: number; currency: string; payroll_periods: { year: number; month: number; status: string } | null }
+  const allPayroll = ((payrollResult.data ?? []) as unknown as PayrollRow[]).filter(
+    (r) => r.payroll_periods && r.payroll_periods.status !== 'draft'
+  )
+
+  // Normalized expense sources (warehouse purchases + paid bills + finalized payroll), each with a month
+  const expenseSources: ExpenseSource[] = [
+    ...allPurchases.map((p) => ({ amount: Number(p.total_amount), currency: p.currency, monthStr: getMonthStr(p.created_at) })),
+    ...allBills.map((b) => ({ amount: Number(b.amount), currency: b.currency, monthStr: getMonthStr(b.paid_date || b.due_date) })),
+    ...allPayroll.map((pr) => ({
+      amount: Number(pr.net_amount),
+      currency: pr.currency,
+      monthStr: `${pr.payroll_periods!.year}-${String(pr.payroll_periods!.month).padStart(2, '0')}`,
+    })),
+  ]
 
   // Month filter
   const params = await searchParams
@@ -110,27 +135,26 @@ export default async function FinancePage({
     ? allPurchases.filter((p) => getMonthStr(p.created_at) === selectedMonth)
     : allPurchases
 
-  // Totals for summary cards
-  const incomeUZS = filteredPayments.filter((p) => p.currency === 'UZS').reduce((s, p) => s + Number(p.amount), 0)
-  const incomeUSD = filteredPayments.filter((p) => p.currency === 'USD').reduce((s, p) => s + Number(p.amount), 0)
-  const expenseUZS = filteredPurchases.filter((p) => p.currency === 'UZS').reduce((s, p) => s + Number(p.total_amount), 0)
-  const expenseUSD = filteredPurchases.filter((p) => p.currency === 'USD').reduce((s, p) => s + Number(p.total_amount), 0)
-  const netUZS = incomeUZS - expenseUZS
-  const netUSD = incomeUSD - expenseUSD
+  const filteredExpenseSources = isFiltered
+    ? expenseSources.filter((e) => e.monthStr === selectedMonth)
+    : expenseSources
 
-  // Revenue category breakdown (UZS only)
+  // Totals — everything converted to a single currency (UZS)
+  const income = filteredPayments.reduce((s, p) => s + toUZS(Number(p.amount), p.currency, rate), 0)
+  const expense = filteredExpenseSources.reduce((s, e) => s + toUZS(e.amount, e.currency, rate), 0)
+  const net = income - expense
+
+  // Revenue category breakdown (converted to UZS)
   const catTotals: Record<string, number> = {}
   for (const p of filteredPayments) {
-    if (p.currency === 'UZS') {
-      const cat = (p as unknown as { revenue_category?: string }).revenue_category || 'accommodation'
-      catTotals[cat] = (catTotals[cat] || 0) + Number(p.amount)
-    }
+    const cat = (p as unknown as { revenue_category?: string }).revenue_category || 'accommodation'
+    catTotals[cat] = (catTotals[cat] || 0) + toUZS(Number(p.amount), p.currency, rate)
   }
   const maxCatAmount = Math.max(...Object.values(catTotals), 1)
   const catKeys = ['accommodation', 'breakfast', 'extra_service', 'deposit', 'other']
 
   // Monthly summary (last 12 months — always full data regardless of filter)
-  const monthSummary = computeMonthSummary(allPayments, allPurchases)
+  const monthSummary = computeMonthSummary(allPayments, expenseSources, rate)
   const hasAnySummaryData = monthSummary.some((m) => m.income > 0 || m.expense > 0)
 
   // Label helpers
@@ -145,6 +169,7 @@ export default async function FinancePage({
 
   return (
     <div className="space-y-8">
+      <AccountingTabs />
       {/* Header + month filter */}
       <div className="flex items-start justify-between flex-wrap gap-4">
         <div>
@@ -152,6 +177,7 @@ export default async function FinancePage({
           <p className="text-sm text-muted-foreground mt-1">
             {isFiltered ? monthLabel(selectedMonth) : t('allTime')}
           </p>
+          <p className="text-xs text-muted-foreground mt-0.5 tabular-nums">1 USD = {fmt(rate)} {som}</p>
         </div>
 
         {/* Month selector */}
@@ -189,36 +215,29 @@ export default async function FinancePage({
         <Card>
           <CardHeader><CardTitle className="text-sm flex items-center gap-2"><TrendingUp size={16} className="text-green-600" /> {t('income')}</CardTitle></CardHeader>
           <CardContent className="space-y-1">
-            <p className="text-2xl font-semibold tabular-nums text-foreground">{fmtSom(incomeUZS)}</p>
-            {incomeUSD > 0 && <p className="text-sm text-muted-foreground tabular-nums">{fmtUSD(incomeUSD)} USD</p>}
+            <p className="text-2xl font-semibold tabular-nums text-foreground">{fmtSom(income)}</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader><CardTitle className="text-sm flex items-center gap-2"><TrendingDown size={16} className="text-red-600" /> {t('expense')}</CardTitle></CardHeader>
           <CardContent className="space-y-1">
-            <p className="text-2xl font-semibold tabular-nums text-foreground">{fmtSom(expenseUZS)}</p>
-            {expenseUSD > 0 && <p className="text-sm text-muted-foreground tabular-nums">{fmtUSD(expenseUSD)} USD</p>}
+            <p className="text-2xl font-semibold tabular-nums text-foreground">{fmtSom(expense)}</p>
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader><CardTitle className="text-sm flex items-center gap-2"><Minus size={16} className={netUZS >= 0 ? 'text-green-600' : 'text-red-600'} /> {t('net')}</CardTitle></CardHeader>
+          <CardHeader><CardTitle className="text-sm flex items-center gap-2"><Minus size={16} className={net >= 0 ? 'text-green-600' : 'text-red-600'} /> {t('net')}</CardTitle></CardHeader>
           <CardContent className="space-y-1">
-            <p className={`text-2xl font-semibold tabular-nums ${netUZS >= 0 ? 'text-green-700' : 'text-red-700'}`}>
-              {netUZS >= 0 ? '+' : ''}{fmtSom(netUZS)}
+            <p className={`text-2xl font-semibold tabular-nums ${net >= 0 ? 'text-green-700' : 'text-red-700'}`}>
+              {net >= 0 ? '+' : ''}{fmtSom(net)}
             </p>
-            {(incomeUSD > 0 || expenseUSD > 0) && (
-              <p className={`text-sm tabular-nums ${netUSD >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                {netUSD >= 0 ? '+' : ''}{fmtUSD(netUSD)} USD
-              </p>
-            )}
           </CardContent>
         </Card>
       </div>
 
       {/* Revenue category breakdown */}
-      {incomeUZS > 0 && (
+      {income > 0 && (
         <section className="rounded-xl bg-card ring-1 ring-foreground/10 overflow-hidden">
           <div className="px-5 py-3 border-b border-border">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -228,7 +247,7 @@ export default async function FinancePage({
           <div className="px-5 py-4 space-y-3">
             {catKeys.filter((k) => (catTotals[k] || 0) > 0).map((k) => {
               const amount = catTotals[k] || 0
-              const pct = Math.round((amount / incomeUZS) * 100)
+              const pct = Math.round((amount / income) * 100)
               const barPct = Math.round((amount / maxCatAmount) * 100)
               return (
                 <div key={k} className="flex items-center gap-3">

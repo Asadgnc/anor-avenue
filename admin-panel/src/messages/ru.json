@@ -25,6 +25,13 @@
     "redirecting": "Перенаправление…",
     "confirm": "Подтвердить"
   },
+  "accounting": {
+    "tabOverview": "Обзор",
+    "tabIncome": "Доходы",
+    "tabExpense": "Расходы",
+    "tabPayroll": "Зарплата",
+    "tabReports": "Отчёты"
+  },
   "unauthorized": {
     "title": "Аккаунт не авторизован",
     "message": "Вашей учётной записи ещё не назначена роль. Обратитесь к администратору."

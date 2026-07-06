@@ -25,6 +25,13 @@
     "redirecting": "Йўналтирилмоқда…",
     "confirm": "Тасдиқлаш"
   },
+  "accounting": {
+    "tabOverview": "Умумий",
+    "tabIncome": "Даромад",
+    "tabExpense": "Харажат",
+    "tabPayroll": "Ойлик",
+    "tabReports": "Ҳисоботлар"
+  },
   "unauthorized": {
     "title": "Ҳисоб тасдиқланмаган",
     "message": "Ҳисобингизга ҳали рол берилмаган. Администратор билан боғланинг."

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import { getLocale } from 'next-intl/server'
+import AccountingTabs from '@/components/admin/AccountingTabs'
 import BillsClient, { type BillWithStatus, type BillHistoryRow } from './BillsClient'
 
 function toDateStr(d: Date): string {
@@ -119,11 +120,14 @@ export default async function BillsPage({
   const history = (historyResult.data ?? []) as unknown as BillHistoryRow[]
 
   return (
-    <BillsClient
-      bills={bills}
-      history={history}
-      role={role}
-      selectedMonth={selectedMonth}
-    />
+    <div className="space-y-6">
+      <AccountingTabs />
+      <BillsClient
+        bills={bills}
+        history={history}
+        role={role}
+        selectedMonth={selectedMonth}
+      />
+    </div>
   )
 }
