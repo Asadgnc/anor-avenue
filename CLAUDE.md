@@ -655,6 +655,31 @@ Mert "nar çarpışması" konsepti önerdi. Konsept henüz karara bağlanmadı �
   - `pnpm build` ✓ (admin + guest), motor 5 senaryo ✓, `/availability` canlı 200 (4 ve 5 kişi doğrulandı).
     ⚠️ Ekran/telefon doğrulaması + deploy kullanıcıda.
 
+- [x] Dashboard oda paneli — tıklanabilir oda + hızlı giriş/rezervasyon + oda geçmişi (6 Temmuz 2026)
+  - Plan: `.claude/plans/resepsiyonist-ve-admin-i-in-eager-allen.md` (onaylı).
+  - **Migration 024 CANLIYA UYGULANDI:** `reservations.registration_pending` (yarı kayıt), `passport_scans`
+    tablosu (admin-only RLS), private `passports` bucket, `reservation_companions` +passport alanları.
+  - Motor `guest-site/src/lib/availability.ts` → `admin-panel/src/lib/availability.ts` port edildi (çok-oda
+    kombinasyon önerileri; çakışma tespiti createOccupancy/createFutureBooking'te yeniden kullanıldı).
+  - Dashboard `RoomStatusGrid` kartları artık tıklanabilir → `RoomCell` (client, Sheet) → sağdan panel:
+    açılınca `getRoomDetailAction` ile aktif konaklama + geçmiş lazy yüklenir.
+  - **Dolu oda:** üstte [Çıkış]+[Ödeme Ekle] (mevcut updateReservationStatus/addPayment yeniden kullanıldı),
+    misafir "＋N kişi" rozeti, ödenen/kalan, kahvaltı, "Rezervasyon detayına git"; geçmiş listesi altta
+    (her satır ödeme/gece/çıkış, "daha fazla").
+  - **Boş oda → sihirbaz** (`RoomBookingFlow`): "Giriş Yap" (walk-in) = kişi sayısı → gerekiyorsa çok-oda
+    kombinasyon önerisi → **"Dolu İşaretle"** (`createOccupancyAction`: checked_in + registration_pending,
+    anında `triggerAvailabilitySync`) → pasaport sihirbazı (slot slot `PassportScanButton` + onay →
+    `attachPassportScanAction`, görsel private `passports` bucket'a) → **"Devam et (tam kayıt)"** /
+    **"Yarı kayıt bırak"**. "Rezervasyon Yap" = ileri tarihli onaylı rezervasyon (`createFutureBookingAction`).
+  - Dashboard'a **yarı kayıt banner'ı** (registration_pending girişler); reservation detayında admin-only
+    **pasaport görselleri** (imzalı URL) + **"Tam kayıt tamamla"** butonu (`completeRegistrationAction`).
+  - Roller: booking/çıkış/ödeme yalnızca admin+receptionist; housekeeper paneli açıp yalnızca bilgi+geçmiş görür.
+  - i18n: `roomDetail` namespace 3 dile tam parite (1159 anahtar ×3) + `errors.capacityInsufficient/
+    reservationNotFound` + `dashboard.pendingRegistrations`. `pnpm build` ✓; dev'de dashboard modül grafiği
+    hatasız yüklendi (307→login).
+  - ⚠️ Tarayıcı/telefon doğrulaması + deploy kullanıcıda: gerçek girişle odaya tıkla → dolu/boş panel,
+    çok-oda giriş + pasaport tarama, geçmiş; admin pasaport görseli.
+
 ## Sonraki Adımlar
 - ⚠️ Canlıya uygula (SQL Editor): `019_reservation_no_overlap.sql` (önce çakışma kontrol sorgusu) +
   `020_reservation_may_extend.sql`. Sonra admin-panel + guest-site yeniden deploy.

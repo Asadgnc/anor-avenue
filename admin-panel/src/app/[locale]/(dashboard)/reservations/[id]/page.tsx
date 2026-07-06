@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { createClient } from '@/lib/supabase-server'
+import { createServiceClient } from '@/lib/supabase'
 import { redirect, notFound } from 'next/navigation'
 import { Link } from '@/i18n/navigation'
 import { getTranslations } from 'next-intl/server'
@@ -8,6 +9,7 @@ import AddPaymentFormClient from './AddPaymentFormClient'
 import CreateRegistrationForm from './CreateRegistrationForm'
 import EditReservationFormClient from './EditReservationFormClient'
 import DeletePaymentButton from './DeletePaymentButton'
+import CompleteRegistrationButton from './CompleteRegistrationButton'
 import type { ReservationStatus, PaymentMethod, PaymentStatus } from '@/types/hotel'
 import { dash } from '@/lib/dashboardTheme'
 
@@ -34,6 +36,7 @@ interface ReservationDetail {
   breakfast_included: boolean
   expected_check_in_time: string | null
   may_extend: boolean
+  registration_pending: boolean
   rooms: { room_number: string; floor: number; room_types: { name: string } | null } | null
   guests: {
     id: string
@@ -118,7 +121,7 @@ export default async function ReservationDetailPage({
   const [resResult, paymentsResult] = await Promise.all([
     supabase
       .from('reservations')
-      .select('id, reservation_code, status, check_in, check_out, actual_check_in, actual_check_out, adults, children, nights, room_rate, total_amount, discount, currency, special_requests, notes, channel, breakfast_included, expected_check_in_time, may_extend, rooms(room_number, floor, room_types(name)), guests(id, first_name, last_name, email, phone, nationality, passport_number)')
+      .select('id, reservation_code, status, check_in, check_out, actual_check_in, actual_check_out, adults, children, nights, room_rate, total_amount, discount, currency, special_requests, notes, channel, breakfast_included, expected_check_in_time, may_extend, registration_pending, rooms(room_number, floor, room_types(name)), guests(id, first_name, last_name, email, phone, nationality, passport_number)')
       .eq('id', id)
       .single(),
     supabase
@@ -133,6 +136,28 @@ export default async function ReservationDetailPage({
   const res = resResult.data as unknown as ReservationDetail
   const payments = (paymentsResult.data ?? []) as unknown as PaymentRow[]
   const cfg = STATUS_COLORS[res.status]
+
+  // Pasaport görselleri — SADECE admin (imzalı URL server'da üretilir)
+  const role = (user.user_metadata?.role as string | undefined) ?? ''
+  let passportImages: string[] = []
+  if (role === 'admin') {
+    const service = createServiceClient()
+    const { data: scans } = await service
+      .from('passport_scans')
+      .select('storage_path')
+      .eq('reservation_id', id)
+      .order('slot_index', { ascending: true })
+    const paths = (scans ?? []).map((s: { storage_path: string }) => s.storage_path)
+    if (paths.length > 0) {
+      const signed = await Promise.all(
+        paths.map((p) => service.storage.from('passports').createSignedUrl(p, 60 * 10))
+      )
+      passportImages = signed
+        .map((s) => s.data?.signedUrl)
+        .filter((u): u is string => Boolean(u))
+    }
+  }
+  const tRoom = await getTranslations('roomDetail')
 
   const totalPaid = payments.filter((p) => p.status === 'completed').reduce((s, p) => s + p.amount, 0)
   const remaining = res.total_amount - totalPaid
@@ -174,6 +199,9 @@ export default async function ReservationDetailPage({
           </p>
         </div>
       </div>
+
+      {/* Yarı kayıt → tam kayıt tamamla */}
+      {res.registration_pending && <CompleteRegistrationButton reservationId={id} />}
 
       {/* Actions (check-in / check-out / cancel / no-show) */}
       <ReservationActions reservationId={id} status={res.status} checkIn={res.check_in} />
@@ -289,6 +317,32 @@ export default async function ReservationDetailPage({
           </div>
         )}
       </div>
+
+      {/* Pasaport görselleri — yalnızca admin */}
+      {role === 'admin' && passportImages.length > 0 && (
+        <div
+          className="rounded-2xl"
+          style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
+        >
+          <p className="px-5 py-3 text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--color-admin-muted)', borderBottom: '1px solid var(--color-admin-border)' }}>
+            {tRoom('passportImages')}
+          </p>
+          <div className="px-5 py-4 flex flex-wrap gap-3">
+            {passportImages.map((url, i) => (
+              <a
+                key={i}
+                href={url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs font-medium px-3 py-2 rounded-lg hover:opacity-80"
+                style={{ backgroundColor: 'var(--color-admin-bg)', color: 'var(--color-accent)' }}
+              >
+                {tRoom('passportImageN', { n: i + 1 })}
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Payments */}
       <div

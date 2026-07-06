@@ -1,8 +1,10 @@
 import { getTranslations } from 'next-intl/server'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { cn } from '@/lib/utils'
+import RoomCell from '@/components/admin/RoomCell'
 
 export interface RoomStatusRow {
+  id: string
   room_number: string
   floor: number
   status: 'available' | 'occupied' | 'cleaning' | 'maintenance' | 'blocked'
@@ -18,9 +20,11 @@ const STATUS_DOT: Record<string, string> = {
 
 interface RoomStatusGridProps {
   rooms: RoomStatusRow[]
+  /** Booking/işlem butonları yalnızca ön büro (admin/receptionist) rollerinde. */
+  role: string
 }
 
-export default async function RoomStatusGrid({ rooms }: RoomStatusGridProps) {
+export default async function RoomStatusGrid({ rooms, role }: RoomStatusGridProps) {
   const t = await getTranslations('rooms.statusGrid')
   const tStatus = await getTranslations('status.room')
   const tFloor = await getTranslations('rooms.floors')
@@ -51,16 +55,13 @@ export default async function RoomStatusGrid({ rooms }: RoomStatusGridProps) {
               {rooms
                 .filter((r) => r.floor === floor)
                 .map((r) => (
-                  <div
-                    key={r.room_number}
-                    className="flex-1 min-w-[84px] rounded-lg border border-border px-3 py-2.5"
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <span className={cn('w-1.5 h-1.5 rounded-full shrink-0', STATUS_DOT[r.status] ?? STATUS_DOT.available)} />
-                      <p className="text-sm font-medium text-foreground">{r.room_number}</p>
-                    </div>
-                    <p className="text-[11px] mt-0.5 text-muted-foreground">{tStatus(r.status)}</p>
-                  </div>
+                  <RoomCell
+                    key={r.id}
+                    room={r}
+                    role={role}
+                    dotClass={STATUS_DOT[r.status] ?? STATUS_DOT.available}
+                    statusLabel={tStatus(r.status)}
+                  />
                 ))}
             </div>
           </div>

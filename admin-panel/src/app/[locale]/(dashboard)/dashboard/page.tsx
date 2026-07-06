@@ -96,7 +96,7 @@ async function fetchRoomStatusList(): Promise<RoomStatusRow[]> {
   const supabase = await createClient()
   const { data } = await supabase
     .from('rooms')
-    .select('room_number, floor, status')
+    .select('id, room_number, floor, status')
     .eq('is_active', true)
     .order('floor')
     .order('room_number')
@@ -179,6 +179,25 @@ async function fetchPendingReservations(): Promise<PendingRow[]> {
     .order('created_at', { ascending: false })
     .limit(10)
   return (data ?? []) as unknown as PendingRow[]
+}
+
+interface PendingRegRow {
+  id: string
+  reservation_code: string
+  guests: { first_name: string; last_name: string } | null
+  rooms: { room_number: string } | null
+}
+
+async function fetchPendingRegistrations(): Promise<PendingRegRow[]> {
+  const supabase = await createClient()
+  const { data } = await supabase
+    .from('reservations')
+    .select('id, reservation_code, guests(first_name, last_name), rooms(room_number)')
+    .eq('registration_pending', true)
+    .eq('status', 'checked_in')
+    .order('actual_check_in', { ascending: false })
+    .limit(12)
+  return (data ?? []) as unknown as PendingRegRow[]
 }
 
 interface UpcomingBill { id: string; name: string; dueDateStr: string }
@@ -277,7 +296,7 @@ export default async function DashboardPage({
 
   const financeSummary = money ? await fetchFinanceSummary() : null
 
-  const [stats, roomStatusList, cleaningRooms, recentBookings, pendingReservations, userName, occupancy, upcomingBills] = await Promise.all([
+  const [stats, roomStatusList, cleaningRooms, recentBookings, pendingReservations, userName, occupancy, upcomingBills, pendingRegistrations] = await Promise.all([
     fetchStatCardsData(),
     fetchRoomStatusList(),
     fetchCleaningRooms(),
@@ -286,6 +305,7 @@ export default async function DashboardPage({
     fetchUserName(user.id, user.email ?? t('userFallback')),
     fetchRoomOccupancy(),
     fetchUpcomingBills().catch(() => [] as UpcomingBill[]),
+    frontDesk ? fetchPendingRegistrations().catch(() => [] as PendingRegRow[]) : Promise.resolve([] as PendingRegRow[]),
   ])
 
   const todayLabel = new Date().toLocaleDateString(LOCALE_BCP47[locale] ?? 'ru-RU', {
@@ -342,6 +362,36 @@ export default async function DashboardPage({
                     {t('morePending', { n: pendingReservations.length - 5 })}
                   </Link>
                 )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Yarı kayıt (registration_pending) banner — tam kaydı bekleyen girişler */}
+      {frontDesk && pendingRegistrations.length > 0 && (
+        <div className="rounded-lg p-4 bg-amber-500/10">
+          <div className="flex items-start gap-3">
+            <AlertCircle size={18} className="text-amber-700 dark:text-amber-400 shrink-0 mt-px" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-foreground">
+                {t('pendingRegistrations', { n: pendingRegistrations.length })}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-2">
+                {pendingRegistrations.map((r) => (
+                  <Link
+                    key={r.id}
+                    href={`/reservations/${r.id}`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-card ring-1 ring-foreground/10 hover:opacity-80 text-foreground"
+                  >
+                    {r.rooms && <span className="font-mono">#{r.rooms.room_number}</span>}
+                    {r.guests && (
+                      <span className="text-muted-foreground">
+                        {r.guests.first_name} {r.guests.last_name}
+                      </span>
+                    )}
+                  </Link>
+                ))}
               </div>
             </div>
           </div>
@@ -470,7 +520,7 @@ export default async function DashboardPage({
           <BedDouble size={14} /> {t('operation')}
         </h2>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <RoomStatusGrid rooms={roomStatusList} />
+          <RoomStatusGrid rooms={roomStatusList} role={role} />
           <Card>
             <CardHeader>
               <CardTitle>{t('cleaningStatus')}</CardTitle>
