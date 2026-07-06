@@ -9,9 +9,9 @@ import { useTranslations, useLocale } from 'next-intl'
 import { Bell, Mail } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 
-// Roles that can see the bell (reservations) and mail (payments) icons
-const BELL_ROLES = new Set(['admin', 'manager', 'receptionist'])
-const MAIL_ROLES = new Set(['admin', 'manager', 'receptionist', 'accountant'])
+// Bell (pending reservations) → front-desk roles; Mail (pending payments) → money roles.
+const BELL_ROLES = new Set(['admin', 'receptionist'])
+const MAIL_ROLES = new Set(['admin', 'accountant'])
 
 type Props = {
   userName: string

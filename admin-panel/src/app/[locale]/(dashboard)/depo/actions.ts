@@ -8,7 +8,7 @@ import { z } from 'zod'
 import type { InventoryMovement } from '@/types/hotel'
 
 // Roles allowed to consume stock
-const CONSUME_ROLES = new Set(['admin', 'manager', 'receptionist', 'housekeeper'])
+const CONSUME_ROLES = new Set(['admin', 'receptionist', 'housekeeper'])
 
 const purchaseSchema = z.object({
   category: z.enum(['cleaning', 'kitchen', 'food', 'beverage', 'decoration', 'room_furniture', 'replacement']),

@@ -25,9 +25,18 @@
     "redirecting": "Йўналтирилмоқда…",
     "confirm": "Тасдиқлаш"
   },
+  "unauthorized": {
+    "title": "Ҳисоб тасдиқланмаган",
+    "message": "Ҳисобингизга ҳали рол берилмаган. Администратор билан боғланинг."
+  },
   "nav": {
     "title": "Бошқарув панели",
     "brandName": "Анор Авеню",
+    "moduleFrontDesk": "Ресепсия",
+    "moduleHousekeeping": "Хизмат",
+    "moduleAccounting": "Бухгалтерия",
+    "moduleManagement": "Бошқарув",
+    "reservations": "Бронлар",
     "dashboard": "Дашборд",
     "calendar": "Календар",
     "reservationList": "Бронлар рўйхати",
@@ -744,6 +753,17 @@
       "priceUnit": "UZS / кеча",
       "syncNote": "2 меҳмон учун асосий нарх. Қўшимча меҳмон +150 000. Сақлаганда сайт ва Channex ҳам янгиланади."
     },
+    "financeSettings": {
+      "title": "Молиявий созламалар",
+      "subtitle": "Бухгалтерия учун валюта курси ва туристик солиқ",
+      "usdRate": "Доллар курси (1 USD = UZS)",
+      "usdRateHint": "Ҳисоботларда USD → UZS айлантириш учун",
+      "touristTax": "Туристик солиқ (UZS / кеча)",
+      "touristTaxHint": "Чет эллик меҳмон учун кечасига. 0 = қўлда",
+      "savingButton": "Сақланмоқда…",
+      "savedButton": "Сақланди ✓",
+      "saveButton": "Сақлаш"
+    },
     "emailNotifications": {
       "title": "Email-билдиришномалар",
       "subtitle": "Vercel муҳит ўзгарувчиларидан ўқилади",
@@ -1183,6 +1203,8 @@
     "forbidden": "Рухсат йўқ."
   },
   "roomItems": {
+    "tabItems": "Буюмлар",
+    "tabInspection": "Текшириш",
     "title": "Хона #{number} — Буюмлар",
     "empty": "Буюмлар ҳали қўшилмаган.",
     "itemHeader": "Буюм",

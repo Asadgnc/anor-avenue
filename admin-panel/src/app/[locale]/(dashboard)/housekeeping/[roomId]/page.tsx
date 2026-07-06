@@ -4,6 +4,7 @@ import { Link } from '@/i18n/navigation'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { ArrowLeft } from 'lucide-react'
 import RoomInspectionForm from '@/components/admin/RoomInspectionForm'
+import RoomDetailTabs from '@/components/admin/RoomDetailTabs'
 import type { RoomItem, RoomInspection } from '@/types/hotel'
 
 const LOCALE_BCP47: Record<string, string> = {
@@ -114,6 +115,8 @@ export default async function RoomInspectionPage({
           </p>
         </div>
       </div>
+
+      <RoomDetailTabs roomId={roomId} active="inspection" />
 
       <RoomInspectionForm
         roomId={roomId}

@@ -10,7 +10,7 @@ async function requirePayrollRole() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) throw new Error('unauthenticated')
   const role = (user.user_metadata?.role as string) ?? ''
-  if (!['admin', 'manager'].includes(role)) throw new Error('forbidden')
+  if (!['admin', 'accountant'].includes(role)) throw new Error('forbidden')
   return { supabase, userId: user.id }
 }
 

@@ -4,7 +4,7 @@ import { useActionState } from 'react'
 import { useTranslations } from 'next-intl'
 import { inviteStaffAction, type StaffState } from './actions'
 
-const ROLE_VALUES = ['receptionist', 'manager', 'housekeeper', 'accountant', 'admin'] as const
+const ROLE_VALUES = ['receptionist', 'housekeeper', 'accountant', 'admin'] as const
 
 const init: StaffState = {}
 

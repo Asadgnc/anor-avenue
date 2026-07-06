@@ -172,8 +172,8 @@ export default function BillsClient({ bills, history, role, selectedMonth }: Pro
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [showAddForm, setShowAddForm] = useState(false)
 
-  const canEdit = ['admin', 'manager', 'accountant'].includes(role)
-  const canMarkPaid = ['admin', 'manager', 'accountant', 'receptionist'].includes(role)
+  const canEdit = ['admin', 'accountant'].includes(role)
+  const canMarkPaid = ['admin', 'accountant'].includes(role)
 
   const now = new Date()
   const [year, mo] = selectedMonth.split('-').map(Number)

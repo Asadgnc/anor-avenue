@@ -12,13 +12,13 @@ export default async function PayrollPage() {
     redirect(`/${locale}/login`)
   }
 
-  const role = (user.user_metadata?.role as string) ?? 'receptionist'
-  if (!['admin', 'manager', 'accountant'].includes(role)) {
+  const role = (user.user_metadata?.role as string) ?? ''
+  if (!['admin', 'accountant'].includes(role)) {
     redirect('/dashboard?blocked=1')
   }
 
   const t = await getTranslations('payroll')
-  const canWrite = ['admin', 'manager'].includes(role)
+  const canWrite = ['admin', 'accountant'].includes(role)
 
   const [periodsResult, itemsResult, staffResult] = await Promise.all([
     supabase

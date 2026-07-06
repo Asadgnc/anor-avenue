@@ -6,8 +6,6 @@ import { useState } from 'react'
 import {
   LayoutDashboard,
   CalendarDays,
-  List,
-  Plus,
   BedDouble,
   Users,
   Sparkles,
@@ -31,7 +29,7 @@ import { logoutAction } from '@/app/actions/logout'
 import { cn } from '@/lib/utils'
 import { Sheet, SheetContent } from '@/components/ui/sheet'
 
-type UserRole = 'admin' | 'manager' | 'receptionist' | 'housekeeper' | 'accountant'
+type UserRole = 'admin' | 'receptionist' | 'housekeeper' | 'accountant'
 
 type BadgeKey = 'reservations' | 'payments'
 
@@ -43,26 +41,61 @@ type NavLink = {
   badgeKey?: BadgeKey
 }
 
-const NAV_LINKS: NavLink[] = [
-  { href: '/dashboard',             labelKey: 'dashboard',        icon: LayoutDashboard, roles: ['admin', 'manager', 'receptionist', 'housekeeper', 'accountant'] },
-  { href: '/reservations',          labelKey: 'calendar',         icon: CalendarDays,    roles: ['admin', 'manager', 'receptionist'] },
-  { href: '/reservations/list',     labelKey: 'reservationList',  icon: List,            roles: ['admin', 'manager', 'receptionist'], badgeKey: 'reservations' },
-  { href: '/reservations/new',      labelKey: 'newReservation',   icon: Plus,            roles: ['admin', 'manager', 'receptionist'] },
-  { href: '/rooms',                 labelKey: 'rooms',            icon: BedDouble,       roles: ['admin', 'manager', 'receptionist'] },
-  { href: '/guests',                labelKey: 'guests',           icon: Users,           roles: ['admin', 'manager', 'receptionist'] },
-  { href: '/registrations',         labelKey: 'registrations',    icon: ClipboardList,   roles: ['admin', 'manager', 'receptionist'] },
-  { href: '/housekeeping',          labelKey: 'housekeeping',     icon: Sparkles,        roles: ['admin', 'manager', 'receptionist', 'housekeeper'] },
-  { href: '/housekeeping/overview', labelKey: 'dailyOverview',    icon: CalendarCheck,   roles: ['admin', 'manager', 'receptionist', 'housekeeper'] },
-  { href: '/payments',              labelKey: 'payments',         icon: CreditCard,      roles: ['admin', 'manager', 'receptionist', 'accountant'], badgeKey: 'payments' },
-  { href: '/reports',               labelKey: 'reports',          icon: BarChart3,       roles: ['admin', 'manager', 'accountant'] },
-  { href: '/depo',                  labelKey: 'warehouse',        icon: Package,         roles: ['admin', 'manager', 'receptionist', 'housekeeper', 'accountant'] },
-  { href: '/garden',                labelKey: 'garden',           icon: Leaf,            roles: ['admin', 'manager', 'receptionist', 'housekeeper'] },
-  { href: '/finance',               labelKey: 'cashFlow',         icon: Wallet,          roles: ['admin'] },
-  { href: '/bills',                 labelKey: 'bills',            icon: Receipt,         roles: ['admin', 'manager', 'accountant', 'receptionist'] },
-  { href: '/timesheet',             labelKey: 'timesheet',        icon: Clock,           roles: ['admin', 'manager', 'receptionist', 'housekeeper', 'accountant'] },
-  { href: '/payroll',               labelKey: 'payroll',          icon: Banknote,        roles: ['admin', 'manager', 'accountant'] },
-  { href: '/staff',                 labelKey: 'staff',            icon: UserCog,         roles: ['admin'] },
-  { href: '/settings',              labelKey: 'settings',         icon: Settings,        roles: ['admin'] },
+type NavModule = {
+  id: string
+  labelKey?: string // undefined = no header (Panel)
+  links: NavLink[]
+}
+
+// 5 modules. Each link keeps its own roles; a module header shows only when the
+// role has ≥1 visible link inside it. Money module (accounting) → admin + accountant.
+const MODULES: NavModule[] = [
+  {
+    id: 'panel',
+    links: [
+      { href: '/dashboard', labelKey: 'dashboard', icon: LayoutDashboard, roles: ['admin', 'receptionist', 'housekeeper', 'accountant'] },
+    ],
+  },
+  {
+    id: 'frontdesk',
+    labelKey: 'moduleFrontDesk',
+    links: [
+      { href: '/reservations', labelKey: 'reservations', icon: CalendarDays, roles: ['admin', 'receptionist'], badgeKey: 'reservations' },
+      { href: '/guests',            labelKey: 'guests',          icon: Users,         roles: ['admin', 'receptionist'] },
+      { href: '/registrations',     labelKey: 'registrations',   icon: ClipboardList, roles: ['admin', 'receptionist'] },
+    ],
+  },
+  {
+    id: 'housekeeping',
+    labelKey: 'moduleHousekeeping',
+    links: [
+      { href: '/rooms',                 labelKey: 'rooms',        icon: BedDouble,     roles: ['admin', 'receptionist'] },
+      { href: '/housekeeping',          labelKey: 'housekeeping', icon: Sparkles,      roles: ['admin', 'receptionist', 'housekeeper'] },
+      { href: '/housekeeping/overview', labelKey: 'dailyOverview',icon: CalendarCheck, roles: ['admin', 'receptionist', 'housekeeper'] },
+      { href: '/depo',                  labelKey: 'warehouse',    icon: Package,       roles: ['admin', 'receptionist', 'housekeeper', 'accountant'] },
+      { href: '/garden',                labelKey: 'garden',       icon: Leaf,          roles: ['admin', 'receptionist', 'housekeeper'] },
+    ],
+  },
+  {
+    id: 'accounting',
+    labelKey: 'moduleAccounting',
+    links: [
+      { href: '/payments', labelKey: 'payments', icon: CreditCard, roles: ['admin', 'accountant'], badgeKey: 'payments' },
+      { href: '/finance',  labelKey: 'cashFlow', icon: Wallet,     roles: ['admin', 'accountant'] },
+      { href: '/reports',  labelKey: 'reports',  icon: BarChart3,  roles: ['admin', 'accountant'] },
+      { href: '/bills',    labelKey: 'bills',    icon: Receipt,    roles: ['admin', 'accountant'] },
+      { href: '/payroll',  labelKey: 'payroll',  icon: Banknote,   roles: ['admin', 'accountant'] },
+    ],
+  },
+  {
+    id: 'management',
+    labelKey: 'moduleManagement',
+    links: [
+      { href: '/timesheet', labelKey: 'timesheet', icon: Clock,    roles: ['admin', 'accountant'] },
+      { href: '/staff',     labelKey: 'staff',     icon: UserCog,  roles: ['admin'] },
+      { href: '/settings',  labelKey: 'settings',  icon: Settings, roles: ['admin'] },
+    ],
+  },
 ]
 
 type Props = {
@@ -72,13 +105,43 @@ type Props = {
 }
 
 export default function SidebarNav({ role, userEmail, badges = {} }: Props) {
-  const userRole = (role as UserRole) ?? 'receptionist'
+  // No insecure fallback — an unknown role sees no links (layout renders an "unauthorized" notice).
+  const userRole = role as UserRole
   const pathname = usePathname()
   const t = useTranslations('nav')
   const tRoles = useTranslations('roles')
   const [mobileOpen, setMobileOpen] = useState(false)
 
-  const visibleLinks = NAV_LINKS.filter((link) => link.roles.includes(userRole))
+  // '/reservations' link stays active on its list/new sub-tabs (startsWith); these stay exact.
+  const exactOnly = ['/dashboard', '/housekeeping']
+
+  function renderLink({ href, labelKey, icon: Icon, badgeKey }: NavLink) {
+    const active = exactOnly.includes(href)
+      ? pathname === href
+      : pathname === href || pathname.startsWith(href + '/')
+    const badgeValue = badgeKey ? badges[badgeKey] : undefined
+    return (
+      <Link
+        key={href}
+        href={href}
+        onClick={() => setMobileOpen(false)}
+        className={cn(
+          'relative flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150',
+          active
+            ? 'bg-sidebar-accent text-sidebar-foreground before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[3px] before:rounded-full before:bg-sidebar-primary'
+            : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'
+        )}
+      >
+        <Icon size={16} className={active ? 'text-sidebar-primary' : undefined} />
+        <span className="flex-1">{t(labelKey as Parameters<typeof t>[0])}</span>
+        {!!badgeValue && (
+          <span className="text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center bg-destructive text-white">
+            {badgeValue > 99 ? '99+' : badgeValue}
+          </span>
+        )}
+      </Link>
+    )
+  }
 
   const navContent = (
     <>
@@ -97,34 +160,20 @@ export default function SidebarNav({ role, userEmail, badges = {} }: Props) {
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-3 py-2 space-y-0.5 overflow-y-auto">
-        {visibleLinks.map(({ href, labelKey, icon: Icon, badgeKey }) => {
-          const exactOnly = ['/dashboard', '/reservations', '/reservations/list', '/reservations/new', '/housekeeping']
-          const active = exactOnly.includes(href)
-            ? pathname === href
-            : pathname === href || pathname.startsWith(href + '/')
-          const badgeValue = badgeKey ? badges[badgeKey] : undefined
+      {/* Navigation — grouped into modules; a header shows only if the role has visible links in it */}
+      <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
+        {MODULES.map((mod) => {
+          const links = mod.links.filter((l) => l.roles.includes(userRole))
+          if (links.length === 0) return null
           return (
-            <Link
-              key={href}
-              href={href}
-              onClick={() => setMobileOpen(false)}
-              className={cn(
-                'relative flex items-center gap-3 px-3.5 py-2.5 rounded-lg text-sm font-medium transition-colors duration-150',
-                active
-                  ? 'bg-sidebar-accent text-sidebar-foreground before:absolute before:left-0 before:top-2 before:bottom-2 before:w-[3px] before:rounded-full before:bg-sidebar-primary'
-                  : 'text-sidebar-foreground/70 hover:bg-sidebar-accent hover:text-sidebar-foreground'
+            <div key={mod.id} className="space-y-0.5">
+              {mod.labelKey && (
+                <p className="px-3.5 pt-3 pb-1 text-[10px] font-semibold uppercase tracking-widest text-sidebar-foreground/40">
+                  {t(mod.labelKey as Parameters<typeof t>[0])}
+                </p>
               )}
-            >
-              <Icon size={16} className={active ? 'text-sidebar-primary' : undefined} />
-              <span className="flex-1">{t(labelKey as Parameters<typeof t>[0])}</span>
-              {!!badgeValue && (
-                <span className="text-[10px] font-bold min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center bg-destructive text-white">
-                  {badgeValue > 99 ? '99+' : badgeValue}
-                </span>
-              )}
-            </Link>
+              {links.map(renderLink)}
+            </div>
           )
         })}
       </nav>

@@ -1,8 +1,8 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
-import { Link } from '@/i18n/navigation'
 import { getTranslations } from 'next-intl/server'
 import ReservationCalendar from '@/components/admin/ReservationCalendar'
+import ReservationTabs from '@/components/admin/ReservationTabs'
 import CalendarNav from '@/components/admin/CalendarNav'
 import type { Room, Reservation } from '@/types/hotel'
 
@@ -66,23 +66,7 @@ export default async function ReservationsPage({ searchParams }: Props) {
             {startDate} — {endDate} · {t('roomCount', { n: rooms.length })}
           </p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* List view */}
-          <Link
-            href="/reservations/list"
-            className="px-3 py-2 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
-            style={{ backgroundColor: 'var(--color-admin-card)', color: 'var(--color-admin-muted)', boxShadow: 'var(--shadow-card)' }}
-          >
-            {t('listButton')}
-          </Link>
-          <Link
-            href="/reservations/new"
-            className="px-4 py-2 rounded-lg text-sm font-semibold transition-opacity hover:opacity-90"
-            style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
-          >
-            {t('newButton')}
-          </Link>
-        </div>
+        <ReservationTabs />
       </div>
 
       {/* Navigasyon */}

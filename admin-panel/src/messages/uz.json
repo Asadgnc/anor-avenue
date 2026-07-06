@@ -25,9 +25,18 @@
     "redirecting": "Yo'naltirilmoqda…",
     "confirm": "Tasdiqlash"
   },
+  "unauthorized": {
+    "title": "Hisob tasdiqlanmagan",
+    "message": "Hisobingizga hali rol berilmagan. Administrator bilan bog'laning."
+  },
   "nav": {
     "title": "Boshqaruv paneli",
     "brandName": "Anor Avenue",
+    "moduleFrontDesk": "Resepsiya",
+    "moduleHousekeeping": "Xizmat",
+    "moduleAccounting": "Buxgalteriya",
+    "moduleManagement": "Boshqaruv",
+    "reservations": "Bronlar",
     "dashboard": "Boshqaruv paneli",
     "calendar": "Kalendar",
     "reservationList": "Bronlar ro'yxati",
@@ -744,6 +753,17 @@
       "priceUnit": "UZS / kecha",
       "syncNote": "2 mehmon uchun asosiy narx. Qo`shimcha mehmon +150 000. Saqlaganda sayt va Channex ham yangilanadi."
     },
+    "financeSettings": {
+      "title": "Moliyaviy sozlamalar",
+      "subtitle": "Buxgalteriya uchun valyuta kursi va turistik soliq",
+      "usdRate": "Dollar kursi (1 USD = UZS)",
+      "usdRateHint": "Hisobotlarda USD → UZS aylantirish uchun",
+      "touristTax": "Turistik soliq (UZS / kecha)",
+      "touristTaxHint": "Chet ellik mehmon uchun kechasiga. 0 = qo'lda",
+      "savingButton": "Saqlanmoqda…",
+      "savedButton": "Saqlandi ✓",
+      "saveButton": "Saqlash"
+    },
     "emailNotifications": {
       "title": "Email-bildirishnomalar",
       "subtitle": "Vercel muhit o'zgaruvchilaridan o'qiladi",
@@ -1183,6 +1203,8 @@
     "forbidden": "Ruxsat yo'q."
   },
   "roomItems": {
+    "tabItems": "Buyumlar",
+    "tabInspection": "Tekshiruv",
     "title": "Xona #{number} — Buyumlar",
     "empty": "Buyumlar hali qoʻshilmagan.",
     "itemHeader": "Buyum",

@@ -4,7 +4,7 @@ import { useActionState } from 'react'
 import { useTranslations } from 'next-intl'
 import { changeRoleAction, type StaffState } from './actions'
 
-const ROLE_VALUES = ['admin', 'manager', 'receptionist', 'housekeeper', 'accountant'] as const
+const ROLE_VALUES = ['admin', 'receptionist', 'housekeeper', 'accountant'] as const
 
 type Props = {
   userId: string

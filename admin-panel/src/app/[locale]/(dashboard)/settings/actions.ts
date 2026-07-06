@@ -109,3 +109,41 @@ export async function updateHotelProfileAction(
   revalidatePath('/settings')
   return { success: true }
 }
+
+// ─── Update finance settings (USD rate + tourist tax) ──────────────────────
+// Money settings — admin only. Used by the accounting module for UZS conversion
+// and tourist-tax auto-calculation.
+
+const financeSettingsSchema = z.object({
+  usd_rate:              z.coerce.number().positive(),
+  tourist_tax_per_night: z.coerce.number().min(0),
+})
+
+export type FinanceSettingsState = { error?: string; success?: boolean }
+
+export async function updateFinanceSettingsAction(
+  _prev: FinanceSettingsState,
+  formData: FormData
+): Promise<FinanceSettingsState> {
+  const t = await getTranslations('errors')
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) return { error: t('sessionInvalid') }
+
+  const role = (user.user_metadata?.role as string | undefined) ?? ''
+  if (role !== 'admin') return { error: t('permissionDenied') }
+
+  const parsed = financeSettingsSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) return { error: t('invalidData') }
+
+  const service = createServiceClient()
+  const { error } = await service
+    .from('hotel_settings')
+    .update({ ...parsed.data, updated_at: new Date().toISOString() })
+    .eq('id', 1)
+
+  if (error) return { error: error.message }
+
+  revalidatePath('/settings')
+  return { success: true }
+}

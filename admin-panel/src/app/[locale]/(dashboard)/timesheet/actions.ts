@@ -25,7 +25,7 @@ export async function upsertShiftAction(
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { error: 'unauthenticated' }
   const role = (user.user_metadata?.role as string) ?? ''
-  if (!['admin', 'manager'].includes(role)) return { error: 'forbidden' }
+  if (role !== 'admin') return { error: 'forbidden' }
 
   const parsed = shiftSchema.safeParse({
     profile_id: formData.get('profile_id'),
@@ -54,7 +54,7 @@ export async function deleteShiftAction(shiftId: string): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return
   const role = (user.user_metadata?.role as string) ?? ''
-  if (!['admin', 'manager'].includes(role)) return
+  if (role !== 'admin') return
   await supabase.from('staff_shifts').delete().eq('id', shiftId)
   const locale = await getLocale()
   revalidatePath(`/${locale}/timesheet`)

@@ -4,6 +4,7 @@ import { Link } from '@/i18n/navigation'
 import { getTranslations } from 'next-intl/server'
 import { ArrowLeft, Trash2 } from 'lucide-react'
 import { addRoomItemAction, deleteRoomItemAction } from '@/app/[locale]/(dashboard)/rooms/actions'
+import RoomDetailTabs from '@/components/admin/RoomDetailTabs'
 import type { RoomItem } from '@/types/hotel'
 
 export default async function RoomDetailPage({
@@ -60,6 +61,8 @@ export default async function RoomDetailPage({
           </p>
         </div>
       </div>
+
+      <RoomDetailTabs roomId={id} active="items" />
 
       {/* Existing items */}
       <div className="rounded-xl border border-border bg-card overflow-hidden">

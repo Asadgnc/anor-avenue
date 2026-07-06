@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
 import { getLocale } from 'next-intl/server'
 
-const WRITER_ROLES = ['admin', 'manager', 'receptionist'] as const
+const WRITER_ROLES = ['admin', 'receptionist'] as const
 
 async function requireWriteRole() {
   const supabase = await createClient()

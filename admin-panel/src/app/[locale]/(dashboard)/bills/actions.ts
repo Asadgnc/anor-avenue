@@ -29,7 +29,7 @@ export async function addBillAction(
   if (!user) return { error: te('sessionInvalid') }
 
   const role = user.user_metadata?.role as string
-  if (!['admin', 'manager', 'accountant'].includes(role)) return { error: te('forbidden') }
+  if (!['admin', 'accountant'].includes(role)) return { error: te('forbidden') }
 
   const parsed = addBillSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? te('validationError') }
@@ -72,7 +72,7 @@ export async function markBillPaidAction(
   if (!user) return { error: te('sessionInvalid') }
 
   const role = user.user_metadata?.role as string
-  if (!['admin', 'manager', 'accountant', 'receptionist'].includes(role)) return { error: te('forbidden') }
+  if (!['admin', 'accountant'].includes(role)) return { error: te('forbidden') }
 
   const parsed = markPaidSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) return { error: te('amountPositive') }
@@ -108,7 +108,7 @@ export async function toggleBillAction(
   if (!user) return { error: te('sessionInvalid') }
 
   const role = user.user_metadata?.role as string
-  if (!['admin', 'manager'].includes(role)) return { error: te('forbidden') }
+  if (!['admin', 'accountant'].includes(role)) return { error: te('forbidden') }
 
   const service = createServiceClient()
   const { error } = await service

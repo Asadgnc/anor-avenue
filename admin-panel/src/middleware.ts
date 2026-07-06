@@ -3,27 +3,28 @@ import { NextResponse, type NextRequest } from 'next/server'
 import createIntlMiddleware from 'next-intl/middleware'
 import { routing } from '@/i18n/routing'
 
-type UserRole = 'admin' | 'manager' | 'receptionist' | 'housekeeper' | 'accountant'
+type UserRole = 'admin' | 'receptionist' | 'housekeeper' | 'accountant'
 
+// Money / accounting paths (finance, payments ledger, reports, bills, payroll)
+// are restricted to admin + accountant only.
 const ROLE_ALLOWED_PATHS: Record<UserRole, string[]> = {
   admin: ['/'],
-  manager: [
-    '/dashboard', '/reservations', '/rooms', '/guests',
-    '/registrations', '/housekeeping', '/payments', '/reports',
-    '/depo', '/garden', '/bills', '/timesheet', '/payroll',
-  ],
   receptionist: [
     '/dashboard', '/reservations', '/rooms', '/guests',
-    '/registrations', '/housekeeping', '/payments',
-    '/depo', '/garden', '/bills', '/timesheet',
+    '/registrations', '/housekeeping', '/depo', '/garden',
   ],
-  housekeeper: ['/dashboard', '/housekeeping', '/depo', '/garden', '/timesheet'],
-  accountant: ['/dashboard', '/payments', '/reports', '/depo', '/bills', '/timesheet', '/payroll'],
+  housekeeper: ['/dashboard', '/housekeeping', '/depo', '/garden'],
+  accountant: [
+    '/dashboard', '/finance', '/payments', '/reports',
+    '/bills', '/payroll', '/depo', '/timesheet',
+  ],
 }
 
-function isAllowed(role: UserRole, pathname: string): boolean {
+// Unknown / unassigned role → only the dashboard, which renders a
+// "your account is not authorized yet" notice (see (dashboard)/layout.tsx).
+function isAllowed(role: string, pathname: string): boolean {
   if (role === 'admin') return true
-  const allowed = ROLE_ALLOWED_PATHS[role] ?? ['/dashboard']
+  const allowed = ROLE_ALLOWED_PATHS[role as UserRole] ?? ['/dashboard']
   return allowed.some((prefix) => pathname === prefix || pathname.startsWith(prefix + '/'))
 }
 
@@ -73,7 +74,8 @@ export async function middleware(request: NextRequest) {
   if (user && isLoginPage) return makeRedirect('/dashboard')
 
   if (user && !isLoginPage) {
-    const role = (user.user_metadata?.role as UserRole | undefined) ?? 'receptionist'
+    // No insecure fallback: an unknown/unassigned role gets dashboard-only access.
+    const role = (user.user_metadata?.role as string | undefined) ?? ''
     if (!isAllowed(role, pathname)) return makeRedirect('/dashboard?blocked=1')
   }
 

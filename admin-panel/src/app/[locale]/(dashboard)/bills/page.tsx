@@ -16,8 +16,9 @@ export default async function BillsPage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const role = (user.user_metadata?.role as string) ?? 'receptionist'
-  if (!['admin', 'manager', 'accountant', 'receptionist'].includes(role)) {
+  // Bills are part of accounting — admin + accountant only.
+  const role = (user.user_metadata?.role as string) ?? ''
+  if (!['admin', 'accountant'].includes(role)) {
     redirect('/dashboard?blocked=1')
   }
 

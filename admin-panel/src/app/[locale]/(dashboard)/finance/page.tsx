@@ -75,8 +75,8 @@ export default async function FinancePage({
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const role = (user.user_metadata?.role as string | undefined) ?? 'receptionist'
-  if (role !== 'admin') redirect('/dashboard?blocked=1')
+  const role = (user.user_metadata?.role as string | undefined) ?? ''
+  if (!['admin', 'accountant'].includes(role)) redirect('/dashboard?blocked=1')
 
   const locale = await getLocale()
   const dateLocale = LOCALE_BCP47[locale] ?? 'ru-RU'

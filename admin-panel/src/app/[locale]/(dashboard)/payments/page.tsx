@@ -39,6 +39,10 @@ export default async function PaymentsPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
+  // Money page — admin + accountant only.
+  const role = (user.user_metadata?.role as string | undefined) ?? ''
+  if (!['admin', 'accountant'].includes(role)) redirect('/dashboard?blocked=1')
+
   const locale = await getLocale()
   const dateLocale = LOCALE_BCP47[locale] ?? 'ru-RU'
   const t = await getTranslations('payments')

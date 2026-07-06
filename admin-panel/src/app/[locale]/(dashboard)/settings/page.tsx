@@ -3,6 +3,7 @@ import { createServiceClient } from '@/lib/supabase'
 import { redirect } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import HotelProfileForm from './HotelProfileForm'
+import FinanceSettingsForm from './FinanceSettingsForm'
 import RoomTypePriceForm from './RoomTypePriceForm'
 import ChannexSettings, { type VariantRow } from './ChannexSettings'
 
@@ -22,6 +23,8 @@ interface HotelSettings {
   checkout_time: string
   channex_property_id: string | null
   channex_last_sync: string | null
+  usd_rate: number | null
+  tourist_tax_per_night: number | null
 }
 
 export default async function SettingsPage() {
@@ -72,6 +75,8 @@ export default async function SettingsPage() {
     checkout_time: '12:00',
     channex_property_id: null,
     channex_last_sync: null,
+    usd_rate: 12000,
+    tourist_tax_per_night: 0,
   }) as HotelSettings
 
   const channexConfigured = Boolean(process.env.CHANNEX_API_KEY)
@@ -107,6 +112,25 @@ export default async function SettingsPage() {
             website={hotel.website ?? ''}
             checkinTime={hotel.checkin_time}
             checkoutTime={hotel.checkout_time}
+          />
+        </div>
+      </div>
+
+      {/* Finance settings — USD rate + tourist tax (admin only) */}
+      <div
+        className="rounded-2xl"
+        style={{ backgroundColor: 'var(--color-admin-card)', boxShadow: 'var(--shadow-card)' }}
+      >
+        <div className="px-5 py-4" style={{ borderBottom: '1px solid var(--color-admin-border)' }}>
+          <h2 className="text-sm font-semibold text-foreground">{t('financeSettings.title')}</h2>
+          <p className="text-xs mt-0.5" style={{ color: 'var(--color-admin-muted)' }}>
+            {t('financeSettings.subtitle')}
+          </p>
+        </div>
+        <div className="px-5 py-4">
+          <FinanceSettingsForm
+            usdRate={Number(hotel.usd_rate ?? 12000)}
+            touristTaxPerNight={Number(hotel.tourist_tax_per_night ?? 0)}
           />
         </div>
       </div>

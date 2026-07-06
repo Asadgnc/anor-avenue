@@ -7,7 +7,7 @@ import { revalidatePath } from 'next/cache'
 import { getTranslations } from 'next-intl/server'
 
 // Registratsiya detaylarını düzenleyebilen roller (E-Mehmon manuel akışı)
-const REGISTRATION_ROLES = new Set(['admin', 'manager', 'receptionist'])
+const REGISTRATION_ROLES = new Set(['admin', 'receptionist'])
 const MAX_DOC_BYTES = 10 * 1024 * 1024 // 10 MB
 const ALLOWED_DOC_TYPES = new Set(['application/pdf', 'image/jpeg', 'image/png', 'image/webp'])
 

@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import { Link } from '@/i18n/navigation'
 import { getTranslations } from 'next-intl/server'
 import ReservationListClient from './ReservationListClient'
+import ReservationTabs from '@/components/admin/ReservationTabs'
 import type { ReservationStatus, Channel } from '@/types/hotel'
 import { dash } from '@/lib/dashboardTheme'
 
@@ -82,22 +83,7 @@ export default async function ReservationListPage({ searchParams }: Props) {
             {t('recordCount', { n: reservations.length })}
           </p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
-          <Link
-            href="/reservations"
-            className="px-3 py-2 rounded-lg text-sm font-medium transition-opacity hover:opacity-80"
-            style={{ backgroundColor: dash.card, color: dash.muted, boxShadow: dash.cardShadow }}
-          >
-            {t('calendarButton')}
-          </Link>
-          <Link
-            href="/reservations/new"
-            className="px-4 py-2 rounded-lg text-sm font-semibold transition-opacity hover:opacity-90 text-white"
-            style={{ backgroundColor: dash.primary }}
-          >
-            {t('newButton')}
-          </Link>
-        </div>
+        <ReservationTabs />
       </div>
 
       {activeDateFilter && (

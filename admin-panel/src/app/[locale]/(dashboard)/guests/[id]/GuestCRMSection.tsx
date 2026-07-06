@@ -385,7 +385,7 @@ export default function GuestCRMSection({
   role: string
 }) {
   const t = useTranslations('guests.crm')
-  const canWrite = ['admin', 'manager', 'receptionist'].includes(role)
+  const canWrite = ['admin', 'receptionist'].includes(role)
 
   return (
     <div

@@ -31,8 +31,8 @@ export default async function TimesheetPage({
     redirect(`/${locale}/login`)
   }
 
-  const role = (user.user_metadata?.role as string) ?? 'receptionist'
-  if (!['admin', 'manager', 'receptionist', 'accountant'].includes(role)) {
+  const role = (user.user_metadata?.role as string) ?? ''
+  if (!['admin', 'accountant'].includes(role)) {
     redirect('/dashboard?blocked=1')
   }
 
@@ -58,7 +58,7 @@ export default async function TimesheetPage({
 
   const staff = (staffResult.data ?? []) as unknown as StaffMember[]
   const shifts = (shiftsResult.data ?? []) as unknown as ShiftRow[]
-  const canWrite = ['admin', 'manager'].includes(role)
+  const canWrite = role === 'admin'
 
   // Summary: count by status for the week
   const presentCount = shifts.filter((s) => s.status === 'present').length

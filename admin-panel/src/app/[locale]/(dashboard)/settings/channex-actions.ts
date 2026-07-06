@@ -13,8 +13,8 @@ async function requireManager() {
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return { ok: false as const, reason: 'session' }
-  const role = (user.user_metadata?.role as string | undefined) ?? 'receptionist'
-  if (!['admin', 'manager'].includes(role)) return { ok: false as const, reason: 'forbidden' }
+  const role = (user.user_metadata?.role as string | undefined) ?? ''
+  if (role !== 'admin') return { ok: false as const, reason: 'forbidden' }
   return { ok: true as const }
 }
 

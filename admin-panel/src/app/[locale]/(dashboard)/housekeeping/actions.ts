@@ -12,7 +12,7 @@ const cleaningStatusSchema = z.enum(['clean', 'dirty', 'in_progress', 'cleaned',
 const HOUSEKEEPER_ALLOWED_TARGETS = new Set(['in_progress', 'cleaned'])
 
 // Roles allowed to perform inspections
-const INSPECTION_ROLES = new Set(['admin', 'manager', 'receptionist'])
+const INSPECTION_ROLES = new Set(['admin', 'receptionist'])
 
 export async function updateCleaningStatus(roomId: string, newStatus: string) {
   const validatedStatus = cleaningStatusSchema.parse(newStatus)

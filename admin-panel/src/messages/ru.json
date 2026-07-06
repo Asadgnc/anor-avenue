@@ -25,9 +25,18 @@
     "redirecting": "Перенаправление…",
     "confirm": "Подтвердить"
   },
+  "unauthorized": {
+    "title": "Аккаунт не авторизован",
+    "message": "Вашей учётной записи ещё не назначена роль. Обратитесь к администратору."
+  },
   "nav": {
     "title": "Панель управления",
     "brandName": "Anor Avenue",
+    "moduleFrontDesk": "Ресепшн",
+    "moduleHousekeeping": "Хозслужба",
+    "moduleAccounting": "Бухгалтерия",
+    "moduleManagement": "Управление",
+    "reservations": "Бронирования",
     "dashboard": "Дашборд",
     "calendar": "Календарь",
     "reservationList": "Список броней",
@@ -845,6 +854,17 @@
       "priceUnit": "UZS / ночь",
       "syncNote": "Базовая цена за 2 гостей. Доп. гость +150 000. При сохранении обновляется и на сайте, и в Channex."
     },
+    "financeSettings": {
+      "title": "Финансовые настройки",
+      "subtitle": "Курс валют и туристический налог для бухгалтерии",
+      "usdRate": "Курс доллара (1 USD в UZS)",
+      "usdRateHint": "Используется для пересчёта USD → UZS в отчётах",
+      "touristTax": "Туристический налог (UZS / ночь)",
+      "touristTaxHint": "За иностранного гостя за ночь. 0 = вручную",
+      "savingButton": "Сохранение…",
+      "savedButton": "Сохранено ✓",
+      "saveButton": "Сохранить"
+    },
     "emailNotifications": {
       "title": "Email-уведомления",
       "subtitle": "Читается из переменных окружения Vercel",
@@ -1183,6 +1203,8 @@
     "forbidden": "Недостаточно прав."
   },
   "roomItems": {
+    "tabItems": "Инвентарь",
+    "tabInspection": "Проверка",
     "title": "Номер #{number} — Инвентарь",
     "empty": "Предметы ещё не добавлены.",
     "itemHeader": "Предмет",

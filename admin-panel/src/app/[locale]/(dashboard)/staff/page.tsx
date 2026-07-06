@@ -14,7 +14,6 @@ const LOCALE_BCP47: Record<string, string> = {
 
 const ROLE_COLORS: Record<string, string> = {
   admin:        'var(--color-accent)',
-  manager:      '#3B82F6',
   receptionist: '#22C55E',
   housekeeper:  '#F59E0B',
   accountant:   '#FD5070',
@@ -163,7 +162,6 @@ export default async function StaffPage() {
       >
         <p className="font-semibold text-foreground">{t('rolesSection')}</p>
         <p><span className="font-mono" style={{ color: 'var(--color-accent)' }}>admin</span> — {t('roleDescriptions.admin')}</p>
-        <p><span className="font-mono" style={{ color: '#3B82F6' }}>manager</span> — {t('roleDescriptions.manager')}</p>
         <p><span className="font-mono" style={{ color: '#22C55E' }}>receptionist</span> — {t('roleDescriptions.receptionist')}</p>
         <p><span className="font-mono" style={{ color: '#F59E0B' }}>housekeeper</span> — {t('roleDescriptions.housekeeper')}</p>
         <p><span className="font-mono" style={{ color: '#FD5070' }}>accountant</span> — {t('roleDescriptions.accountant')}</p>

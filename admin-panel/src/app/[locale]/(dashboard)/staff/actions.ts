@@ -8,7 +8,7 @@ import { createServiceClient } from '@/lib/supabase'
 
 export type StaffState = { error?: string; success?: boolean }
 
-const VALID_ROLES = ['admin', 'manager', 'receptionist', 'housekeeper', 'accountant'] as const
+const VALID_ROLES = ['admin', 'receptionist', 'housekeeper', 'accountant'] as const
 type Role = typeof VALID_ROLES[number]
 
 // ─── Invite staff ────────────────────────────────────────────────────────
