@@ -24,8 +24,10 @@ export default function BookingWidget({ defaultCheckIn, defaultCheckOut, default
 
   function handleSearch(e: React.FormEvent) {
     e.preventDefault()
-    const params = new URLSearchParams({ checkIn, checkOut, adults: String(adults) })
-    router.push(`/${locale}/rooms?${params.toString()}`)
+    const safeAdults = Math.max(1, Math.min(29, adults || 1))
+    const params = new URLSearchParams({ checkIn, checkOut, adults: String(safeAdults) })
+    // Akıllı bulma sayfası: kişi sayısına göre oda/kombinasyon önerir
+    router.push(`/${locale}/availability?${params.toString()}`)
   }
 
   return (
@@ -88,7 +90,10 @@ export default function BookingWidget({ defaultCheckIn, defaultCheckOut, default
         <label style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
           {t('adults')}
         </label>
-        <select
+        <input
+          type="number"
+          min={1}
+          max={29}
           value={adults}
           onChange={(e) => setAdults(Number(e.target.value))}
           style={{
@@ -101,11 +106,7 @@ export default function BookingWidget({ defaultCheckIn, defaultCheckOut, default
             backgroundColor: 'white',
           }}
           className="focus:ring-2 focus:ring-[var(--color-gold)] focus:border-transparent"
-        >
-          {[1, 2, 3, 4].map((n) => (
-            <option key={n} value={n}>{n}</option>
-          ))}
-        </select>
+        />
       </div>
 
       {/* Search button */}

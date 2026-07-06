@@ -326,7 +326,7 @@ function RoomsPreviewSection({
                     </p>
                   </div>
                   <Link
-                    href={`/${locale}/rooms`}
+                    href={`/${locale}/rooms/${room.key}`}
                     style={{
                       backgroundColor: 'var(--color-charcoal)',
                       color: 'var(--color-white)',

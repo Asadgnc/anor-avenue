@@ -5,7 +5,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import Navbar from '@/components/hotel/Navbar'
 import Footer from '@/components/hotel/Footer'
-import { supabase } from '@/lib/supabase'
+import { supabase, createServiceClient } from '@/lib/supabase'
+import { fetchRoomCapacities } from '@/lib/availability'
 import type { Metadata } from 'next'
 
 // ─── Oda Verisi ──────────────────────────────────────────────────────────────
@@ -175,9 +176,28 @@ export default async function RoomDetailPage({
   const dbName = TYPE_TO_DB_NAME[type]
   const { data: roomFeatureRows } = await supabase
     .from('rooms_with_effective_price')
-    .select('has_jacuzzi, has_bathtub, is_isolated, view_quality, connecting_room_id, effective_price')
+    .select('id, has_jacuzzi, has_bathtub, is_isolated, view_quality, connecting_room_id, effective_price')
     .eq('room_type_name', dbName)
     .eq('is_active', true)
+
+  // Gerçek per-oda kapasiteleri (channex_variants.occupancy) — bu tip içindeki aralık
+  const capMap = await fetchRoomCapacities(createServiceClient())
+  const typeCaps = (roomFeatureRows ?? [])
+    .map((r) => capMap.get(r.id as string) ?? roomStatic.maxOccupancy)
+  const capMin = typeCaps.length ? Math.min(...typeCaps) : roomStatic.maxOccupancy
+  const capMax = typeCaps.length ? Math.max(...typeCaps) : roomStatic.maxOccupancy
+  const occupancyLabel =
+    capMin === capMax
+      ? locale === 'uz'
+        ? `${capMax} kishi`
+        : locale === 'ru'
+        ? `${capMax} чел.`
+        : `${capMax} guests`
+      : locale === 'uz'
+      ? `${capMin}–${capMax} kishi`
+      : locale === 'ru'
+      ? `${capMin}–${capMax} чел.`
+      : `${capMin}–${capMax} guests`
 
   const roomFeatures = {
     jacuzzi: roomFeatureRows?.some((r) => r.has_jacuzzi) ?? false,
@@ -225,7 +245,7 @@ export default async function RoomDetailPage({
   const labels = {
     backToRooms: locale === 'uz' ? '← Barcha xonalar' : locale === 'ru' ? '← Все номера' : '← All Rooms',
     area: locale === 'uz' ? `${room.area} m²` : `${room.area} m²`,
-    occupancy: locale === 'uz' ? `${room.maxOccupancy} kishi` : locale === 'ru' ? `${room.maxOccupancy} чел.` : `${room.maxOccupancy} guests`,
+    occupancy: occupancyLabel,
     rooms: locale === 'uz' ? `${room.count} ta xona` : locale === 'ru' ? `${room.count} номера` : `${room.count} rooms`,
     from: locale === 'uz' ? 'dan boshlab' : locale === 'ru' ? 'от' : 'from',
     perNight: locale === 'uz' ? '/ bir kecha' : locale === 'ru' ? '/ за ночь' : '/ per night',

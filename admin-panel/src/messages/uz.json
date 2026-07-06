@@ -243,11 +243,14 @@
         "notes": "Izohlar",
         "expectedCheckIn": "Kutilgan kirish vaqti",
         "breakfast": "Nonushta",
+        "mayExtend": "Chiqish holati",
         "actualCheckIn": "Haqiqiy kirish",
         "actualCheckOut": "Haqiqiy chiqish"
       },
       "breakfastIncluded": "Kiritilgan ✓",
       "breakfastNotIncluded": "Kiritilmagan",
+      "mayExtendUncertain": "Aniq emas — mehmon uzaytirishi mumkin",
+      "mayExtendCertain": "Aniq chiqish",
       "guestProfileLink": "Mehmon profilini ochish →",
       "noPayments": "Hali to'lov yo'q.",
       "perNight": "/kecha"
@@ -263,7 +266,8 @@
         "expectedCheckIn": "Kutilgan kirish vaqti",
         "specialRequests": "Maxsus so'rovlar",
         "internalNotes": "Ichki izohlar",
-        "breakfastIncluded": "Nonushta kiritilgan"
+        "breakfastIncluded": "Nonushta kiritilgan",
+        "mayExtend": "Mehmon uzaytirishi mumkin (chiqish aniq emas)"
       }
     },
     "addPayment": {

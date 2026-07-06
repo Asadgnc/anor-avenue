@@ -344,11 +344,14 @@
         "notes": "Заметки",
         "expectedCheckIn": "Ожидаемое время заезда",
         "breakfast": "Завтрак",
+        "mayExtend": "Статус выезда",
         "actualCheckIn": "Фактический заезд",
         "actualCheckOut": "Фактический выезд"
       },
       "breakfastIncluded": "Включён ✓",
       "breakfastNotIncluded": "Не включён",
+      "mayExtendUncertain": "Не точно — гость может продлить",
+      "mayExtendCertain": "Точный выезд",
       "guestProfileLink": "Открыть профиль гостя →",
       "noPayments": "Платежей пока нет.",
       "perNight": "/ночь"
@@ -364,7 +367,8 @@
         "expectedCheckIn": "Ожидаемое время заезда",
         "specialRequests": "Пожелания",
         "internalNotes": "Внутренние заметки",
-        "breakfastIncluded": "Завтрак включён"
+        "breakfastIncluded": "Завтрак включён",
+        "mayExtend": "Гость может продлить (выезд не точен)"
       }
     },
     "addPayment": {

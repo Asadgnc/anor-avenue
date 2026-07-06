@@ -16,6 +16,7 @@ interface ReservationEditProps {
   notes: string | null
   breakfastIncluded: boolean
   expectedCheckInTime: string | null
+  mayExtend: boolean
 }
 
 const inputCls = 'w-full px-3 py-2 rounded-lg text-sm border outline-none'
@@ -134,6 +135,18 @@ export default function EditReservationFormClient(props: ReservationEditProps) {
               className="w-4 h-4 rounded"
             />
             <span className="text-sm" style={{ color: dash.text }}>{tf('breakfastIncluded')}</span>
+          </label>
+        </div>
+
+        <div>
+          <label className="flex items-center gap-2.5 cursor-pointer">
+            <input
+              type="checkbox"
+              name="mayExtend"
+              defaultChecked={props.mayExtend}
+              className="w-4 h-4 rounded"
+            />
+            <span className="text-sm" style={{ color: dash.text }}>{tf('mayExtend')}</span>
           </label>
         </div>
 

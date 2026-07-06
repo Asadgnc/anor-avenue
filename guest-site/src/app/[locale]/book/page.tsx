@@ -1,18 +1,71 @@
 import { setRequestLocale } from 'next-intl/server'
 import Navbar from '@/components/hotel/Navbar'
 import Footer from '@/components/hotel/Footer'
-import BookingForm from '@/components/hotel/BookingForm'
-import { supabase } from '@/lib/supabase'
+import BookingForm, { type ComboData } from '@/components/hotel/BookingForm'
+import { supabase, createServiceClient } from '@/lib/supabase'
+import { fetchRoomCapacities, nightsBetween } from '@/lib/availability'
+
+const TYPE_SLUG: Record<string, 'standard' | 'deluxe' | 'luxury'> = {
+  Standard: 'standard',
+  Deluxe: 'deluxe',
+  Luxury: 'luxury',
+}
+
+// Kombinasyon modunda seçilen odalar canlı doğrulanmalı → taze render
+export const dynamic = 'force-dynamic'
 
 type Props = {
   params: Promise<{ locale: string }>
-  searchParams: Promise<{ roomType?: string; checkIn?: string; checkOut?: string; adults?: string }>
+  searchParams: Promise<{
+    roomType?: string
+    checkIn?: string
+    checkOut?: string
+    adults?: string
+    rooms?: string
+  }>
 }
 
 export default async function BookPage({ params, searchParams }: Props) {
   const { locale } = await params
-  const { roomType, checkIn, checkOut, adults } = await searchParams
+  const { roomType, checkIn, checkOut, adults, rooms: roomsParam } = await searchParams
   setRequestLocale(locale)
+
+  // Çoklu-oda ("kombinasyon") modu: /availability'den seçilen oda kümesi
+  let combo: ComboData | null = null
+  if (roomsParam && checkIn && checkOut) {
+    const ids = [...new Set(roomsParam.split(',').map((s) => s.trim()).filter(Boolean))]
+    if (ids.length > 0) {
+      const service = createServiceClient()
+      const [{ data: comboRows }, capMap] = await Promise.all([
+        service
+          .from('rooms_with_effective_price')
+          .select('id, room_number, room_type_name, effective_price')
+          .in('id', ids)
+          .eq('is_active', true),
+        fetchRoomCapacities(service),
+      ])
+      if (comboRows && comboRows.length > 0) {
+        const nights = Math.max(1, nightsBetween(checkIn, checkOut))
+        const comboRooms = comboRows.map((r) => ({
+          id: r.id as string,
+          roomNumber: r.room_number as string,
+          typeName: r.room_type_name as string,
+          typeSlug: TYPE_SLUG[r.room_type_name as string] ?? 'luxury',
+          capacity: capMap.get(r.id as string) ?? 2,
+          pricePerNight: Number(r.effective_price),
+        }))
+        const totalCapacity = comboRooms.reduce((s, r) => s + r.capacity, 0)
+        combo = {
+          rooms: comboRooms,
+          checkIn,
+          checkOut,
+          nights,
+          adults: Math.min(Number(adults) || totalCapacity, totalCapacity),
+          totalPrice: comboRooms.reduce((s, r) => s + r.pricePerNight, 0) * nights,
+        }
+      }
+    }
+  }
 
   const title = locale === 'uz' ? 'Xona bron qilish' : locale === 'ru' ? 'Забронировать номер' : 'Book a Room'
   const subtitle =
@@ -125,6 +178,7 @@ export default async function BookPage({ params, searchParams }: Props) {
               defaultCheckIn={checkIn}
               defaultCheckOut={checkOut}
               defaultAdults={adults}
+              combo={combo}
             />
           </div>
         </section>

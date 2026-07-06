@@ -53,6 +53,7 @@ export interface Reservation {
   currency: string
   special_requests: string | null
   notes: string | null
+  may_extend: boolean
   guests: Pick<Guest, 'first_name' | 'last_name'> | null
 }
 

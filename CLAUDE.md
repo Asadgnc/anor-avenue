@@ -625,7 +625,40 @@ Mert "nar çarpışması" konsepti önerdi. Konsept henüz karara bağlanmadı �
   - ⚠️ Kullanıcıda kalan: admin panel + guest-site **yeniden deploy** (fiyat-push kodu + oda tipi düzeltmesi canlıya
     gitsin). Ayarlar/guest-site render kodu deploy sonrası aktif; DB fiyatları zaten canlıda.
 
+- [x] Guest-site rezervasyon koordinasyonu — akıllı oda bulma + kombinasyon motoru (6 Temmuz 2026)
+  - Plan: `.claude/plans/ncelikle-ba-ka-sayfalarda-dapper-fiddle.md` (onaylı).
+  - **Sorun:** ana sayfadaki 3 oda kartı hepsi genel `/rooms`'a gidiyordu (tip sayfaları var ama linklenmiyor);
+    tip sayfalarında kapasite herkese sabit "2 kişi"; kişi sayısı hiçbir yerde oda kapasitesiyle eşleşmiyordu
+    (akıllı öneri yok); overbooking sadece uygulama seviyesinde (DB kısıtı yok).
+  - **Yeni motor** `guest-site/src/lib/availability.ts` (saf TS, test edilebilir): tarih-bazlı müsaitlik + kişi
+    sayısına göre TÜM geçerli oda kombinasyonlarını **en ucuz toplamdan** sıralar. Minimal-kapsama algoritması
+    (≤12 oda, 2^12 tarama, israfsız). Kapasite kaynağı `channex_variants.occupancy` (rooms.channex_variant_id
+    embed) — SECURITY DEFINER fiyat view'ine DOKUNULMADI, yeni view'e de bağımlı DEĞİL. 5 senaryo Node ile
+    doğrulandı (4kişi→tek oda; 101 dolu→2+2/3+2; 5kişi→3+2 en ucuz; yetersiz→özür; 1kişi→en az israf).
+  - **Yeni sayfa** `/[locale]/availability` (force-dynamic): teklif kartları, "Tam uygun"/"+N boş yer" rozeti,
+    çok-odalı "Bu kombinasyonu seç"; yetersizse özür + kısmi öneri. Inline i18n (uz/ru/en).
+  - **Çok-odalı rezervasyon TEK seferde:** `bookRoomCombination` action (`book/actions.ts`) — tek misafir +
+    her oda için bir `reservations` satırı; insert öncesi canlı müsaitlik yeniden doğrulanır (yarış azaltma);
+    kişiler odalara dağıtılır. `BookingForm` çoklu-oda moduna ayrıldı (`SingleBookingForm`/`ComboBookingForm`,
+    ortak `SuccessScreen`). `book/page.tsx` `?rooms=id1,id2` parametresini okuyup combo özeti geçirir.
+  - **Düzeltmeler:** ana sayfa kartları → `/rooms/${key}` (tip sayfaları); `BookingWidget` kişi 1→29 (number
+    input) + arama artık `/availability`'ye; tip sayfası kapasite gerçek aralık (Standard 2–4, Deluxe 2–3,
+    Luxury 2); `/rooms` listesinde kapasite `channex_variants`'tan; tekli booking kapasite-duyarlı oda seçimi.
+  - **Faz D (overbooking):** `docs/migrations/019_reservation_no_overlap.sql` (EXCLUDE USING gist, btree_gist) —
+    ⚠️ CANLIYA UYGULANMADI (kullanıcı uygulayacak; önce çakışan aktif satır kontrolü şart).
+  - **Faz C (TAMAMLANDI):** resepsiyonistin "kesin çıkış / uzatabilir" işareti.
+    `docs/migrations/020_reservation_may_extend.sql` (reservations +may_extend bool default false) — ⚠️ CANLIYA
+    UYGULANMADI. Admin: `updateReservationAction` Zod + update, `EditReservationFormClient` checkbox, detay
+    sayfası Row (turuncu/yeşil), `Reservation` tipi + select güncellendi. 3 dile 4 anahtar (`mayExtend` +
+    detail değerleri) — parite 1008×3. Motor: devir günü (checkout==checkin) `may_extend=true` odaları UNCERTAIN
+    → öneride gösterilmez; kolon yoksa defensif sorgu sessizce atlar (guest-site 020'siz de çalışır, doğrulandı).
+  - `pnpm build` ✓ (admin + guest), motor 5 senaryo ✓, `/availability` canlı 200 (4 ve 5 kişi doğrulandı).
+    ⚠️ Ekran/telefon doğrulaması + deploy kullanıcıda.
+
 ## Sonraki Adımlar
+- ⚠️ Canlıya uygula (SQL Editor): `019_reservation_no_overlap.sql` (önce çakışma kontrol sorgusu) +
+  `020_reservation_may_extend.sql`. Sonra admin-panel + guest-site yeniden deploy.
+- Gerçek oda fotoğrafları: tip sayfaları + kartlar hâlâ placeholder (kullanıcı ekleyecek).
 - ⚠️ ÖNCELİK: admin-panel + guest-site yeniden deploy (oda tipi + tek-nokta fiyat senkronu kodu için).
 - ✅ Channex TAM ÇALIŞIYOR (016+017+018 canlı, env staging'de, müsaitlik + 6 fiyat senkronu doğrulandı).
 - Channex kullanıcıda kalan: Channex panelinde Booking.com/Airbnb bağla.

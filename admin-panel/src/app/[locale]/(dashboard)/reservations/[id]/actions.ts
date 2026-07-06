@@ -25,6 +25,7 @@ const updateResSchema = z.object({
   notes:                z.string().max(1000).optional(),
   breakfastIncluded:    z.string().optional().transform(v => v === 'on'),
   expectedCheckInTime:  z.string().optional(),
+  mayExtend:            z.string().optional().transform(v => v === 'on'),
 })
 
 export type UpdateResState = { error?: string; success?: boolean }
@@ -66,6 +67,7 @@ export async function updateReservationAction(
       notes:                   d.notes || null,
       breakfast_included:      d.breakfastIncluded ?? false,
       expected_check_in_time:  d.expectedCheckInTime || null,
+      may_extend:              d.mayExtend ?? false,
     })
     .eq('id', reservationId)
 

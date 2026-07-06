@@ -2,9 +2,31 @@
 
 import Link from 'next/link'
 import { useActionState } from 'react'
-import { submitBookingInquiry, type BookingInquiryState } from '@/app/[locale]/book/actions'
+import {
+  submitBookingInquiry,
+  bookRoomCombination,
+  type BookingInquiryState,
+  type ComboBookingState,
+} from '@/app/[locale]/book/actions'
 
 const initialState: BookingInquiryState = {}
+const comboInitialState: ComboBookingState = {}
+
+export type ComboData = {
+  rooms: {
+    id: string
+    roomNumber: string
+    typeName: string
+    typeSlug: 'standard' | 'deluxe' | 'luxury'
+    capacity: number
+    pricePerNight: number
+  }[]
+  checkIn: string
+  checkOut: string
+  nights: number
+  adults: number
+  totalPrice: number
+}
 
 const labels = {
   uz: {
@@ -87,6 +109,7 @@ type Props = {
   defaultCheckIn?: string
   defaultCheckOut?: string
   defaultAdults?: string
+  combo?: ComboData | null
 }
 
 function StepDivider({ number, label }: { number: number; label: string }) {
@@ -138,7 +161,109 @@ function StepDivider({ number, label }: { number: number; label: string }) {
   )
 }
 
-export default function BookingForm({
+export default function BookingForm(props: Props) {
+  if (props.combo) {
+    return <ComboBookingForm locale={props.locale} combo={props.combo} />
+  }
+  return <SingleBookingForm {...props} />
+}
+
+// ─── Ortak başarı ekranı ─────────────────────────────────────────────────────
+
+function SuccessScreen({
+  locale,
+  reservationCode,
+  message,
+}: {
+  locale: string
+  reservationCode?: string
+  message: string
+}) {
+  return (
+    <div
+      style={{
+        backgroundColor: 'var(--color-white)',
+        borderRadius: 'var(--radius-lg)',
+        padding: '3rem 2rem',
+        textAlign: 'center',
+        border: '2px solid var(--color-gold)',
+        boxShadow: 'var(--shadow-gold)',
+      }}
+    >
+      <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✅</div>
+      <p
+        style={{
+          color: 'var(--color-text-primary)',
+          fontSize: 'var(--text-lg)',
+          fontWeight: '600',
+          marginBottom: '0.75rem',
+        }}
+      >
+        {message}
+      </p>
+      {reservationCode && (
+        <div style={{ marginTop: '0.75rem' }}>
+          <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)', marginBottom: '0.25rem' }}>
+            {locale === 'uz' ? 'Buyurtma kodi' : locale === 'ru' ? 'Код бронирования' : 'Booking Code'}
+          </p>
+          <p
+            style={{
+              backgroundColor: 'var(--color-cream)',
+              border: '1px solid var(--color-gold)',
+              borderRadius: 'var(--radius-md)',
+              padding: '0.75rem 1.5rem',
+              fontFamily: 'monospace',
+              fontSize: 'var(--text-xl)',
+              fontWeight: '800',
+              color: 'var(--color-gold-dark)',
+              display: 'inline-block',
+              letterSpacing: '0.1em',
+            }}
+          >
+            {reservationCode}
+          </p>
+        </div>
+      )}
+      <div style={{ marginTop: '2rem', display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+        {reservationCode && (
+          <Link
+            href={`/${locale}/pay/${reservationCode}`}
+            style={{
+              backgroundColor: 'var(--color-gold)',
+              color: 'var(--color-white)',
+              padding: '0.75rem 1.75rem',
+              borderRadius: 'var(--radius-md)',
+              fontWeight: '700',
+              fontSize: 'var(--text-base)',
+              display: 'inline-block',
+              boxShadow: 'var(--shadow-gold)',
+            }}
+          >
+            {locale === 'uz' ? '💳 Hozir to\'lash' : locale === 'ru' ? '💳 Оплатить сейчас' : '💳 Pay Now'}
+          </Link>
+        )}
+        <Link
+          href={`/${locale}`}
+          style={{
+            backgroundColor: 'var(--color-charcoal)',
+            color: 'var(--color-white)',
+            padding: '0.625rem 1.25rem',
+            borderRadius: 'var(--radius-md)',
+            fontWeight: '600',
+            fontSize: 'var(--text-sm)',
+            display: 'inline-block',
+          }}
+        >
+          {locale === 'uz' ? 'Bosh sahifaga' : locale === 'ru' ? 'На главную' : 'Go Home'}
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+// ─── Tekli oda formu (mevcut akış) ───────────────────────────────────────────
+
+function SingleBookingForm({
   locale,
   roomPrices,
   defaultRoomType,
@@ -164,86 +289,7 @@ export default function BookingForm({
   const [state, action, isPending] = useActionState(boundAction, initialState)
 
   if (state.success) {
-    return (
-      <div
-        style={{
-          backgroundColor: 'var(--color-white)',
-          borderRadius: 'var(--radius-lg)',
-          padding: '3rem 2rem',
-          textAlign: 'center',
-          border: '2px solid var(--color-gold)',
-          boxShadow: 'var(--shadow-gold)',
-        }}
-      >
-        <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>✅</div>
-        <p
-          style={{
-            color: 'var(--color-text-primary)',
-            fontSize: 'var(--text-lg)',
-            fontWeight: '600',
-            marginBottom: '0.75rem',
-          }}
-        >
-          {l.success}
-        </p>
-        {state.reservationCode && (
-          <div style={{ marginTop: '0.75rem' }}>
-            <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)', marginBottom: '0.25rem' }}>
-              {locale === 'uz' ? 'Buyurtma kodi' : locale === 'ru' ? 'Код бронирования' : 'Booking Code'}
-            </p>
-            <p
-              style={{
-                backgroundColor: 'var(--color-cream)',
-                border: '1px solid var(--color-gold)',
-                borderRadius: 'var(--radius-md)',
-                padding: '0.75rem 1.5rem',
-                fontFamily: 'monospace',
-                fontSize: 'var(--text-xl)',
-                fontWeight: '800',
-                color: 'var(--color-gold-dark)',
-                display: 'inline-block',
-                letterSpacing: '0.1em',
-              }}
-            >
-              {state.reservationCode}
-            </p>
-          </div>
-        )}
-        <div style={{ marginTop: '2rem', display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-          {state.reservationCode && (
-            <Link
-              href={`/${locale}/pay/${state.reservationCode}`}
-              style={{
-                backgroundColor: 'var(--color-gold)',
-                color: 'var(--color-white)',
-                padding: '0.75rem 1.75rem',
-                borderRadius: 'var(--radius-md)',
-                fontWeight: '700',
-                fontSize: 'var(--text-base)',
-                display: 'inline-block',
-                boxShadow: 'var(--shadow-gold)',
-              }}
-            >
-              {locale === 'uz' ? '💳 Hozir to\'lash' : locale === 'ru' ? '💳 Оплатить сейчас' : '💳 Pay Now'}
-            </Link>
-          )}
-          <Link
-            href={`/${locale}`}
-            style={{
-              backgroundColor: 'var(--color-charcoal)',
-              color: 'var(--color-white)',
-              padding: '0.625rem 1.25rem',
-              borderRadius: 'var(--radius-md)',
-              fontWeight: '600',
-              fontSize: 'var(--text-sm)',
-              display: 'inline-block',
-            }}
-          >
-            {locale === 'uz' ? 'Bosh sahifaga' : locale === 'ru' ? 'На главную' : 'Go Home'}
-          </Link>
-        </div>
-      </div>
-    )
+    return <SuccessScreen locale={locale} reservationCode={state.reservationCode} message={l.success} />
   }
 
   const inputStyle = {
@@ -439,6 +485,209 @@ export default function BookingForm({
         className="hover:opacity-90"
       >
         {isPending ? l.submitting : l.submit}
+      </button>
+    </form>
+  )
+}
+
+// ─── Çoklu-oda (kombinasyon) formu ───────────────────────────────────────────
+
+const comboLabels = {
+  uz: {
+    heading: 'Tanlangan xonalar',
+    guests: 'kishi',
+    nights: 'kecha',
+    total: 'Jami',
+    submit: 'Bronni yakunlash',
+    submitting: 'Yuborilmoqda…',
+    success: "So'rovingiz qabul qilindi! Tez orada siz bilan bog'lanamiz.",
+    step2: 'Sizning ma\'lumotlaringiz',
+    typeNames: { standard: 'Standart', deluxe: 'Delyuks', luxury: 'Lyuks' } as Record<string, string>,
+  },
+  ru: {
+    heading: 'Выбранные номера',
+    guests: 'гостей',
+    nights: 'ночей',
+    total: 'Итого',
+    submit: 'Завершить бронирование',
+    submitting: 'Отправка…',
+    success: 'Ваш запрос принят! Мы свяжемся с вами в ближайшее время.',
+    step2: 'Ваши данные',
+    typeNames: { standard: 'Стандартный', deluxe: 'Делюкс', luxury: 'Люкс' } as Record<string, string>,
+  },
+  en: {
+    heading: 'Selected rooms',
+    guests: 'guests',
+    nights: 'nights',
+    total: 'Total',
+    submit: 'Complete booking',
+    submitting: 'Sending…',
+    success: "Your request has been received! We'll get back to you soon.",
+    step2: 'Your Details',
+    typeNames: { standard: 'Standard', deluxe: 'Deluxe', luxury: 'Luxury' } as Record<string, string>,
+  },
+}
+
+function ComboBookingForm({ locale, combo }: { locale: string; combo: ComboData }) {
+  const cl = comboLabels[locale as keyof typeof comboLabels] ?? comboLabels.uz
+  const l = labels[locale as keyof typeof labels] ?? labels.uz
+  const fmt = (n: number) => new Intl.NumberFormat().format(n)
+
+  const boundAction = bookRoomCombination.bind(null, locale)
+  const [state, action, isPending] = useActionState(boundAction, comboInitialState)
+
+  if (state.success) {
+    return <SuccessScreen locale={locale} reservationCode={state.reservationCode} message={cl.success} />
+  }
+
+  const inputStyle = {
+    border: '1.5px solid var(--color-cream-dark)',
+    borderRadius: 'var(--radius-md)',
+    padding: '0.75rem 1rem',
+    fontSize: 'var(--text-sm)',
+    color: 'var(--color-text-primary)',
+    backgroundColor: 'var(--color-white)',
+    width: '100%',
+    outline: 'none',
+    transition: 'border-color 0.15s',
+  }
+  const labelStyle = {
+    display: 'block',
+    fontSize: 'var(--text-xs)',
+    fontWeight: '600',
+    color: 'var(--color-text-secondary)',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.05em',
+    marginBottom: '0.4rem',
+  }
+
+  const roomIds = combo.rooms.map((r) => r.id).join(',')
+
+  return (
+    <form
+      action={action}
+      style={{
+        backgroundColor: 'var(--color-white)',
+        borderRadius: 'var(--radius-lg)',
+        padding: '2rem',
+        boxShadow: 'var(--shadow-card)',
+        border: '1px solid var(--color-cream-dark)',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1.25rem',
+      }}
+    >
+      {/* Hidden combo fields */}
+      <input type="hidden" name="roomIds" value={roomIds} />
+      <input type="hidden" name="checkIn" value={combo.checkIn} />
+      <input type="hidden" name="checkOut" value={combo.checkOut} />
+      <input type="hidden" name="adults" value={String(combo.adults)} />
+
+      {/* Summary */}
+      <StepDivider number={1} label={cl.heading} />
+      <div className="flex flex-col gap-2">
+        {combo.rooms.map((r) => (
+          <div
+            key={r.id}
+            className="flex items-center justify-between gap-3"
+            style={{
+              backgroundColor: 'var(--color-cream)',
+              border: '1px solid var(--color-cream-dark)',
+              borderRadius: 'var(--radius-md)',
+              padding: '0.7rem 1rem',
+            }}
+          >
+            <div>
+              <p style={{ fontWeight: '700', fontSize: 'var(--text-sm)', color: 'var(--color-text-primary)' }}>
+                {cl.typeNames[r.typeSlug]} · {r.roomNumber}
+              </p>
+              <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                👤 {r.capacity} {cl.guests}
+              </p>
+            </div>
+            <p style={{ fontSize: 'var(--text-sm)', color: 'var(--color-gold-dark)', fontWeight: '700' }}>
+              {fmt(r.pricePerNight)} UZS{l.perNight}
+            </p>
+          </div>
+        ))}
+        <div
+          className="flex items-center justify-between"
+          style={{ paddingTop: '0.5rem', borderTop: '1px solid var(--color-cream-dark)' }}
+        >
+          <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>
+            {combo.checkIn} — {combo.checkOut} · {combo.nights} {cl.nights} · {combo.adults} {cl.guests}
+          </span>
+          <span style={{ fontSize: 'var(--text-lg)', fontWeight: '800', color: 'var(--color-gold-dark)' }}>
+            {cl.total}: {fmt(combo.totalPrice)} UZS
+          </span>
+        </div>
+      </div>
+
+      {/* Guest info */}
+      <StepDivider number={2} label={cl.step2} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label style={labelStyle}>{l.firstName} *</label>
+          <input name="firstName" required disabled={isPending} style={inputStyle} />
+        </div>
+        <div>
+          <label style={labelStyle}>{l.lastName} *</label>
+          <input name="lastName" required disabled={isPending} style={inputStyle} />
+        </div>
+      </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label style={labelStyle}>{l.phone} *</label>
+          <input name="phone" type="tel" required disabled={isPending} placeholder="+998 XX XXX XX XX" style={inputStyle} />
+        </div>
+        <div>
+          <label style={labelStyle}>{l.email}</label>
+          <input name="email" type="email" disabled={isPending} style={inputStyle} />
+        </div>
+      </div>
+      <div>
+        <textarea
+          name="specialRequests"
+          disabled={isPending}
+          rows={3}
+          style={{ ...inputStyle, resize: 'vertical' }}
+          placeholder={locale === 'uz' ? 'Ixtiyoriy…' : locale === 'ru' ? 'Необязательно…' : 'Optional…'}
+        />
+      </div>
+
+      {state.error && (
+        <p
+          style={{
+            backgroundColor: '#fef2f2',
+            border: '1px solid #fecaca',
+            color: '#b91c1c',
+            borderRadius: 'var(--radius-md)',
+            padding: '0.625rem 0.875rem',
+            fontSize: 'var(--text-sm)',
+          }}
+        >
+          {state.error}
+        </p>
+      )}
+
+      <button
+        type="submit"
+        disabled={isPending}
+        style={{
+          backgroundColor: isPending ? 'var(--color-stone)' : 'var(--color-gold)',
+          color: 'var(--color-white)',
+          borderRadius: 'var(--radius-md)',
+          padding: '1rem',
+          fontWeight: '700',
+          fontSize: 'var(--text-base)',
+          cursor: isPending ? 'not-allowed' : 'pointer',
+          boxShadow: isPending ? 'none' : 'var(--shadow-gold)',
+          border: 'none',
+          width: '100%',
+        }}
+        className="hover:opacity-90"
+      >
+        {isPending ? cl.submitting : cl.submit}
       </button>
     </form>
   )

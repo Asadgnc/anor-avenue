@@ -33,6 +33,7 @@ interface ReservationDetail {
   channel: string
   breakfast_included: boolean
   expected_check_in_time: string | null
+  may_extend: boolean
   rooms: { room_number: string; floor: number; room_types: { name: string } | null } | null
   guests: {
     id: string
@@ -117,7 +118,7 @@ export default async function ReservationDetailPage({
   const [resResult, paymentsResult] = await Promise.all([
     supabase
       .from('reservations')
-      .select('id, reservation_code, status, check_in, check_out, actual_check_in, actual_check_out, adults, children, nights, room_rate, total_amount, discount, currency, special_requests, notes, channel, breakfast_included, expected_check_in_time, rooms(room_number, floor, room_types(name)), guests(id, first_name, last_name, email, phone, nationality, passport_number)')
+      .select('id, reservation_code, status, check_in, check_out, actual_check_in, actual_check_out, adults, children, nights, room_rate, total_amount, discount, currency, special_requests, notes, channel, breakfast_included, expected_check_in_time, may_extend, rooms(room_number, floor, room_types(name)), guests(id, first_name, last_name, email, phone, nationality, passport_number)')
       .eq('id', id)
       .single(),
     supabase
@@ -189,6 +190,7 @@ export default async function ReservationDetailPage({
           notes={res.notes}
           breakfastIncluded={res.breakfast_included}
           expectedCheckInTime={res.expected_check_in_time}
+          mayExtend={res.may_extend}
         />
       )}
 
@@ -232,6 +234,14 @@ export default async function ReservationDetailPage({
             value={
               <span style={{ color: res.breakfast_included ? dash.green : dash.muted, fontWeight: res.breakfast_included ? 600 : 400 }}>
                 {res.breakfast_included ? t('breakfastIncluded') : t('breakfastNotIncluded')}
+              </span>
+            }
+          />
+          <Row
+            label={tf('mayExtend')}
+            value={
+              <span style={{ color: res.may_extend ? dash.orange : dash.green, fontWeight: res.may_extend ? 600 : 400 }}>
+                {res.may_extend ? t('mayExtendUncertain') : t('mayExtendCertain')}
               </span>
             }
           />

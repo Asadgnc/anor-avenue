@@ -6,7 +6,8 @@ import Navbar from '@/components/hotel/Navbar'
 import Footer from '@/components/hotel/Footer'
 import BookingWidget from '@/components/hotel/BookingWidget'
 import RoomsFilter from '@/components/hotel/RoomsFilter'
-import { supabase } from '@/lib/supabase'
+import { supabase, createServiceClient } from '@/lib/supabase'
+import { fetchRoomCapacities } from '@/lib/availability'
 
 type RoomRow = {
   id: string
@@ -97,6 +98,11 @@ export default async function RoomsPage({ params, searchParams }: Props) {
     .order('room_number')
 
   const rooms: RoomRow[] = (allRooms ?? []) as RoomRow[]
+
+  // Gerçek per-oda kapasite (channex_variants.occupancy); view'deki max_occupancy
+  // oda tipinden gelir ve hepsi 2 döner — bu yüzden ayrıca çekiyoruz.
+  const capMap = await fetchRoomCapacities(createServiceClient())
+  const roomCapacity = (r: RoomRow) => capMap.get(r.id) ?? r.max_occupancy
 
   const hasValidDates = !!(checkIn && checkOut && checkIn >= today && checkOut > checkIn)
   let bookedRoomIds = new Set<string>()
@@ -492,10 +498,10 @@ export default async function RoomsPage({ params, searchParams }: Props) {
                             >
                               👤{' '}
                               {locale === 'uz'
-                                ? `${room.max_occupancy} kishi`
+                                ? `${roomCapacity(room)} kishi`
                                 : locale === 'ru'
-                                ? `${room.max_occupancy} чел.`
-                                : `${room.max_occupancy} guests`}
+                                ? `${roomCapacity(room)} чел.`
+                                : `${roomCapacity(room)} guests`}
                             </span>
                             <span
                               style={{
