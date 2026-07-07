@@ -16,6 +16,16 @@ async function requireWriteRole() {
   return { supabase, userId: user.id }
 }
 
+// Silme (kalıcı kayıt kaybı) yalnızca admin — ekleme/etiketleme WRITER_ROLES'te kalır
+async function requireAdminRole() {
+  const supabase = await createClient()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('unauthenticated')
+  const role = (user.user_metadata?.role as string) ?? ''
+  if (role !== 'admin') throw new Error('forbidden')
+  return { supabase, userId: user.id }
+}
+
 // --- Notes ---
 
 const noteSchema = z.object({
@@ -51,7 +61,7 @@ export async function addGuestNoteAction(
 
 export async function deleteGuestNoteAction(noteId: string, guestId: string): Promise<void> {
   try {
-    const { supabase } = await requireWriteRole()
+    const { supabase } = await requireAdminRole()
     await supabase.from('guest_notes').delete().eq('id', noteId)
     const locale = await getLocale()
     revalidatePath(`/${locale}/guests/${guestId}`)
@@ -96,7 +106,7 @@ export async function addGuestTagAction(
 
 export async function removeGuestTagAction(tagId: string, guestId: string): Promise<void> {
   try {
-    const { supabase } = await requireWriteRole()
+    const { supabase } = await requireAdminRole()
     await supabase.from('guest_tags').delete().eq('id', tagId)
     const locale = await getLocale()
     revalidatePath(`/${locale}/guests/${guestId}`)

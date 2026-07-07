@@ -388,6 +388,12 @@
       "confirmDialog": "Bu to'lov bekor qilinsinmi? Yozuv qaytarilgan sifatida saqlanadi.",
       "deleteButton": "Bekor qilish"
     },
+    "deleteReservation": {
+      "title": "Xavfli hudud",
+      "warning": "Rezervatsiyani butunlay o'chirish faqat admin uchun.",
+      "deleteButton": "Rezervatsiyani o'chirish",
+      "confirmDialog": "Bu rezervatsiya butunlay o'chirilsinmi? Bog'liq to'lovlar, ro'yxatga olishlar va hamrohlar ham o'chadi. Bu amalni qaytarib bo'lmaydi."
+    },
     "channels": {
       "all": "Barcha kanallar",
       "website": "O'z saytimiz",
@@ -932,6 +938,8 @@
       "closeButton": "Yopish",
       "useAgainButton": "Yana ishlatish",
       "historyButton": "Tarix",
+      "deleteButton": "O'chirish",
+      "deleteConfirm": "Bu mahsulot va uning barcha kirim/chiqim tarixi butunlay o'chirilsinmi? Bu amalni qaytarib bo'lmaydi.",
       "consumeSuccess": "✓ Ombordan chiqarildi",
       "searchPlaceholder": "Mahsulot qidirish...",
       "allCategories": "Barcha kategoriyalar",

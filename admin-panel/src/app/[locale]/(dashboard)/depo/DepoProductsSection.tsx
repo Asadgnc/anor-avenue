@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useActionState } from 'react'
+import { useState, useActionState, useTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { useLocale, useTranslations } from 'next-intl'
-import { consumeStockAction, getProductMovementsAction } from './actions'
+import { consumeStockAction, getProductMovementsAction, deleteInventoryProductAction } from './actions'
 import type { InventoryProduct, InventoryMovement, InventoryCategory, InventoryDestination } from '@/types/hotel'
 
 const CATEGORY_EMOJI: Record<InventoryCategory, string> = {
@@ -167,6 +168,8 @@ function ProductRow({
   const tHist = useTranslations('depo.products.history')
   const tDest = useTranslations('depo.products.destinations')
   const locale = useLocale()
+  const router = useRouter()
+  const [isDeleting, startDelete] = useTransition()
   const dateLocale = LOCALE_BCP47[locale] ?? 'ru-RU'
   const [showConsume, setShowConsume] = useState(false)
   const [showHistory, setShowHistory] = useState(false)
@@ -199,6 +202,15 @@ function ProductRow({
     else setHistoryData(res.movements ?? [])
   }
 
+  function handleDelete() {
+    if (!confirm(t('deleteConfirm'))) return
+    startDelete(async () => {
+      const res = await deleteInventoryProductAction(product.id)
+      if (res?.error) { alert(res.error); return }
+      router.refresh()
+    })
+  }
+
   return (
     <div className="border-b border-border last:border-0">
       {/* Main row */}
@@ -223,6 +235,15 @@ function ProductRow({
               className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-border text-muted-foreground hover:bg-muted/50 transition-colors"
             >
               {t('historyButton')}
+            </button>
+          )}
+          {isAdmin && (
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-200 text-red-600 hover:bg-red-50 transition-colors disabled:opacity-50"
+            >
+              {isDeleting ? '…' : t('deleteButton')}
             </button>
           )}
         </div>

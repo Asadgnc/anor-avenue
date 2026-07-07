@@ -6,6 +6,7 @@ import { getTranslations } from 'next-intl/server'
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase'
 import { triggerAvailabilitySync } from '@/lib/channex-sync'
+import { requireRole } from '@/lib/require-role'
 
 // ─── Add room ─────────────────────────────────────────────────────────────────
 
@@ -169,10 +170,9 @@ export async function deleteRoomItemAction(
   itemId: string,
   roomId: string
 ): Promise<{ error?: string }> {
-  const te = await getTranslations('errors')
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: te('sessionInvalid') }
+  // Silme yalnızca admin (service client RLS'i bypass ettiği için tek koruma bu)
+  const auth = await requireRole('admin')
+  if (!auth.ok) return { error: auth.error }
 
   const service = createServiceClient()
   const { error } = await service.from('room_items').delete().eq('id', itemId)

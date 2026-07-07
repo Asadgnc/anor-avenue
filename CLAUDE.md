@@ -282,6 +282,10 @@ Detaylı geçmiş: `docs/session-log.md`
   /payments ve /bills sayfaları kolon eksikliğinden hata verir (SELECT'ler bu kolonları okuyor).
 
 ### Kritik notlar
+- Silme yetkisi (7 Tem 2026): TÜM işlemsel tablolarda DELETE artık yalnızca admin
+  (`get_user_role() = 'admin'`, migration `031_admin_only_delete.sql` — canlıya uygulandı).
+  Test verisi (rezervasyon/depo/ödeme vb.) temizlendi; roller+ayarlar korundu. Panelde
+  rezervasyon detay + depo ürününe admin-only "Sil" butonu var. Tek admin: Muzaffar.
 - Middleware: `admin-panel/src/middleware.ts` — kökde değil, `src/` içinde (yoksa hiç çalışmaz)
 - Fiyat kaynağı: `rooms_with_effective_price` view'i — `room_types.base_price`'a dokunma
 - Vercel deploy: repo KÖKÜNDEN çalıştır (`admin-panel/` klasöründen değil)

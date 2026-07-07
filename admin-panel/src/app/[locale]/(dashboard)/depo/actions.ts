@@ -2,6 +2,7 @@
 
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase'
+import { requireRole } from '@/lib/require-role'
 import { revalidatePath } from 'next/cache'
 import { getTranslations } from 'next-intl/server'
 import { z } from 'zod'
@@ -183,6 +184,31 @@ export async function getProductMovementsAction(productId: string): Promise<{
 
   if (error) return { error: error.message }
   return { movements: (data ?? []) as unknown as InventoryMovement[] }
+}
+
+// ─── Delete a depot product (admin only, hard delete) ─────────────────────────
+// Bir depo ürününü ve ona bağlı TÜM hareket + alım kayıtlarını kalıcı siler.
+// Yalnızca admin. (product_id FK'ları cascade garanti olmadığı için elle silinir.)
+export async function deleteInventoryProductAction(
+  productId: string
+): Promise<{ error?: string }> {
+  const t = await getTranslations('errors')
+  const auth = await requireRole('admin')
+  if (!auth.ok) return { error: auth.error }
+  if (!z.string().uuid().safeParse(productId).success) return { error: t('invalidData') }
+
+  const service = createServiceClient()
+
+  // Bağlı kayıtları önce sil (hareket defteri + alım geçmişi)
+  await service.from('inventory_movements').delete().eq('product_id', productId)
+  await service.from('inventory_purchases').delete().eq('product_id', productId)
+
+  const { error } = await service.from('inventory_products').delete().eq('id', productId)
+  if (error) return { error: error.message }
+
+  revalidatePath('/depo')
+  revalidatePath('/finance')
+  return {}
 }
 
 // ─── Stock need requests (receptionist/housekeeper → admin notification) ──────

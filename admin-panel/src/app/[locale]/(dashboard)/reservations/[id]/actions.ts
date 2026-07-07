@@ -185,6 +185,45 @@ export async function updateReservationStatusAction(
   return {}
 }
 
+// ─── Delete reservation (admin only, hard delete) ────────────────────────────
+// Bir rezervasyonu kalıcı siler. Yalnızca admin. FK'lar cascade garanti
+// olmadığı için bağlı çocuk kayıtları (refakatçi, kayıt, oda denetimi, pasaport
+// taraması ve ödemeler) önce elle silinir; müsaitlik blokları serbest bırakılır.
+// NOT: Bu, ödeme kaydını da kalıcı siler — bu yüzden yalnızca admin'e açıktır ve
+// panelde onay istenir. (Normal iptal için cancelPaymentAction / status kullan.)
+export async function deleteReservationAction(
+  reservationId: string
+): Promise<{ error?: string }> {
+  const te = await getTranslations('errors')
+  const auth = await requireRole('admin')
+  if (!auth.ok) return { error: auth.error }
+  if (!z.string().uuid().safeParse(reservationId).success) return { error: te('invalidData') }
+
+  const service = createServiceClient()
+
+  // Bu rezervasyona bağlı müsaitlik bloklarını serbest bırak
+  await service
+    .from('availability')
+    .update({ is_blocked: false, reservation_id: null })
+    .eq('reservation_id', reservationId)
+
+  // Bağlı çocuk kayıtlar (sıra önemli — en alttaki bağımlılıktan yukarı)
+  await service.from('passport_scans').delete().eq('reservation_id', reservationId)
+  await service.from('reservation_companions').delete().eq('reservation_id', reservationId)
+  await service.from('room_inspections').delete().eq('reservation_id', reservationId)
+  await service.from('guest_registrations').delete().eq('reservation_id', reservationId)
+  await service.from('payments').delete().eq('reservation_id', reservationId)
+
+  const { error } = await service.from('reservations').delete().eq('id', reservationId)
+  if (error) return { error: error.message }
+
+  await triggerAvailabilitySync()
+
+  revalidatePath('/reservations')
+  revalidatePath('/dashboard')
+  return {}
+}
+
 // ─── Save payment ────────────────────────────────────────────────────────────
 
 const paymentSchema = z.object({

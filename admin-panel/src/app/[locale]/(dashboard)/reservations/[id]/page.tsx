@@ -11,6 +11,7 @@ import AddPaymentFormClient from './AddPaymentFormClient'
 import CreateRegistrationForm from './CreateRegistrationForm'
 import EditReservationFormClient from './EditReservationFormClient'
 import DeletePaymentButton from './DeletePaymentButton'
+import DeleteReservationButton from './DeleteReservationButton'
 import CompleteRegistrationButton from './CompleteRegistrationButton'
 import type { ReservationStatus, PaymentMethod, PaymentStatus } from '@/types/hotel'
 import { dash } from '@/lib/dashboardTheme'
@@ -425,6 +426,9 @@ export default async function ReservationDetailPage({
           </div>
         )}
       </div>
+
+      {/* Tehlikeli bölge: rezervasyonu kalıcı sil — yalnızca admin */}
+      {role === 'admin' && <DeleteReservationButton reservationId={id} />}
     </div>
   )
 }
