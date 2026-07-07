@@ -297,14 +297,14 @@ export default async function RoomsPage({ params, searchParams }: Props) {
                     >
                       {/* Photo */}
                       <div
-                        style={{ position: 'relative', minHeight: '200px', overflow: 'hidden' }}
+                        style={{ position: 'relative', minHeight: '260px', overflow: 'hidden' }}
                         className="md:col-span-2"
                       >
                         <Image
                           src={coverMap.get(room.id) ?? PHOTO_FALLBACK}
                           alt={`Room ${room.room_number}`}
                           fill
-                          style={{ objectFit: 'cover' }}
+                          style={{ objectFit: 'cover', objectPosition: 'center' }}
                           sizes="(max-width: 768px) 100vw, 40vw"
                           quality={80}
                         />

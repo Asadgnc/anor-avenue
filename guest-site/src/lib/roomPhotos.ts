@@ -69,3 +69,30 @@ export async function getRoomGallery(roomNumber: string): Promise<GalleryItem[]>
 export async function hasRoomPhotos(roomNumber: string): Promise<boolean> {
   return (await listRoomFiles(roomNumber)).length > 0
 }
+
+// ─── Ortak alan (common) görselleri: breakfast / garden / reception … ──────────
+// Dosyalar public/hotel-photos/common/{kategori}-{n}.webp (bkz. process-photos.mjs).
+
+/** Bir kategorinin tüm görselleri, numaraya göre sıralı. Yoksa boş dizi. */
+export async function getCommonGallery(category: string): Promise<string[]> {
+  const dir = path.join(PUBLIC_DIR, 'hotel-photos', 'common')
+  try {
+    const files = (await fs.readdir(dir)).filter(
+      (f) => IMG_RE.test(f) && new RegExp(`^${category}-\\d+\\.`, 'i').test(f)
+    )
+    files.sort((a, b) => {
+      const na = Number(a.match(/-(\d+)\./)?.[1] ?? 0)
+      const nb = Number(b.match(/-(\d+)\./)?.[1] ?? 0)
+      return na - nb
+    })
+    return files.map((f) => `/hotel-photos/common/${f}`)
+  } catch {
+    return []
+  }
+}
+
+/** Kategorinin ilk görseli (kapak) ya da null. */
+export async function getCommonCover(category: string): Promise<string | null> {
+  const g = await getCommonGallery(category)
+  return g[0] ?? null
+}

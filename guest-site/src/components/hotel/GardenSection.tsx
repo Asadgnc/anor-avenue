@@ -1,4 +1,5 @@
 import { useTranslations } from 'next-intl'
+import HotelVideo from '@/components/hotel/HotelVideo'
 
 export default function GardenSection() {
   const t = useTranslations('garden')
@@ -12,35 +13,17 @@ export default function GardenSection() {
     >
       <div style={{ maxWidth: 'var(--max-width)' }} className="mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Left: large decorative icon block */}
-          <div
-            style={{
-              backgroundColor: 'var(--color-white)',
-              borderRadius: 'var(--radius-lg)',
-              border: '1px solid var(--color-cream-dark)',
-              height: '340px',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '1.5rem',
-            }}
-          >
-            <div style={{ display: 'flex', gap: '1.5rem', fontSize: '3.5rem' }}>
-              <span>🌿</span>
-              <span>🌳</span>
-              <span>🐦</span>
-            </div>
+          {/* Left: real garden video (ambient) + smoking-area note */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <HotelVideo src="/videos/bahce.mp4" poster="/videos/bahce.jpg" mode="ambient" ratio="4 / 5" />
             <p
               style={{
                 color: 'var(--color-text-muted)',
                 fontSize: 'var(--text-sm)',
-                textAlign: 'center',
-                maxWidth: '200px',
                 lineHeight: '1.6',
               }}
             >
-              {t('smokingArea')}
+              🚬 {t('smokingArea')}
             </p>
           </div>
 

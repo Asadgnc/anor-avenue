@@ -6,8 +6,10 @@ import Navbar from '@/components/hotel/Navbar'
 import Footer from '@/components/hotel/Footer'
 import BookingWidget from '@/components/hotel/BookingWidget'
 import LocationSection from '@/components/hotel/LocationSection'
+import CoverImage from '@/components/hotel/CoverImage'
+import HotelVideo from '@/components/hotel/HotelVideo'
 import { supabase } from '@/lib/supabase'
-import { getRoomCover, PHOTO_FALLBACK } from '@/lib/roomPhotos'
+import { getRoomCover, getCommonCover, getCommonGallery, PHOTO_FALLBACK } from '@/lib/roomPhotos'
 
 type Props = { params: Promise<{ locale: string }> }
 
@@ -38,14 +40,28 @@ export default async function HomePage({ params }: Props) {
     luxury: await getRoomCover('303'),
   }
 
+  // Gerçek ortak-alan görselleri (kahvaltı / bahçe) — yoksa nötr fallback.
+  const [breakfastCover, gardenCover, breakfastGallery, aboutImage] = await Promise.all([
+    getCommonCover('breakfast'),
+    getCommonCover('garden'),
+    getCommonGallery('breakfast'),
+    getRoomCover('401'),
+  ])
+
   return (
     <>
       <Navbar />
       <main>
         <HeroSection locale={locale} />
         <RoomsPreviewSection locale={locale} prices={prices} covers={covers} />
-        <ExperienceSection locale={locale} />
-        <AboutSection locale={locale} />
+        <VideoTourSection locale={locale} />
+        <ExperienceSection
+          locale={locale}
+          breakfastCover={breakfastCover ?? PHOTO_FALLBACK}
+          gardenCover={gardenCover ?? PHOTO_FALLBACK}
+          breakfastGallery={breakfastGallery.slice(0, 6)}
+        />
+        <AboutSection locale={locale} image={aboutImage} />
         <LocationSection />
         <ContactSection locale={locale} />
       </main>
@@ -245,13 +261,13 @@ function RoomsPreviewSection({
               }}
             >
               {/* Room photo */}
-              <div style={{ position: 'relative', height: '220px', overflow: 'hidden' }}>
+              <div style={{ position: 'relative', height: '300px', overflow: 'hidden' }}>
                 <Image
                   src={covers[room.key] ?? PHOTO_FALLBACK}
                   alt={room.key}
                   fill
-                  style={{ objectFit: 'cover' }}
-                  sizes="(max-width: 768px) 100vw, 33vw"
+                  style={{ objectFit: 'cover', objectPosition: 'center' }}
+                  sizes="(max-width: 768px) 100vw, 50vw"
                   quality={80}
                 />
                 <div
@@ -349,30 +365,40 @@ function RoomsPreviewSection({
 
 // ─── Experience ────────────────────────────────────────────────────────────────
 
-function ExperienceSection({ locale }: { locale: string }) {
+function ExperienceSection({
+  locale,
+  breakfastCover,
+  gardenCover,
+  breakfastGallery,
+}: {
+  locale: string
+  breakfastCover: string
+  gardenCover: string
+  breakfastGallery: string[]
+}) {
   const labels =
     locale === 'uz'
       ? {
           eyebrow: 'Bizda nima bor',
           heading: 'Anor Avenue tajribasi',
-          breakfast: { title: 'Ertalabki nonushta', desc: 'Har kuni yangi tayyorlangan tuxum, mevalar, choy va ko\'p narsa — mehmonxona narxiga kiradi' },
-          courtyard: { title: 'Ochiq hovli', desc: 'Yashil bog\'cha va salqin havo, bolalar uchun arg\'imchoq' },
-          service: { title: 'Premium xizmat', desc: '24/7 professional xizmat — har qanday savolingizga javob beramiz' },
+          breakfast: { title: 'Ertalabki nonushta', desc: 'Har tong yangi pishirilgan tuxum, mavsumiy mevalar, xushbo\'y choy va uy noni — hammasi halol, kunlik va mehmonxona narxiga kiradi. Kuningizni to\'kin dasturxon bilan boshlang.' },
+          courtyard: { title: 'Yashil hovli', desc: 'Daraxtlar soyasi, qushlar sayrog\'i va shinam o\'tirg\'ich — shahar shovqinidan uzoq, villa hissini beruvchi tinch bir go\'sha.' },
+          service: { title: 'Iliq kutib olish', desc: '24/7 resepsiyon, tabassum bilan kutib olish va har qanday savolga tayyor jamoa — o\'zingizni mehmon emas, uyingizdagidek his qilasiz.' },
         }
       : locale === 'ru'
       ? {
           eyebrow: 'Что мы предлагаем',
           heading: 'Опыт Anor Avenue',
-          breakfast: { title: 'Завтрак', desc: 'Свежеприготовленный завтрак каждый день — яйца, фрукты, чай и многое другое включено в стоимость' },
-          courtyard: { title: 'Открытый дворик', desc: 'Зелёный сад с качелями для приятного отдыха на свежем воздухе' },
-          service: { title: 'Премиум сервис', desc: 'Профессиональный сервис 24/7 — мы всегда готовы ответить на ваши вопросы' },
+          breakfast: { title: 'Утренний завтрак', desc: 'Каждое утро — свежие яйца, сезонные фрукты, ароматный чай и домашний хлеб. Всё халяль, готовится ежедневно и уже включено в стоимость. Начните день за щедрым столом.' },
+          courtyard: { title: 'Зелёный дворик', desc: 'Тень деревьев, пение птиц и уютная зона отдыха — вдали от городского шума, с атмосферой собственной виллы.' },
+          service: { title: 'Тёплый приём', desc: 'Ресепшн 24/7, встреча с улыбкой и команда, готовая помочь с любым вопросом — чтобы вы чувствовали себя как дома.' },
         }
       : {
           eyebrow: 'What we offer',
           heading: 'The Anor Avenue Experience',
-          breakfast: { title: 'Fresh Breakfast', desc: 'Freshly prepared eggs, fruits, tea and more every morning — included in your stay' },
-          courtyard: { title: 'Open Courtyard', desc: 'A green garden with a swing for relaxing in the fresh air' },
-          service: { title: 'Premium Service', desc: '24/7 professional service — we\'re always here to answer your questions' },
+          breakfast: { title: 'Morning Breakfast', desc: 'Every morning: freshly cooked eggs, seasonal fruit, fragrant tea and home-baked bread — all halal, made daily and already included in your stay. Start the day at a generous table.' },
+          courtyard: { title: 'A Green Courtyard', desc: 'Shade from the trees, birdsong and a quiet seating nook — far from the city noise, with the feel of your own private villa.' },
+          service: { title: 'A Warm Welcome', desc: '24/7 reception, a smile at the door and a team ready for any question — here you feel less like a guest and more like family.' },
         }
 
   return (
@@ -419,14 +445,7 @@ function ExperienceSection({ locale }: { locale: string }) {
               overflow: 'hidden',
             }}
           >
-            <Image
-              src="/hotel-photos/hotel-breakfast-real.jpeg"
-              alt={labels.breakfast.title}
-              fill
-              style={{ objectFit: 'cover' }}
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              quality={85}
-            />
+            <CoverImage src={breakfastCover} alt={labels.breakfast.title} sizes="(max-width: 1024px) 100vw, 50vw" quality={85} />
             <div
               style={{
                 position: 'absolute',
@@ -483,14 +502,7 @@ function ExperienceSection({ locale }: { locale: string }) {
                 overflow: 'hidden',
               }}
             >
-              <Image
-                src="/hotel-photos/hotel-courtyard.jpeg"
-                alt={labels.courtyard.title}
-                fill
-                style={{ objectFit: 'cover' }}
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                quality={80}
-              />
+              <Image src={gardenCover} alt={labels.courtyard.title} fill style={{ objectFit: 'cover', objectPosition: 'center' }} sizes="(max-width: 1024px) 100vw, 50vw" quality={80} />
               <div
                 style={{
                   position: 'absolute',
@@ -532,14 +544,7 @@ function ExperienceSection({ locale }: { locale: string }) {
                 overflow: 'hidden',
               }}
             >
-              <Image
-                src="/hotel-photos/luxury-hotel-reception-hall-lounge-restaurant-with-high-ceiling.jpg"
-                alt={labels.service.title}
-                fill
-                style={{ objectFit: 'cover' }}
-                sizes="(max-width: 1024px) 100vw, 50vw"
-                quality={80}
-              />
+              <Image src="/videos/resepsiyon.jpg" alt={labels.service.title} fill style={{ objectFit: 'cover', objectPosition: 'center' }} sizes="(max-width: 1024px) 100vw, 50vw" quality={80} />
               <div
                 style={{
                   position: 'absolute',
@@ -573,6 +578,117 @@ function ExperienceSection({ locale }: { locale: string }) {
             </div>
           </div>
         </div>
+
+        {/* Kahvaltı foto şeridi — gerçek kahvaltı görselleri */}
+        {breakfastGallery.length > 0 && (
+          <div className="mt-4 grid grid-cols-3 sm:grid-cols-6 gap-2">
+            {breakfastGallery.map((src, i) => (
+              <div
+                key={src}
+                style={{ position: 'relative', aspectRatio: '1 / 1', borderRadius: 'var(--radius-md)', overflow: 'hidden' }}
+              >
+                <Image
+                  src={src}
+                  alt={`${labels.breakfast.title} ${i + 1}`}
+                  fill
+                  style={{ objectFit: 'cover' }}
+                  sizes="(max-width: 640px) 33vw, 16vw"
+                  quality={70}
+                />
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
+
+// ─── Video Tur ─────────────────────────────────────────────────────────────────
+
+function VideoTourSection({ locale }: { locale: string }) {
+  const labels =
+    locale === 'uz'
+      ? {
+          eyebrow: 'Video',
+          heading: 'Anor Avenue’ni tomosha qiling',
+          intro: 'Bir necha qisqa videoda otelimiz, resepsiyon, xonalar va nonushta bilan tanishing.',
+          hotel: 'Otel tanishuvi',
+          reception: 'Resepsiyon',
+          rooms: 'Xonalarimiz',
+          breakfast: 'Nonushta',
+        }
+      : locale === 'ru'
+      ? {
+          eyebrow: 'Видео',
+          heading: 'Посмотрите Anor Avenue',
+          intro: 'Несколько коротких видео познакомят вас с отелем, ресепшн, номерами и завтраком.',
+          hotel: 'Знакомство с отелем',
+          reception: 'Ресепшн',
+          rooms: 'Наши номера',
+          breakfast: 'Завтрак',
+        }
+      : {
+          eyebrow: 'Video',
+          heading: 'See Anor Avenue in Motion',
+          intro: 'A few short clips to introduce the hotel, the reception, the rooms and breakfast.',
+          hotel: 'Hotel tour',
+          reception: 'Reception',
+          rooms: 'Our rooms',
+          breakfast: 'Breakfast',
+        }
+
+  return (
+    <section
+      style={{
+        background: 'linear-gradient(135deg, var(--color-charcoal) 0%, #2a2018 100%)',
+        padding: 'var(--spacing-section) var(--spacing-container)',
+      }}
+    >
+      <div style={{ maxWidth: 'var(--max-width)' }} className="mx-auto">
+        <div className="text-center mb-12">
+          <p
+            style={{
+              color: 'var(--color-gold)',
+              fontSize: 'var(--text-xs)',
+              fontWeight: '600',
+              textTransform: 'uppercase',
+              letterSpacing: '0.2em',
+              marginBottom: '0.75rem',
+            }}
+          >
+            {labels.eyebrow}
+          </p>
+          <h2
+            style={{
+              fontFamily: 'var(--font-display)',
+              fontSize: 'clamp(1.75rem, 4vw, 2.5rem)',
+              color: 'var(--color-white)',
+              fontWeight: '700',
+              marginBottom: '1rem',
+            }}
+          >
+            {labels.heading}
+          </h2>
+          <p
+            style={{
+              color: 'rgba(255,255,255,0.6)',
+              fontSize: 'var(--text-base)',
+              maxWidth: '620px',
+              margin: '0 auto',
+              lineHeight: '1.7',
+            }}
+          >
+            {labels.intro}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <HotelVideo src="/videos/otel-tanitim.mp4" poster="/videos/otel-tanitim.jpg" label={labels.hotel} />
+          <HotelVideo src="/videos/resepsiyon.mp4" poster="/videos/resepsiyon.jpg" label={labels.reception} />
+          <HotelVideo src="/videos/odalar.mp4" poster="/videos/odalar.jpg" label={labels.rooms} />
+          <HotelVideo src="/videos/kahvalti.mp4" poster="/videos/kahvalti.jpg" label={labels.breakfast} />
+        </div>
       </div>
     </section>
   )
@@ -580,7 +696,7 @@ function ExperienceSection({ locale }: { locale: string }) {
 
 // ─── About ─────────────────────────────────────────────────────────────────────
 
-function AboutSection({ locale }: { locale: string }) {
+function AboutSection({ locale, image }: { locale: string; image: string }) {
   const features =
     locale === 'uz'
       ? [
@@ -623,14 +739,7 @@ function AboutSection({ locale }: { locale: string }) {
               flexShrink: 0,
             }}
           >
-            <Image
-              src="/hotel-photos/senior-woman-assisted-hotel-arrival.jpg"
-              alt="Hotel service"
-              fill
-              style={{ objectFit: 'cover', objectPosition: 'center top' }}
-              sizes="(max-width: 1024px) 100vw, 50vw"
-              quality={80}
-            />
+            <Image src={image} alt="Anor Avenue" fill style={{ objectFit: 'cover', objectPosition: 'center' }} sizes="(max-width: 1024px) 100vw, 50vw" quality={80} />
             <div
               style={{
                 position: 'absolute',

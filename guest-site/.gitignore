@@ -43,6 +43,10 @@ yarn-error.log*
 /videos-incoming/
 *.MOV
 
+# Ham 3D modeller (Meshy ~6MB/dosya) repoya girmesin — optimize edilmiş
+# public/models/anor-baba*.glb commit edilir.
+/models-incoming/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts

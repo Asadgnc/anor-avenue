@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import Navbar from '@/components/hotel/Navbar'
 import Footer from '@/components/hotel/Footer'
+import CoverImage from '@/components/hotel/CoverImage'
 import { supabase, createServiceClient } from '@/lib/supabase'
 import { fetchRoomCapacities } from '@/lib/availability'
 import { getRoomGallery, PHOTO_FALLBACK } from '@/lib/roomPhotos'
@@ -129,10 +130,10 @@ function buildDescription(room: RoomRow, locale: Locale): string {
   } else {
     parts.push(
       locale === 'uz'
-        ? 'Yuqori qavatda joylashgan keng va zamonaviy xona — nozik bezak va qulay jihozlar bilan.'
+        ? 'Yuqori qavatda joylashgan keng va yorugʻ xona — zamonaviy bezak, yumshoq ranglar va oʻzbekona naqshli detallar bilan shinam bir muhit sizni kutadi.'
         : locale === 'ru'
-        ? 'Просторный современный номер на верхнем этаже — с изящной отделкой и комфортной обстановкой.'
-        : 'A spacious, modern room on an upper floor — with refined finishes and comfortable furnishings.'
+        ? 'Просторный светлый номер на верхнем этаже — современная отделка, мягкие тона и узбекские узорчатые детали создают уютную атмосферу.'
+        : 'A bright, spacious room on an upper floor — modern finishes, soft tones and subtle Uzbek patterned touches make it feel calm and welcoming.'
     )
   }
 
@@ -177,10 +178,10 @@ function buildDescription(room: RoomRow, locale: Locale): string {
   // 3) Kapanış — ortak konfor (tüm odalarda gerçek)
   parts.push(
     locale === 'uz'
-      ? 'Har bir xonada WiFi, konditsioner, Smart TV va choy/qahva to‘plami mavjud; kunlik tozalash va nonushta imkoniyati bilan.'
+      ? 'Har bir xonada WiFi, konditsioner, Smart TV va choy/qahva toʻplami; har kuni tozalash va yangi tayyorlangan nonushta bilan — oʻzingizni uydagidek his qilasiz.'
       : locale === 'ru'
-      ? 'В каждом номере — WiFi, кондиционер, Smart TV и чайно-кофейный набор; ежедневная уборка и возможность завтрака.'
-      : 'Every room includes WiFi, air conditioning, a Smart TV and a tea/coffee set; with daily cleaning and a breakfast option.'
+      ? 'В каждом номере — WiFi, кондиционер, Smart TV и чайно-кофейный набор; ежедневная уборка и свежий завтрак — чтобы вы чувствовали себя как дома.'
+      : 'Every room comes with WiFi, air conditioning, a Smart TV and a tea/coffee set; with daily cleaning and a freshly prepared breakfast — everything set for you to feel at home.'
   )
 
   void slug
@@ -322,16 +323,8 @@ export default async function RoomDetailPage({
 
       <main className="pb-20 lg:pb-0">
         {/* ── Hero ─────────────────────────────────────────────────────── */}
-        <div style={{ minHeight: '420px', position: 'relative', overflow: 'hidden' }}>
-          <Image
-            src={heroSrc}
-            alt={roomName}
-            fill
-            style={{ objectFit: 'cover', objectPosition: 'center' }}
-            sizes="100vw"
-            priority
-            quality={85}
-          />
+        <div style={{ minHeight: '520px', position: 'relative', overflow: 'hidden' }}>
+          <CoverImage src={heroSrc} alt={roomName} sizes="100vw" priority quality={85} />
           <div
             style={{
               position: 'absolute',
@@ -472,7 +465,7 @@ export default async function RoomDetailPage({
                             src={item.src}
                             alt={label}
                             fill
-                            style={{ objectFit: 'cover' }}
+                            style={{ objectFit: 'cover', objectPosition: 'center' }}
                             sizes="(max-width: 768px) 100vw, 50vw"
                             quality={80}
                           />

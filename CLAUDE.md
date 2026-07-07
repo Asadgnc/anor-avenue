@@ -322,9 +322,24 @@ Detaylı geçmiş: `docs/session-log.md`
   gelen webhook eşlemesi bu satırlara bağlı.
 - Guest-site'a yeni oda eklerken/`is_public` değiştirirken bu kuralı hatırla.
 
+### Guest-site medya (7 Temmuz 2026 — foto/video entegrasyonu)
+- Gerçek oda fotoları işlendi: 201, 301 (301=gerçek; eski yanlış "302" fotoları 301'e taşındı),
+  303, 401, 402, 403 yenilendi; 202, 304 korundu. 12 kahvaltı + 4 bahçe fotosu `common/`e girdi.
+- **302: hâlâ gerçek foto YOK** → nötr dış-cephe fallback gösteriyor. Kullanıcı 302 fotosu
+  gönderince `photos-incoming/newphotos/`e `302 ...` adıyla at, `node scripts/process-photos.mjs` çalıştır.
+- Foto hattı yükseltildi (`scripts/process-photos.mjs`): alt klasör (newphotos/) tarar; iPhone HEIC'i
+  `heic-convert` ile açar (sharp libheif limitini aşamıyordu); ham dosyalar `photos-incoming/_archive/`de.
+- Video: `scripts/process-videos.mjs` (ffmpeg-static, dev dep) MOV'ları 720p mp4'e sıkıştırır + poster üretir.
+  6 klip `public/videos/`e girdi (~31MB): otel-tanitim, resepsiyon, odalar, kahvalti (tıkla-oynat) +
+  bahce, bahce-nar (sessiz ambient). Ana sayfada "Otel turu" bölümü + amenities bahçe videosu.
+  Ham MOV repoya girmez (.gitignore); işlenmiş mp4 commit edilir.
+- Kapak kırpma "orta yol": `CoverImage` bileşeni (dikey telefon fotosunu bulanık dolgu üstünde TAM
+  gösterir) hero + büyük kahvaltı kutusunda; kartlar/thumbnail'lar `cover` + center. `HotelVideo` = lazy oynatıcı.
+- `ffmpeg-static` build'i `pnpm-workspace.yaml` → `allowBuilds: ffmpeg-static: false` (prod install yalın;
+  binary yalnızca lokal video scripti için, gerekirse elle `node node_modules/ffmpeg-static/install.js`).
+
 ### Sonraki adımlar
-- Guest-site: eksik oda fotoğrafı (301) — `photos-incoming/`e at, `process-photos.mjs` çalıştır
-  (101/102/103 artık sitede görünmediği için fotoğrafları acil değil)
+- Guest-site: 302 gerçek fotosu bekleniyor (yukarı bak). 101/102/103 sitede gizli, foto gerekmez.
 - Channex: sahte-profil testi — `staging.channex.io`'da Booking.com test property (5868189 vb.)
   ekle, oda+fiyat eşle, test kartıyla (4111 1111 1111 1111) rezervasyon yap → panelde düşüyor mu bak
 - Faz 2 (3D): Anor Baba maskotu `.glb` gelince
