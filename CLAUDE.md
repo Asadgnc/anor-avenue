@@ -734,8 +734,12 @@ Mert "nar çarpışması" konsepti önerdi. Konsept henüz karara bağlanmadı �
     ekran görüntüsü alındı, tek RPC ile doğru render doğrulandı.
   - Keşifte bulunan ayrı sorun: `recurring_bills`/`bill_payments` canlı DB'de YOK (012 uygulanmamış)
     → `/bills` canlıda boş/kırık; RPC buna dayanıklı yazıldı. Kullanıcıya bildirildi.
-  - ⚠️ KULLANICI ONAYI BEKLİYOR: `git push origin main` + `vercel --prod` (otomatik mod izin
-    vermedi). Deploy olana kadar canlıda eski kod çalışır; DB webhook 404 alır (zararsız, cron telafi eder).
+  - ✅ PUSH + DEPLOY YAPILDI (kullanıcı onayıyla, 7 Temmuz): commit d69c886 main'de, prod Ready.
+    Deploy sonrası doğrulama: login 0.9-1.3sn → 0.56-0.78sn (warm, ~%45 hızlanma); manifest/sw.js/
+    ikonlar/~offline hepsi 200; DB webhook canlıda 200 {"ok":true} (trigger→endpoint→senkron zinciri
+    çalışıyor); cron → availabilityPushed:22, ratesPushed:6 (Channex'e veri akıyor).
+    Not: vercel deploy REPO KÖKÜNDEN çalışır (proje Root Directory=admin-panel; admin-panel
+    klasöründen çalıştırınca "admin-panel/admin-panel yok" hatası verir).
   - ⚠️ Telefon doğrulaması kullanıcıda: Android/iPhone'da kurulum + push bildirimi testi.
 
 ## Sonraki Adımlar
