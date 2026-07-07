@@ -4,6 +4,27 @@ Geçmiş oturum notları. CLAUDE.md'den taşındı (7 Temmuz 2026).
 
 ---
 
+## 7 Temmuz 2026 — Oda değişikliğinde otomatik para mutabakatı (proration + iade)
+
+- [x] Sorun: `moveRoomAction` odayı değiştirip eski fiyatı koruyordu; pahalı/ucuz odaya
+  geçişte fatura güncellenmiyor, fazla iade / eksik tahsilat hesaplanmıyordu.
+- [x] Karar (kullanıcı): **oransal (proration)** fiyat — geçen geceler eski, kalan geceler yeni
+  oda fiyatı; para tahsili/iadesi **ayrı adım** (manuel + onaylı).
+- [x] Migration `032_reservation_price_adjustment.sql` — reservations'a `price_adjustment` kolonu.
+  Kanonik fatura: `total_amount = room_rate*nights + price_adjustment`. (Canlıya kullanıcı uygulayacak.)
+- [x] `actions.ts`: `computeMove` (proration helper), `moveRoomAction` yeniden fiyatlar + not'a
+  fiyat değişimini yazar; `getMoveTargetsAction` her hedefe `newTotal`+`balanceAfter` (tahsil/iade
+  önizleme) döndürür; `extendStay`/`updateReservation` kanonik formülü kullanır; yeni
+  `refundPaymentAction` (negatif tutarlı `completed` satır — tüm gelir toplamları otomatik net'ler).
+- [x] UI: StayTools hedef odalarda "+X tahsil / Y iade / eşit" önizlemesi; yeni `RefundFormClient`
+  (fazla ödemede, tutar ön-dolu); `page.tsx` iade satırlarını "İade" rozeti+mavi ile gösterir,
+  fazla ödemede iade formu açar, tahsilatta "Kalan" ön-dolu; FinanceIncomeTable negatif işaret.
+- [x] i18n (uz/ru/uz-cyrl): `reservations.refund.*`, `actions.collect/refund/even`, `detail.refundTag`,
+  `sections.refund`. `npx tsc --noEmit` temiz. (ESLint bu ortamda dep eksik — çalışmadı.)
+- [ ] Tarayıcı testi migration 032 uygulanınca yapılacak (pahalı/ucuz taşıma + iade senaryosu, ekran görüntüsü).
+
+---
+
 ## 7 Temmuz 2026 — Test verisi temizliği + silme yetkisi admin'e kilitlendi
 
 - [x] Elle girilen tüm test verisi silindi (service_role, FK sırasıyla): 21 rezervasyon,

@@ -412,6 +412,7 @@
         "guest": "Гость",
         "payments": "Платежи",
         "addPayment": "Добавить платёж",
+        "refund": "Возврат средств",
         "registration": "Регистрация"
       },
       "fields": {
@@ -440,7 +441,8 @@
       "mayExtendCertain": "Точный выезд",
       "guestProfileLink": "Открыть профиль гостя →",
       "noPayments": "Платежей пока нет.",
-      "perNight": "/ночь"
+      "perNight": "/ночь",
+      "refundTag": "Возврат"
     },
     "edit": {
       "toggleButton": "Редактировать бронь",
@@ -463,6 +465,13 @@
       "categoryLabel": "Категория",
       "noteLabel": "Примечание (необязательно)",
       "successMessage": "✓ Платёж сохранён, список обновляется…"
+    },
+    "refund": {
+      "amountLabel": "Сумма возврата (UZS)",
+      "methodLabel": "Способ",
+      "noteLabel": "Примечание (необязательно)",
+      "submit": "Вернуть",
+      "successMessage": "✓ Возврат сохранён, список обновляется…"
     },
     "actions": {
       "title": "Действия",
@@ -487,7 +496,10 @@
       "extendBlocked": "Текущий номер занят на эти даты. Свободные варианты (переезд + продление):",
       "moveConfirm": "Гость будет переселён в номер {room}. Продолжить?",
       "apply": "Применить",
-      "perNight": "за ночь"
+      "perNight": "за ночь",
+      "collect": "+{amount} к доплате",
+      "refund": "возврат {amount}",
+      "even": "Без разницы"
     },
     "deletePayment": {
       "confirmDialog": "Отменить этот платёж? Запись сохранится как возврат.",

@@ -1,54 +1,49 @@
 'use client'
 
+// Misafire para iadesi formu — yalnızca fazla ödeme (overpaid) durumunda gösterilir.
+// AddPaymentFormClient'ın sadeleştirilmiş kopyası; refundPaymentAction'a bağlanır,
+// iade negatif tutarlı bir ödeme satırı olarak kaydedilir. Tutar, fazla ödenen
+// miktarla ön-doldurulur; personel yöntemi seçip onaylar.
+
 import { useActionState, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
-import { addPaymentAction, type AddPaymentState } from './actions'
+import { refundPaymentAction, type AddPaymentState } from './actions'
 import { dash } from '@/lib/dashboardTheme'
 import FiscalQrScanButton, { isFiscalUrl } from '@/components/admin/FiscalQrScanButton'
 
-export default function AddPaymentFormClient({
+export default function RefundFormClient({
   reservationId,
   defaultAmount,
 }: {
   reservationId: string
-  defaultAmount?: number
+  defaultAmount: number
 }) {
   const router = useRouter()
-  const t = useTranslations('reservations.addPayment')
+  const t = useTranslations('reservations.refund')
   const tm = useTranslations('reservations.methods')
-  const tcat = useTranslations('finance.categories')
   const tf = useTranslations('fiscalScan')
-  const tc = useTranslations('common')
-  const boundAction = addPaymentAction.bind(null, reservationId)
+  const boundAction = refundPaymentAction.bind(null, reservationId)
   const [state, action, isPending] = useActionState<AddPaymentState, FormData>(boundAction, {})
   const [fiscalUrl, setFiscalUrl] = useState('')
 
   const methods = [
     { value: 'cash', label: tm('cash') },
     { value: 'card', label: tm('card') },
+    { value: 'transfer', label: tm('transfer') },
     { value: 'payme', label: 'Payme' },
     { value: 'click', label: 'Click' },
     { value: 'uzum', label: 'Uzum' },
-    { value: 'transfer', label: tm('transfer') },
-  ] as const
-
-  const categories = [
-    { value: 'accommodation', label: tcat('accommodation') },
-    { value: 'breakfast', label: tcat('breakfast') },
-    { value: 'extra_service', label: tcat('extra_service') },
-    { value: 'deposit', label: tcat('deposit') },
-    { value: 'other', label: tcat('other') },
   ] as const
 
   useEffect(() => {
     if (state.success) {
-      const t = setTimeout(() => router.refresh(), 800)
-      return () => clearTimeout(t)
+      const timer = setTimeout(() => router.refresh(), 800)
+      return () => clearTimeout(timer)
     }
   }, [state.success, router])
 
-  const inputClass = "w-full px-3 py-2 rounded-lg text-sm text-foreground focus:outline-none focus:ring-1"
+  const inputClass = 'w-full px-3 py-2 rounded-lg text-sm text-foreground focus:outline-none focus:ring-1'
   const inputStyle = {
     backgroundColor: 'var(--color-admin-bg)',
     border: '1px solid var(--color-admin-border)',
@@ -64,7 +59,7 @@ export default function AddPaymentFormClient({
 
   return (
     <form action={action} className="flex flex-wrap gap-3 items-end">
-      {/* Amount */}
+      {/* Amount (ön-dolu = fazla ödenen) */}
       <div className="w-36">
         <label className="block text-xs mb-1" style={{ color: 'var(--color-admin-muted)' }}>{t('amountLabel')}</label>
         <input
@@ -72,8 +67,7 @@ export default function AddPaymentFormClient({
           type="number"
           min="1"
           step="any"
-          placeholder="500000"
-          defaultValue={defaultAmount && defaultAmount > 0 ? Math.round(defaultAmount) : undefined}
+          defaultValue={defaultAmount > 0 ? Math.round(defaultAmount) : ''}
           required
           disabled={isPending}
           className={inputClass}
@@ -87,30 +81,9 @@ export default function AddPaymentFormClient({
       {/* Method */}
       <div className="w-40">
         <label className="block text-xs mb-1" style={{ color: 'var(--color-admin-muted)' }}>{t('methodLabel')}</label>
-        <select
-          name="method"
-          required
-          disabled={isPending}
-          className={inputClass}
-          style={inputStyle}
-        >
+        <select name="method" required disabled={isPending} className={inputClass} style={inputStyle}>
           {methods.map((m) => (
             <option key={m.value} value={m.value}>{m.label}</option>
-          ))}
-        </select>
-      </div>
-
-      {/* Revenue category */}
-      <div className="w-44">
-        <label className="block text-xs mb-1" style={{ color: 'var(--color-admin-muted)' }}>{t('categoryLabel')}</label>
-        <select
-          name="revenue_category"
-          disabled={isPending}
-          className={inputClass}
-          style={inputStyle}
-        >
-          {categories.map((c) => (
-            <option key={c.value} value={c.value}>{c.label}</option>
           ))}
         </select>
       </div>
@@ -118,23 +91,17 @@ export default function AddPaymentFormClient({
       {/* Note */}
       <div className="flex-1 min-w-32">
         <label className="block text-xs mb-1" style={{ color: 'var(--color-admin-muted)' }}>{t('noteLabel')}</label>
-        <input
-          name="notes"
-          type="text"
-          disabled={isPending}
-          className={inputClass}
-          style={inputStyle}
-        />
+        <input name="notes" type="text" disabled={isPending} className={inputClass} style={inputStyle} />
       </div>
 
-      {/* Save */}
+      {/* Confirm */}
       <button
         type="submit"
         disabled={isPending}
         className="px-4 py-2 rounded-lg text-sm font-semibold transition-opacity hover:opacity-80 disabled:opacity-50 shrink-0"
-        style={{ backgroundColor: 'var(--color-accent)', color: '#FFFFFF' }}
+        style={{ backgroundColor: dash.blue, color: '#FFFFFF' }}
       >
-        {isPending ? '…' : tc('save')}
+        {isPending ? '…' : t('submit')}
       </button>
 
       {/* Fiskal chek (Soliq QR) — ixtiyoriy */}

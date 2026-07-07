@@ -58,7 +58,6 @@ export async function updateReservationAction(
   const nights = Math.round(
     (new Date(d.checkOut).getTime() - new Date(d.checkIn).getTime()) / 86400000
   )
-  const totalAmount = d.roomRate * nights
 
   const service = createServiceClient()
 
@@ -66,10 +65,13 @@ export async function updateReservationAction(
   // user gets a friendly message instead of a raw DB constraint error.
   const { data: current } = await service
     .from('reservations')
-    .select('room_id')
+    .select('room_id, price_adjustment')
     .eq('id', reservationId)
     .single()
   if (!current) return { error: te('reservationNotFound') }
+
+  // Canonical bill: preserve any proration carried in price_adjustment.
+  const totalAmount = d.roomRate * nights + (Number(current.price_adjustment) || 0)
 
   const { data: conflicts } = await service
     .from('reservations')
@@ -303,6 +305,59 @@ export async function addPaymentAction(
   return { success: true }
 }
 
+// ─── Refund (partial) ─────────────────────────────────────────────────────────
+// Misafire para iadesi. Ödeme kaydı asla silinmez; iade, negatif tutarlı bir
+// 'completed' satır olarak yazılır — böylece tüm gelir toplamları (dashboard,
+// finance, tax, reports, folio) otomatik olarak iadeyi düşer ve kasa çıkışını
+// doğru yansıtır. Genelde oda değişikliğinde fazla ödemeyi geri vermek için.
+export async function refundPaymentAction(
+  reservationId: string,
+  _prev: AddPaymentState,
+  formData: FormData
+): Promise<AddPaymentState> {
+  const te = await getTranslations('errors')
+  const auth = await requireRole('admin', 'receptionist', 'accountant')
+  if (!auth.ok) return { error: auth.error }
+
+  const parsed = paymentSchema.safeParse(Object.fromEntries(formData))
+  if (!parsed.success) {
+    const fieldErrors: Record<string, string> = {}
+    for (const issue of parsed.error.issues) {
+      const key = issue.path[0]?.toString()
+      if (key) fieldErrors[key] = te('amountPositive')
+    }
+    return { fieldErrors }
+  }
+
+  const service = createServiceClient()
+  const { data: profile } = await service.from('profiles').select('id').eq('id', auth.userId).single()
+  const fiscal = parseFiscal(parsed.data.fiscal_url)
+
+  const row: Record<string, unknown> = {
+    reservation_id: reservationId,
+    amount: -Math.abs(parsed.data.amount), // negatif = iade
+    currency: 'UZS',
+    method: parsed.data.method,
+    revenue_category: parsed.data.revenue_category,
+    status: 'completed',
+    paid_at: new Date().toISOString(),
+    received_by: profile ? auth.userId : null,
+    notes: parsed.data.notes || null,
+  }
+  if (fiscal) {
+    row.fiscal_url = fiscal.url
+    row.fiscal_receipt_id = fiscal.receiptId
+    row.fiscal_scanned_at = fiscal.scannedAt
+  }
+
+  const { error } = await service.from('payments').insert(row)
+  if (error) return { error: error.message }
+
+  revalidatePath(`/reservations/${reservationId}`)
+  revalidatePath('/payments')
+  return { success: true }
+}
+
 // ─── Stay tools: room move + extension ───────────────────────────────────────
 // MVP semantics (owner-approved): a move updates room_id on the SAME record
 // (no split rows / per-room night history); the rate stays as-is and can be
@@ -315,6 +370,10 @@ export interface MoveTarget {
   roomNumber: string
   pricePerNight: number
   capacity: number
+  /** Prorated total if the stay moves here (old rate for elapsed nights, new rate for the rest). */
+  newTotal: number
+  /** newTotal − already-paid. Positive → collect this much; negative → refund; ~0 → even. */
+  balanceAfter: number
 }
 
 interface StayRow {
@@ -325,6 +384,7 @@ interface StayRow {
   status: string
   adults: number
   room_rate: number
+  price_adjustment: number
   notes: string | null
   rooms: { room_number: string } | null
 }
@@ -335,7 +395,7 @@ async function loadStay(
 ): Promise<StayRow | null> {
   const { data } = await service
     .from('reservations')
-    .select('id, room_id, check_in, check_out, status, adults, room_rate, notes, rooms(room_number)')
+    .select('id, room_id, check_in, check_out, status, adults, room_rate, price_adjustment, notes, rooms(room_number)')
     .eq('id', reservationId)
     .single()
   return (data as unknown as StayRow) ?? null
@@ -345,6 +405,40 @@ async function loadStay(
 function stayWindowStart(stay: StayRow): string {
   const today = todayStr()
   return stay.status === 'checked_in' && stay.check_in < today ? today : stay.check_in
+}
+
+/**
+ * Prorated bill when moving this stay to `newRate` with checkout `targetCheckOut`.
+ * Nights already spent (before the move split point) keep the OLD rate; the
+ * remaining nights use the new room's rate. This is expressed through
+ * `price_adjustment` so room_rate stays forward-looking and the canonical
+ * formula `total_amount = room_rate*nights + price_adjustment` holds everywhere.
+ */
+function computeMove(
+  stay: StayRow,
+  newRate: number,
+  targetCheckOut: string
+): { newTotal: number; newPriceAdjustment: number } {
+  const splitPoint = stayWindowStart(stay)
+  const nightsBefore = Math.max(0, nightsBetween(stay.check_in, splitPoint))
+  const nights = Math.max(1, nightsBetween(stay.check_in, targetCheckOut))
+  const newPriceAdjustment =
+    (stay.price_adjustment ?? 0) + (stay.room_rate - newRate) * nightsBefore
+  const newTotal = newRate * nights + newPriceAdjustment
+  return { newTotal, newPriceAdjustment }
+}
+
+/** Sum of completed payments (refunds are stored as negative rows, so they net out). */
+async function paidTotal(
+  service: ReturnType<typeof createServiceClient>,
+  reservationId: string
+): Promise<number> {
+  const { data } = await service
+    .from('payments')
+    .select('amount')
+    .eq('reservation_id', reservationId)
+    .eq('status', 'completed')
+  return (data ?? []).reduce((s: number, p: { amount: number }) => s + Number(p.amount), 0)
 }
 
 /**
@@ -368,16 +462,22 @@ export async function getMoveTargetsAction(
 
   const windowEnd = newCheckOut && newCheckOut > stay.check_out ? newCheckOut : stay.check_out
   const rooms = await loadBookableRooms(service, stayWindowStart(stay), windowEnd)
+  const paid = await paidTotal(service, reservationId)
 
   const targets = rooms
     .filter((r) => r.id !== stay.room_id && r.state === 'FREE' && r.capacity >= stay.adults)
     .sort((a, b) => a.pricePerNight - b.pricePerNight)
-    .map((r) => ({
-      roomId: r.id,
-      roomNumber: r.roomNumber,
-      pricePerNight: r.pricePerNight,
-      capacity: r.capacity,
-    }))
+    .map((r) => {
+      const { newTotal } = computeMove(stay, r.pricePerNight, windowEnd)
+      return {
+        roomId: r.id,
+        roomNumber: r.roomNumber,
+        pricePerNight: r.pricePerNight,
+        capacity: r.capacity,
+        newTotal,
+        balanceAfter: newTotal - paid,
+      }
+    })
 
   return { targets }
 }
@@ -414,15 +514,23 @@ export async function moveRoomAction(
   if (target.state !== 'FREE') return { error: te('roomConflict', { code: target.roomNumber }) }
   if (target.capacity < stay.adults) return { error: te('capacityInsufficient') }
 
-  const nights = Math.max(1, nightsBetween(stay.check_in, targetCheckOut))
-  const moveNote = `${stay.rooms?.room_number ?? '?'} → ${target.roomNumber} (${todayStr()})`
+  // Reprice: elapsed nights stay at the old rate, remaining nights use the new
+  // room's effective price (proration lives in price_adjustment).
+  const newRate = target.pricePerNight
+  const { newTotal, newPriceAdjustment } = computeMove(stay, newRate, targetCheckOut)
+  const fmt = (n: number) => Math.round(n).toLocaleString('uz-UZ')
+  const rateNote =
+    newRate === stay.room_rate ? '' : ` · ${fmt(stay.room_rate)}→${fmt(newRate)}/gece`
+  const moveNote = `${stay.rooms?.room_number ?? '?'} → ${target.roomNumber} (${todayStr()})${rateNote}`
 
   const { error } = await service
     .from('reservations')
     .update({
       room_id: newRoomId,
       check_out: targetCheckOut,
-      total_amount: stay.room_rate * nights,
+      room_rate: newRate,
+      price_adjustment: newPriceAdjustment,
+      total_amount: newTotal,
       notes: stay.notes ? `${stay.notes}\n${moveNote}` : moveNote,
     })
     .eq('id', reservationId)
@@ -493,7 +601,10 @@ export async function extendStayAction(
   const nights = Math.max(1, nightsBetween(stay.check_in, newCheckOut))
   const { error } = await service
     .from('reservations')
-    .update({ check_out: newCheckOut, total_amount: stay.room_rate * nights })
+    .update({
+      check_out: newCheckOut,
+      total_amount: stay.room_rate * nights + (stay.price_adjustment ?? 0),
+    })
     .eq('id', reservationId)
 
   if (error) {

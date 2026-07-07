@@ -103,20 +103,33 @@ export default function StayTools({ reservationId, status, checkOut }: Props) {
     boxShadow: 'var(--shadow-card)',
   } as const
 
+  function balanceHint(target: MoveTarget) {
+    const bal = Math.round(target.balanceAfter)
+    if (bal > 0) return { text: t('collect', { amount: fmt(bal) }), color: dash.orange }
+    if (bal < 0) return { text: t('refund', { amount: fmt(-bal) }), color: dash.blue }
+    return { text: t('even'), color: dash.green }
+  }
+
   function targetRow(target: MoveTarget, withExtend: boolean) {
+    const hint = balanceHint(target)
     return (
       <button
         key={target.roomId}
         onClick={() => submitMove(target, withExtend)}
         disabled={isPending}
-        className="flex w-full items-center justify-between rounded-lg px-4 py-2.5 text-sm transition-colors hover:bg-secondary disabled:opacity-50"
+        className="flex w-full flex-col gap-1 rounded-lg px-4 py-2.5 text-sm transition-colors hover:bg-secondary disabled:opacity-50"
         style={{ border: '1px solid var(--color-admin-border)' }}
       >
-        <span className="font-semibold" style={{ color: dash.text }}>
-          № {target.roomNumber}
-        </span>
-        <span style={{ color: 'var(--color-admin-muted)' }}>
-          {fmt(target.pricePerNight)} UZS · {t('perNight')}
+        <div className="flex w-full items-center justify-between">
+          <span className="font-semibold" style={{ color: dash.text }}>
+            № {target.roomNumber}
+          </span>
+          <span style={{ color: 'var(--color-admin-muted)' }}>
+            {fmt(target.pricePerNight)} UZS · {t('perNight')}
+          </span>
+        </div>
+        <span className="self-end text-xs font-semibold" style={{ color: hint.color }}>
+          {hint.text}
         </span>
       </button>
     )

@@ -277,8 +277,11 @@ Detaylı geçmiş: `docs/session-log.md`
 ### Bekleyen migration (kullanıcı SQL Editor'den uygulayacak — DEPLOY'DAN ÖNCE!)
 - `docs/migrations/029_fiscal_receipt_fields.sql` — payments'a fiş (Soliq QR) alanları
 - `docs/migrations/030_bill_period_fiscal.sql` — bill_payments'a dönem + fiş alanları
+- `docs/migrations/032_reservation_price_adjustment.sql` — reservations'a `price_adjustment`
+  kolonu (oda taşımasında oransal fatura düzeltmesi). ⚠️ Uygulanmadan yeni kod deploy edilirse
+  /reservations/[id] oda taşıma/uzatma ve düzenleme aksiyonları kolon eksikliğinden hata verir.
 - (028 `payment_method 'card'` zaten uygulandı ✅ — dosya kayıt için duruyor)
-- ⚠️ Bu iki migration uygulanmadan yeni kod deploy edilirse /reservations/[id],
+- ⚠️ Bu migration'lar uygulanmadan yeni kod deploy edilirse /reservations/[id],
   /payments ve /bills sayfaları kolon eksikliğinden hata verir (SELECT'ler bu kolonları okuyor).
 
 ### Kritik notlar
@@ -298,6 +301,15 @@ Detaylı geçmiş: `docs/session-log.md`
 - Terminali yazılıma bağlama fikri iptal. Kart ödemesi panele elle girilir (`method='card'`).
 - Fiş (çek): terminal/fatura fişindeki Soliq QR (`ofd.soliq.uz/epi?...`) `FiscalQrScanButton`
   ile okutulup `payments.fiscal_url` / `bill_payments.fiscal_url`'e kaydedilir (jsqr, ücretsiz).
+
+### Oda değişikliğinde para mutabakatı (7 Tem 2026 kararı)
+- Oda taşıma (`moveRoomAction`) artık **oransal (proration)** fiyatlar: geçen geceler eski
+  fiyat, kalan geceler yeni oda fiyatı. Kanonik fatura: `total_amount = room_rate*nights + price_adjustment`.
+  `price_adjustment` = geçmiş gecelerin eski fiyatta tutulmasından doğan düzeltme (migration 032).
+- Fark otomatik hesaplanır ve rezervasyon sayfasında "Kalan" (tahsil) / "Fazla" (iade) olarak görünür.
+- Para verme/alma manuel + onaylı: fazla ödemede "İade Et" formu (fazla tutar ön-dolu) çıkar;
+  eksikte mevcut "Ödeme Ekle" (kalan ön-dolu). İade = **negatif tutarlı** `completed` ödeme satırı
+  → tüm gelir toplamları (dashboard/finance/tax/reports/folio) otomatik net'ler. Ödeme kaydı silinmez.
 
 ### Sonraki adımlar
 - Guest-site: eksik oda fotoğrafları (101/102/103/301) — `photos-incoming/`e at, `process-photos.mjs` çalıştır

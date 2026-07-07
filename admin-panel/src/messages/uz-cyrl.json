@@ -307,6 +307,7 @@
         "guest": "Меҳмон",
         "payments": "Тўловлар",
         "addPayment": "Тўлов қўшиш",
+        "refund": "Пулни қайтариш",
         "registration": "Рўйхатга олиш"
       },
       "fields": {
@@ -335,7 +336,8 @@
       "mayExtendCertain": "Аниқ чиқиш",
       "guestProfileLink": "Меҳмон профилини очиш →",
       "noPayments": "Ҳали тўлов йўқ.",
-      "perNight": "/кеча"
+      "perNight": "/кеча",
+      "refundTag": "Қайтариш"
     },
     "edit": {
       "toggleButton": "Бронни таҳрирлаш",
@@ -358,6 +360,13 @@
       "categoryLabel": "Категория",
       "noteLabel": "Изоҳ (ихтиёрий)",
       "successMessage": "✓ Тўлов сақланди, рўйхат янгиланмоқда…"
+    },
+    "refund": {
+      "amountLabel": "Қайтариладиган сумма (UZS)",
+      "methodLabel": "Усул",
+      "noteLabel": "Изоҳ (ихтиёрий)",
+      "submit": "Қайтариш",
+      "successMessage": "✓ Қайтариш сақланди, рўйхат янгиланмоқда…"
     },
     "actions": {
       "title": "Амаллар",
@@ -382,7 +391,10 @@
       "extendBlocked": "Жорий хона бу саналарда банд. Бўш вариантлар (кўчириш + узайтириш):",
       "moveConfirm": "Меҳмон {room}-хонага кўчирилади. Давом этилсинми?",
       "apply": "Қўллаш",
-      "perNight": "бир кеча учун"
+      "perNight": "бир кеча учун",
+      "collect": "+{amount} олинади",
+      "refund": "{amount} қайтарилади",
+      "even": "Фарқ йўқ"
     },
     "deletePayment": {
       "confirmDialog": "Бу тўлов бекор қилинсинми? Ёзув қайтарилган сифатида сақланади.",

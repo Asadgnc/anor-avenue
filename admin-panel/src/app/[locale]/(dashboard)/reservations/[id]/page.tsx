@@ -8,6 +8,7 @@ import { getTranslations } from 'next-intl/server'
 import ReservationActions from './ReservationActions'
 import StayTools from './StayTools'
 import AddPaymentFormClient from './AddPaymentFormClient'
+import RefundFormClient from './RefundFormClient'
 import CreateRegistrationForm from './CreateRegistrationForm'
 import EditReservationFormClient from './EditReservationFormClient'
 import DeletePaymentButton from './DeletePaymentButton'
@@ -382,10 +383,20 @@ export default async function ReservationDetailPage({
           </p>
         ) : (
           <div className="divide-y" style={{ borderColor: 'var(--color-admin-border)' }}>
-            {payments.map((p) => (
+            {payments.map((p) => {
+              const isRefund = p.amount < 0
+              return (
               <div key={p.id} className="px-5 py-3 flex items-center justify-between text-sm gap-3">
                 <div className="flex-1 min-w-0">
                   <span className="text-foreground font-medium">{methodLabel(p.method)}</span>
+                  {isRefund && (
+                    <span
+                      className="ml-2 inline-block rounded-full px-2 py-0.5 text-[10px] font-bold align-middle"
+                      style={{ backgroundColor: dash.blueLight, color: dash.blue }}
+                    >
+                      {t('refundTag')}
+                    </span>
+                  )}
                   {p.notes && (
                     <span className="ml-2 text-xs" style={{ color: 'var(--color-admin-muted)' }}>
                       {p.notes}
@@ -407,13 +418,14 @@ export default async function ReservationDetailPage({
                       {tFiscal('receiptLink')}
                     </a>
                   )}
-                  <span className="font-bold tabular-nums" style={{ color: 'var(--color-accent)' }}>
+                  <span className="font-bold tabular-nums" style={{ color: isRefund ? dash.blue : 'var(--color-accent)' }}>
                     {formatUZS(p.amount)}
                   </span>
                   <DeletePaymentButton paymentId={p.id} reservationId={id} />
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
         )}
 
@@ -422,7 +434,17 @@ export default async function ReservationDetailPage({
             <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: 'var(--color-admin-muted)' }}>
               {ts('addPayment')}
             </p>
-            <AddPaymentFormClient reservationId={id} />
+            <AddPaymentFormClient reservationId={id} defaultAmount={remaining > 0 ? remaining : undefined} />
+          </div>
+        )}
+
+        {/* Fazla ödeme (oda değişikliği vb.) → iade et */}
+        {remaining < 0 && !['cancelled', 'no_show'].includes(res.status) && (
+          <div className="px-5 py-4" style={{ borderTop: '1px solid var(--color-admin-border)' }}>
+            <p className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: dash.blue }}>
+              {ts('refund')}
+            </p>
+            <RefundFormClient reservationId={id} defaultAmount={-remaining} />
           </div>
         )}
       </div>

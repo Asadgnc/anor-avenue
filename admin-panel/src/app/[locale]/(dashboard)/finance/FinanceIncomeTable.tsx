@@ -130,8 +130,8 @@ export default function FinanceIncomeTable({ payments }: Props) {
                     </td>
                     <td className="px-4 py-3 text-foreground capitalize">{p.method}</td>
                     <td className="px-4 py-3 text-muted-foreground">{catLabel(p.revenue_category || 'accommodation')}</td>
-                    <td className="px-4 py-3 text-right tabular-nums font-medium text-green-700">
-                      +{p.currency === 'USD' ? fmtUSD(p.amount) : `${fmt(p.amount)} ${som}`}
+                    <td className={`px-4 py-3 text-right tabular-nums font-medium ${p.amount < 0 ? 'text-red-600' : 'text-green-700'}`}>
+                      {p.amount < 0 ? '−' : '+'}{p.currency === 'USD' ? fmtUSD(Math.abs(p.amount)) : `${fmt(Math.abs(p.amount))} ${som}`}
                     </td>
                   </tr>
                 ))}
