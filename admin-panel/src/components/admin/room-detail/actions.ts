@@ -1,16 +1,16 @@
 'use server'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Dashboard oda paneli — server action'ları
+// Dashboard room panel — server actions
 //
-// getRoomDetailAction        → panel açılınca oda + aktif konaklama + geçmiş
-// createOccupancyAction       → "Giriş Yap": oda(lar)ı HEMEN dolu işaretle (yarı kayıt)
-// attachPassportScanAction    → taranan pasaportu kaydet (görsel private bucket'a)
-// createFutureBookingAction   → "Rezervasyon Yap": ileri tarihli onaylı rezervasyon
-// completeRegistrationAction  → yarı kaydı "tam kayıt" olarak işaretle
+// getRoomDetailAction        → on panel open: room + active stay + history
+// createOccupancyAction       → "Check in": mark room(s) occupied NOW (half registration)
+// attachPassportScanAction    → save a scanned passport (image goes to the private bucket)
+// createFutureBookingAction   → "Book": confirmed future-dated reservation
+// completeRegistrationAction  → mark a half registration as fully registered
 //
-// Çakışma (overbooking) tespiti için availability motorunun loadBookableRooms'u
-// yeniden kullanılır — böylece kombinasyon önerisiyle aynı mantık uygulanır.
+// Conflict (overbooking) detection reuses the availability engine's
+// loadBookableRooms — so it applies the same logic as combination offers.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import { z } from 'zod'
@@ -18,16 +18,15 @@ import { revalidatePath } from 'next/cache'
 import { getTranslations } from 'next-intl/server'
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase'
-import { triggerAvailabilitySync } from '@/lib/channex-sync'
-import { loadBookableRooms, findAvailability, nightsBetween } from '@/lib/availability'
-
-const FRONT_DESK = new Set(['admin', 'receptionist'])
+import { requireRole } from '@/lib/require-role'
+import { findAvailability, nightsBetween } from '@/lib/availability'
+import { createReservationCore } from '@/lib/reservation-service'
 
 function todayStr(): string {
   return new Date().toISOString().split('T')[0]
 }
 
-// ─── Types döndürülen ──────────────────────────────────────────────────────────
+// ─── Returned types ────────────────────────────────────────────────────────────
 
 export interface RoomStayInfo {
   reservationId: string
@@ -109,7 +108,7 @@ export async function getRoomDetailAction(
   const variant = room.channex_variants as unknown as { occupancy: number | null } | null
   const capacity = variant?.occupancy ?? roomType?.max_occupancy ?? 2
 
-  // Bu odaya ait rezervasyonlar (aktif + geçmiş), en yeniden eskiye
+  // Reservations for this room (active + past), newest first
   const { data: resData } = await service
     .from('reservations')
     .select('id, reservation_code, status, check_in, check_out, adults, children, nights, total_amount, breakfast_included, registration_pending, may_extend, guests(first_name, last_name)')
@@ -119,7 +118,7 @@ export async function getRoomDetailAction(
 
   const rows = (resData ?? []) as unknown as ResRow[]
 
-  // Ödeme toplamları (completed) tek sorguda
+  // Payment totals (completed) in a single query
   const resIds = rows.map((r) => r.id)
   const paidByRes = new Map<string, number>()
   if (resIds.length > 0) {
@@ -139,7 +138,7 @@ export async function getRoomDetailAction(
   const people = (r: ResRow) => Number(r.adults) + Number(r.children ?? 0)
   const nightsOf = (r: ResRow) => r.nights ?? nightsBetween(r.check_in, r.check_out)
 
-  // Aktif konaklama: checked_in ve bugün aralıkta
+  // Active stay: checked_in and today within the range
   const currentRow = rows.find(
     (r) => r.status === 'checked_in' && r.check_in <= today && r.check_out > today
   )
@@ -162,7 +161,7 @@ export async function getRoomDetailAction(
       }
     : null
 
-  // Geçmiş: aktif olan hariç, bitmiş/geçmiş konaklamalar
+  // History: finished/past stays, excluding the active one
   const history: RoomHistoryRow[] = rows
     .filter((r) => r.id !== currentRow?.id)
     .filter(
@@ -194,7 +193,7 @@ export async function getRoomDetailAction(
   }
 }
 
-// ─── getRoomOffers (kombinasyon önerileri, client'a serileştirilebilir) ─────────
+// ─── getRoomOffers (combination offers, serializable to the client) ─────────────
 
 export interface SimpleOfferRoom {
   id: string
@@ -218,9 +217,8 @@ export async function getRoomOffersAction(input: {
   guestCount: number
 }): Promise<{ error?: string; status?: 'ok' | 'insufficient'; offers?: SimpleOffer[] }> {
   const te = await getTranslations('errors')
-  const { user, role } = await requireFrontDesk()
-  if (!user) return { error: te('sessionInvalid') }
-  if (!FRONT_DESK.has(role)) return { error: te('permissionDenied') }
+  const auth = await requireRole('admin', 'receptionist')
+  if (!auth.ok) return { error: auth.error }
 
   const schema = z.object({
     checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -259,7 +257,7 @@ export async function getRoomOffersAction(input: {
   return { status: result.status, offers }
 }
 
-// ─── createOccupancy (Giriş Yap → hemen dolu işaretle) ──────────────────────────
+// ─── createOccupancy ("Check in" → mark occupied immediately) ───────────────────
 
 export interface OccupancySlot {
   slotIndex: number
@@ -273,43 +271,14 @@ export interface OccupancyResult {
   slots: OccupancySlot[]
 }
 
-async function requireFrontDesk() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { user: null, role: '' }
-  const role = (user.user_metadata?.role as string | undefined) ?? ''
-  return { user, role }
-}
-
-/** Kişileri odalara sırayla (kapasiteye göre) dağıt: her odanın ilk slotu birincil. */
-function distribute(
-  rooms: { id: string; capacity: number }[],
-  guestCount: number
-): { roomId: string; slots: number }[] | null {
-  const out: { roomId: string; slots: number }[] = []
-  let remaining = guestCount
-  for (const r of rooms) {
-    if (remaining <= 0) {
-      out.push({ roomId: r.id, slots: 0 })
-      continue
-    }
-    const take = Math.min(r.capacity, remaining)
-    out.push({ roomId: r.id, slots: take })
-    remaining -= take
-  }
-  if (remaining > 0) return null // kapasite yetersiz
-  return out
-}
-
 export async function createOccupancyAction(input: {
   roomIds: string[]
   checkOut: string
   guestCount: number
 }): Promise<{ error?: string; result?: OccupancyResult }> {
   const te = await getTranslations('errors')
-  const { user, role } = await requireFrontDesk()
-  if (!user) return { error: te('sessionInvalid') }
-  if (!FRONT_DESK.has(role)) return { error: te('permissionDenied') }
+  const auth = await requireRole('admin', 'receptionist')
+  if (!auth.ok) return { error: auth.error }
 
   const schema = z.object({
     roomIds: z.array(z.string().uuid()).min(1),
@@ -321,86 +290,39 @@ export async function createOccupancyAction(input: {
   const { roomIds, checkOut, guestCount } = parsed.data
 
   const today = todayStr()
-  if (checkOut <= today) return { error: te('checkOutAfterCheckIn') }
-
   const service = createServiceClient()
 
-  // Motorla tüm odaları yükle → çakışma (overbooking) + kapasite + fiyat tek yerde
-  const bookable = await loadBookableRooms(service, today, checkOut)
-  const byId = new Map(bookable.map((r) => [r.id, r]))
-
-  const selected = roomIds.map((id) => byId.get(id))
-  if (selected.some((r) => !r)) return { error: te('roomNotFound') }
-  const rooms = selected as NonNullable<(typeof selected)[number]>[]
-  const conflict = rooms.find((r) => r.state !== 'FREE')
-  if (conflict) return { error: te('roomConflict', { code: conflict.roomNumber }) }
-
-  const plan = distribute(rooms.map((r) => ({ id: r.id, capacity: r.capacity })), guestCount)
-  if (!plan) return { error: te('capacityInsufficient') }
-
-  const nights = Math.max(1, nightsBetween(today, checkOut))
+  // Shared core: conflicts + capacity + effective price + room status + Channex push
+  const result = await createReservationCore(service, {
+    roomIds,
+    checkIn: today,
+    checkOut,
+    guestCount,
+    status: 'checked_in',
+    channel: 'walk_in',
+    guest: null, // placeholder guest per room — filled by passport scans
+    registrationPending: true,
+  })
+  if (!result.ok) return { error: te(result.errorKey, result.params) }
 
   const slots: OccupancySlot[] = []
-  let primaryReservationId = ''
   let slotIndex = 0
-
-  for (const p of plan) {
-    if (p.slots === 0) continue
-    const room = rooms.find((r) => r.id === p.roomId)!
-
-    // Yer tutucu birincil misafir (pasaport taranınca güncellenecek)
-    const { data: guest, error: guestErr } = await service
-      .from('guests')
-      .insert({ first_name: '—', last_name: '—' })
-      .select('id')
-      .single()
-    if (guestErr || !guest) return { error: te('guestCreateFailed', { msg: guestErr?.message ?? '' }) }
-
-    const total = room.pricePerNight * nights
-    const { data: res, error: resErr } = await service
-      .from('reservations')
-      .insert({
-        guest_id: guest.id,
-        room_id: room.id,
-        check_in: today,
-        check_out: checkOut,
-        adults: p.slots,
-        children: 0,
-        room_rate: room.pricePerNight,
-        total_amount: total,
-        discount: 0,
-        currency: 'UZS',
-        status: 'checked_in',
-        channel: 'walk_in',
-        actual_check_in: new Date().toISOString(),
-        registration_pending: true,
-      })
-      .select('id')
-      .single()
-    if (resErr || !res) return { error: te('reservationCreateFailed', { msg: resErr?.message ?? '' }) }
-
-    await service.from('rooms').update({ status: 'occupied' }).eq('id', room.id)
-
-    if (!primaryReservationId) primaryReservationId = res.id
-
-    for (let i = 0; i < p.slots; i++) {
+  for (const r of result.perRoom) {
+    for (let i = 0; i < r.adults; i++) {
       slots.push({
         slotIndex,
-        reservationId: res.id,
-        roomNumber: room.roomNumber,
+        reservationId: r.reservationId,
+        roomNumber: r.roomNumber,
         isPrimary: i === 0,
       })
       slotIndex++
     }
   }
 
-  // Anında senkron: Channex + OTA push (env yoksa no-op); guest-site aynı DB'yi realtime okur
-  await triggerAvailabilitySync()
-
   revalidatePath('/dashboard')
   revalidatePath('/reservations')
 
-  return { result: { primaryReservationId, slots } }
+  return { result: { primaryReservationId: result.primaryReservationId, slots } }
 }
 
 // ─── attachPassportScan ─────────────────────────────────────────────────────────
@@ -428,9 +350,8 @@ export async function attachPassportScanAction(input: {
   imageDataUrl?: string
 }): Promise<{ error?: string; success?: boolean }> {
   const te = await getTranslations('errors')
-  const { user, role } = await requireFrontDesk()
-  if (!user) return { error: te('sessionInvalid') }
-  if (!FRONT_DESK.has(role)) return { error: te('permissionDenied') }
+  const auth = await requireRole('admin', 'receptionist')
+  if (!auth.ok) return { error: auth.error }
 
   const schema = z.object({
     reservationId: z.string().uuid(),
@@ -497,7 +418,7 @@ export async function attachPassportScanAction(input: {
     if (cErr) return { error: cErr.message }
   }
 
-  // Pasaport görselini private `passports` bucket'a yükle (sadece admin görecek)
+  // Upload the passport image to the private `passports` bucket (admin-only access)
   let storagePath: string | null = null
   if (d.imageDataUrl) {
     const parsedImg = dataUrlToBuffer(d.imageDataUrl)
@@ -510,17 +431,17 @@ export async function attachPassportScanAction(input: {
     }
   }
 
-  // Arşiv kaydı (görsel yoksa da MRZ + iz için satır bırakılabilir; yalnızca görsel
-  // varsa kaydediyoruz — passport_scans.storage_path NOT NULL)
+  // Archive record (we only insert when there is an image —
+  // passport_scans.storage_path is NOT NULL)
   if (storagePath) {
-    const { data: profile } = await service.from('profiles').select('id').eq('id', user.id).single()
+    const { data: profile } = await service.from('profiles').select('id').eq('id', auth.userId).single()
     await service.from('passport_scans').insert({
       reservation_id: d.reservationId,
       guest_id: scanGuestId,
       slot_index: d.slotIndex,
       storage_path: storagePath,
       mrz_raw: d.guest.mrzRaw || null,
-      scanned_by: profile ? user.id : null,
+      scanned_by: profile ? auth.userId : null,
     })
   }
 
@@ -528,7 +449,7 @@ export async function attachPassportScanAction(input: {
   return { success: true }
 }
 
-// ─── createFutureBooking (Rezervasyon Yap → ileri tarihli onaylı) ───────────────
+// ─── createFutureBooking ("Book" → confirmed future-dated) ──────────────────────
 
 export async function createFutureBookingAction(input: {
   roomIds: string[]
@@ -550,9 +471,8 @@ export async function createFutureBookingAction(input: {
   paymentMethod?: 'payme' | 'click' | 'uzum' | 'cash' | 'transfer'
 }): Promise<{ error?: string; reservationId?: string }> {
   const te = await getTranslations('errors')
-  const { user, role } = await requireFrontDesk()
-  if (!user) return { error: te('sessionInvalid') }
-  if (!FRONT_DESK.has(role)) return { error: te('permissionDenied') }
+  const auth = await requireRole('admin', 'receptionist')
+  if (!auth.ok) return { error: auth.error }
 
   const schema = z.object({
     roomIds: z.array(z.string().uuid()).min(1),
@@ -576,96 +496,38 @@ export async function createFutureBookingAction(input: {
   const parsed = schema.safeParse(input)
   if (!parsed.success) return { error: te('invalidData') }
   const d = parsed.data
-  if (d.checkOut <= d.checkIn) return { error: te('checkOutAfterCheckIn') }
 
   const service = createServiceClient()
 
-  const bookable = await loadBookableRooms(service, d.checkIn, d.checkOut)
-  const byId = new Map(bookable.map((r) => [r.id, r]))
-  const selected = d.roomIds.map((id) => byId.get(id))
-  if (selected.some((r) => !r)) return { error: te('roomNotFound') }
-  const rooms = selected as NonNullable<(typeof selected)[number]>[]
-  const conflict = rooms.find((r) => r.state !== 'FREE')
-  if (conflict) return { error: te('roomConflict', { code: conflict.roomNumber }) }
-
-  const plan = distribute(rooms.map((r) => ({ id: r.id, capacity: r.capacity })), d.guestCount)
-  if (!plan) return { error: te('capacityInsufficient') }
-
-  const nights = Math.max(1, nightsBetween(d.checkIn, d.checkOut))
-
-  // Tek misafir kaydı, her oda için bir rezervasyon satırı (guest-site combo deseni)
-  const { data: guest, error: guestErr } = await service
-    .from('guests')
-    .insert({
-      first_name: d.primary.firstName,
-      last_name: d.primary.lastName,
-      phone: d.primary.phone || null,
-      email: d.primary.email || null,
-      nationality: d.primary.nationality || null,
-      passport_number: d.primary.passportNumber || null,
-      date_of_birth: d.primary.dateOfBirth || null,
-      passport_expiry: d.primary.passportExpiry || null,
-      sex: d.primary.sex || null,
-    })
-    .select('id')
-    .single()
-  if (guestErr || !guest) return { error: te('guestCreateFailed', { msg: guestErr?.message ?? '' }) }
-
-  let firstReservationId = ''
-  for (const p of plan) {
-    if (p.slots === 0) continue
-    const room = rooms.find((r) => r.id === p.roomId)!
-    const total = room.pricePerNight * nights
-    const { data: res, error: resErr } = await service
-      .from('reservations')
-      .insert({
-        guest_id: guest.id,
-        room_id: room.id,
-        check_in: d.checkIn,
-        check_out: d.checkOut,
-        adults: p.slots,
-        children: 0,
-        room_rate: room.pricePerNight,
-        total_amount: total,
-        discount: 0,
-        currency: 'UZS',
-        status: 'confirmed',
-        channel: 'direct',
-      })
-      .select('id')
-      .single()
-    if (resErr || !res) return { error: te('reservationCreateFailed', { msg: resErr?.message ?? '' }) }
-    if (!firstReservationId) firstReservationId = res.id
-  }
-
-  // Ön ödeme (opsiyonel) — birincil rezervasyona
-  if (d.advanceAmount && d.advanceAmount > 0 && d.paymentMethod && firstReservationId) {
-    await service.from('payments').insert({
-      reservation_id: firstReservationId,
-      amount: d.advanceAmount,
-      currency: 'UZS',
-      method: d.paymentMethod,
-      status: 'completed',
-      paid_at: new Date().toISOString(),
-    })
-  }
-
-  await triggerAvailabilitySync()
+  // Shared core: one guest record, one reservation row per room + Channex push
+  const result = await createReservationCore(service, {
+    roomIds: d.roomIds,
+    checkIn: d.checkIn,
+    checkOut: d.checkOut,
+    guestCount: d.guestCount,
+    status: 'confirmed',
+    channel: 'direct',
+    guest: d.primary,
+    advance:
+      d.advanceAmount && d.advanceAmount > 0 && d.paymentMethod
+        ? { amount: d.advanceAmount, method: d.paymentMethod, receivedBy: auth.userId }
+        : null,
+  })
+  if (!result.ok) return { error: te(result.errorKey, result.params) }
 
   revalidatePath('/dashboard')
   revalidatePath('/reservations')
-  return { reservationId: firstReservationId }
+  return { reservationId: result.primaryReservationId }
 }
 
-// ─── completeRegistration (yarı kayıt → tam kayıt) ──────────────────────────────
+// ─── completeRegistration (half registration → full registration) ───────────────
 
 export async function completeRegistrationAction(
   reservationId: string
 ): Promise<{ error?: string; success?: boolean }> {
   const te = await getTranslations('errors')
-  const { user, role } = await requireFrontDesk()
-  if (!user) return { error: te('sessionInvalid') }
-  if (!FRONT_DESK.has(role)) return { error: te('permissionDenied') }
+  const auth = await requireRole('admin', 'receptionist')
+  if (!auth.ok) return { error: auth.error }
   if (!z.string().uuid().safeParse(reservationId).success) return { error: te('invalidData') }
 
   const service = createServiceClient()

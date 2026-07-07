@@ -34,6 +34,7 @@ export default async function RoomInspectionPage({
   const supabase = await createClient()
   const auth = await getAuthClaims()
   if (!auth) redirect('/login')
+  if (!['admin', 'receptionist', 'housekeeper'].includes(auth.role)) redirect('/dashboard?blocked=1')
 
   const locale = await getLocale()
   const t = await getTranslations('housekeeping.inspection')

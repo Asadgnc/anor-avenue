@@ -3,13 +3,12 @@
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import { getTranslations } from 'next-intl/server'
-import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase'
+import { requireRole } from '@/lib/require-role'
 
 export type StaffState = { error?: string; success?: boolean }
 
 const VALID_ROLES = ['admin', 'receptionist', 'housekeeper', 'accountant'] as const
-type Role = typeof VALID_ROLES[number]
 
 // ─── Invite staff ────────────────────────────────────────────────────────
 
@@ -24,9 +23,8 @@ export async function inviteStaffAction(
   formData: FormData
 ): Promise<StaffState> {
   const t = await getTranslations('errors')
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: t('sessionInvalid') }
+  const auth = await requireRole('admin')
+  if (!auth.ok) return { error: auth.error }
 
   const parsed = inviteSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) return { error: t('invalidEmail') }
@@ -75,18 +73,13 @@ export async function changeRoleAction(
   formData: FormData
 ): Promise<StaffState> {
   const t = await getTranslations('errors')
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: t('sessionInvalid') }
-
-  // Only admin may change roles
-  const callerRole = (user.user_metadata?.role as Role | undefined) ?? 'receptionist'
-  if (callerRole !== 'admin') return { error: t('permissionDenied') }
+  const auth = await requireRole('admin')
+  if (!auth.ok) return { error: auth.error }
 
   const parsed = changeRoleSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) return { error: t('invalidData') }
 
-  if (parsed.data.userId === user.id) return { error: t('cannotChangeOwnRole') }
+  if (parsed.data.userId === auth.userId) return { error: t('cannotChangeOwnRole') }
 
   const service = createServiceClient()
 
@@ -112,10 +105,9 @@ export async function changeRoleAction(
 
 export async function deleteStaffAction(userId: string): Promise<StaffState> {
   const t = await getTranslations('errors')
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: t('sessionInvalid') }
-  if (user.id === userId) return { error: t('cannotDeleteOwnAccount') }
+  const auth = await requireRole('admin')
+  if (!auth.ok) return { error: auth.error }
+  if (auth.userId === userId) return { error: t('cannotDeleteOwnAccount') }
 
   const service = createServiceClient()
   const { error } = await service.auth.admin.deleteUser(userId)

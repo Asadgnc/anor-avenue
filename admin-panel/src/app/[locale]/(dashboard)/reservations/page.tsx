@@ -21,6 +21,7 @@ export default async function ReservationsPage({ searchParams }: Props) {
   const supabase = await createClient()
   const auth = await getAuthClaims()
   if (!auth) redirect('/login')
+  if (!['admin', 'receptionist'].includes(auth.role)) redirect('/dashboard?blocked=1')
 
   const { start } = await searchParams
   const t = await getTranslations('reservations.calendar')

@@ -5,7 +5,7 @@
 export const dash = {
   bg: '#F8FAFC',
   card: '#FFFFFF',
-  cardShadow: '0 0 0 1px rgba(15, 23, 42, 0.08)', // thin line instead of a shadow
+  cardShadow: '0 1px 2px rgba(15, 23, 42, 0.05), 0 4px 16px rgba(15, 23, 42, 0.07)', // soft static shadow — must match --shadow-card in globals.css
   border: '#E2E8F0',
   text: '#0F172A',
   muted: '#64748B',

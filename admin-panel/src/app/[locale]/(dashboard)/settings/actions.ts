@@ -3,14 +3,14 @@
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import { getTranslations } from 'next-intl/server'
-import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase'
+import { requireRole } from '@/lib/require-role'
 import { syncRates, triggerAvailabilitySync } from '@/lib/channex-sync'
 
 // ─── Update room type price ────────────────────────────────────────────────
-// Tek fiyat noktasi: panelde tip basina 2-kisilik baz fiyat girilir.
-// Ekstra kisi = +150.000. Channex occupancy varyantlari base + (occ-2)*150000
-// ile turetilir ve otomatik push edilir. Guest-site zaten room_types'i okur.
+// Single price entry point: the panel takes one 2-person base price per type.
+// Extra person = +150,000. Channex occupancy variants are derived as
+// base + (occ-2)*150000 and pushed automatically. Guest-site reads room_types.
 
 const EXTRA_PERSON_FEE = 150000
 const BASE_OCCUPANCY = 2
@@ -27,9 +27,8 @@ export async function updateRoomTypePriceAction(
   formData: FormData
 ): Promise<PriceState> {
   const t = await getTranslations('errors')
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: t('sessionInvalid') }
+  const auth = await requireRole('admin')
+  if (!auth.ok) return { error: auth.error }
 
   const parsed = priceSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) return { error: t('pricePositive') }
@@ -42,7 +41,7 @@ export async function updateRoomTypePriceAction(
 
   if (error) return { error: error.message }
 
-  // Bu tipin Channex varyantlarini (label prefix ile) +150k kuraliyla guncelle
+  // Update this type's Channex variants (matched by label prefix) via the +150k rule
   const { data: rt } = await service
     .from('room_types')
     .select('name')
@@ -63,8 +62,8 @@ export async function updateRoomTypePriceAction(
   revalidatePath('/settings')
   revalidatePath('/rooms')
 
-  // Channex'e fiyat + musaitlik push (env yoksa sessiz no-op).
-  // Awaited: "Kaydet" tamamlandiginda fiyat Channex'e gitmis olur (fire-and-forget degil).
+  // Push rates + availability to Channex (silent no-op without env).
+  // Awaited: when "Save" completes the price has reached Channex (not fire-and-forget).
   const from = new Date().toISOString().slice(0, 10)
   const to = new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10)
   try {
@@ -97,9 +96,8 @@ export async function updateHotelProfileAction(
   formData: FormData
 ): Promise<HotelProfileState> {
   const t = await getTranslations('errors')
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: t('sessionInvalid') }
+  const auth = await requireRole('admin')
+  if (!auth.ok) return { error: auth.error }
 
   const parsed = hotelProfileSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) return { error: t('invalidData') }
@@ -132,12 +130,8 @@ export async function updateFinanceSettingsAction(
   formData: FormData
 ): Promise<FinanceSettingsState> {
   const t = await getTranslations('errors')
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: t('sessionInvalid') }
-
-  const role = (user.user_metadata?.role as string | undefined) ?? ''
-  if (role !== 'admin') return { error: t('permissionDenied') }
+  const auth = await requireRole('admin')
+  if (!auth.ok) return { error: auth.error }
 
   const parsed = financeSettingsSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) return { error: t('invalidData') }

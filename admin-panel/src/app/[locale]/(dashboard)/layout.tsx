@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase-server'
 import { getAuthClaims } from '@/lib/auth-claims'
 import SidebarNav from '@/components/admin/SidebarNav'
 import AppTopbar from '@/components/admin/AppTopbar'
+import MobileTabBar from '@/components/admin/MobileTabBar'
 import RealtimeRefresher from '@/components/admin/RealtimeRefresher'
 import { getTranslations } from 'next-intl/server'
 import { logoutAction } from '@/app/actions/logout'
@@ -20,7 +21,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     accountant: t('accountant'),
   }
 
-  // Middleware oturumu her istekte ağ üzerinden doğruluyor; burada JWT yerel okunur.
+  // Middleware verifies the session over the network on every request; here the JWT is read locally.
   const auth = await getAuthClaims()
 
   // No insecure fallback: an unknown/unassigned role gets an "unauthorized" screen.
@@ -49,7 +50,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const userEmail = auth?.email ?? ''
   const userName = auth?.fullName || (userEmail ? userEmail.split('@')[0] : 'User')
 
-  // 3 ayrı count sorgusu yerine tek RPC (docs/migrations/025_dashboard_rpc.sql)
+  // One RPC instead of 3 separate count queries (docs/migrations/025_dashboard_rpc.sql)
   const supabase = await createClient()
   const { data: badgeData } = await supabase.rpc('get_nav_badges')
   const navBadges = (badgeData ?? {}) as {
@@ -77,10 +78,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
           stockRequests={stockRequests}
         />
         <RealtimeRefresher />
-        {/* pt-[calc(3.5rem+1rem)] = mobil top bar (56px) + padding */}
-        <main className="px-4 md:px-8 py-4 md:py-6 pt-[calc(3.5rem+1rem)] md:pt-6 overflow-auto">
+        {/* pt-[calc(3.5rem+1rem)] = mobile top bar (56px) + padding; pb leaves room for the bottom tab bar */}
+        <main className="px-4 md:px-8 py-4 md:py-6 pt-[calc(3.5rem+1rem)] md:pt-6 pb-20 lg:pb-6 overflow-auto">
           {children}
         </main>
+        <MobileTabBar role={role} />
       </div>
     </div>
   )

@@ -48,6 +48,7 @@ export default async function RegistrationsPage({
   const supabase = await createClient()
   const auth = await getAuthClaims()
   if (!auth) redirect('/login')
+  if (!['admin', 'receptionist'].includes(auth.role)) redirect('/dashboard?blocked=1')
 
   const locale = await getLocale()
   const dateLocale = LOCALE_BCP47[locale] ?? 'ru-RU'

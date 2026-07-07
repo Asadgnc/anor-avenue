@@ -742,18 +742,56 @@ Mert "nar çarpışması" konsepti önerdi. Konsept henüz karara bağlanmadı �
     klasöründen çalıştırınca "admin-panel/admin-panel yok" hatası verir).
   - ⚠️ Telefon doğrulaması kullanıcıda: Android/iPhone'da kurulum + push bildirimi testi.
 
+- [x] Büyük denetim + 4 fazlı iyileştirme: Güvenlik · Senkron · Rezervasyon · "Bugün" ekranı (7 Temmuz 2026)
+  - Plan: `.claude/plans/luminous-swimming-squid.md` (onaylı). 3 keşif ajanı + PMS UX araştırması
+    (Cloudbeds/Mews/Little Hotelier) + canlı DB doğrulamalarıyla temellendi.
+  - **Canlı DB doğrulaması:** 019 (EXCLUDE çakışma kısıtı) + 020 (may_extend) + 021 CANLIDA UYGULANMIŞ
+    (önceki "uygulanmadı" notları bayattı); Channex trigger'ları canlı; `revenue_category` var.
+    Tek eksik: 012 (`recurring_bills`) → `docs/migrations/012b_recurring_bills_apply.sql` HAZIR,
+    ⚠️ kullanıcı SQL Editor'den uygulayacak (otomatik mod canlı DDL'i blokladı) — /bills o zamana kadar kırık.
+  - **Faz 1 Güvenlik:** yeni `src/lib/require-role.ts` (`requireRole` action'lar için ağ-doğrulamalı,
+    `requireRolePage` sayfalar için yerel JWT). KRİTİK açıklar kapatıldı: `inviteStaffAction` +
+    `deleteStaffAction` (giriş yapan HERKES personel silebiliyordu!) + `updateRoomTypePriceAction` +
+    `updateHotelProfileAction` + `updateReservationStatusAction` + `addPaymentAction` + create action'ları
+    rol kontrolüne bağlandı; 16 sayfaya sayfa-içi rol kontrolü (derinlemesine savunma). Canlıdaki hayalet
+    `role='manager'` kullanıcısı ("Yeni Personel", 0 kayıt) kullanıcı onayıyla SİLİNDİ.
+  - **Faz 2 Senkron:** `saveVariantsAction`'daki fire-and-forget `syncRates().catch()` (Vercel'de yanıt
+    dönünce ölüyordu → fiyat push'u çoğu kez hiç gitmiyordu) → awaited + `triggerAvailabilitySync` eklendi.
+    NOT: guest-site↔Channex zinciri zaten ~1-2 sn çalışıyor (doğrulandı) — tek boşluk buydu.
+  - **Faz 3 Rezervasyon:** yeni `src/lib/reservation-service.ts` — `createReservationCore` tek çekirdek;
+    4 admin yolu (standart form, walk-in, oda paneli occupancy + future) ona bağlandı (~300 satır kopya
+    silindi). Fiyat kuralı ihlali düzeltildi (form action'ları `base_price` kullanıyordu → motor
+    `rooms_with_effective_price`). 23P01 → `errors.roomConflictDates` dostça mesaj; `updateReservationAction`
+    tarih düzenlemede ön çakışma kontrolü. YENİ: `moveRoomAction` (konaklama ortası oda değiştirme, basit
+    model), `extendStayAction` (mevcut oda doluysa alternatif oda önerisi + taşı-ve-uzat),
+    `getMoveTargetsAction`, `StayTools.tsx` (detay sayfasında Uzat/Taşı). Fazla ödeme rozeti. `availability.ts`
+    iki kopya BAYT-EŞİT hizalandı (İngilizce yorum + MIRRORED başlık) + `scripts/check-availability-parity.mjs`.
+  - **Faz 4 Görünüm ("Yumuşak modern — sabit", kullanıcı seçimi):** renkler AYNEN korundu; --radius 10→16px,
+    ince-çizgi ring → sabit yumuşak katmanlı gölge (globals.css + dashboardTheme senkron), StatCard tonlu
+    ikon kutusu + 3xl rakam, hover hareket YASAK (yalnız renk). **"Bugün" dashboard'u:** 11 kart → 4 KPI çipi
+    (Giriş/Çıkış/Otelde/Kirli, tıklanabilir) + BUGÜN GİRİŞ listesi (tek tuş "Заселить") + BUGÜN ÇIKIŞ listesi
+    (bakiye + tek tuş "Выселить") + no-show adayları (tek tuş) + bekleyen/yarım-kayıt akordeonları + tam
+    genişlik oda ızgarası; admin finans kartları kaldırıldı → tek "Финансы →" şeridi (muhasebeci kartları
+    korur); temizlikçi temizlik-önce düzeni. Giriş/çıkış listeleri RPC'ye dokunmadan paralel sorgularla
+    (canlı DDL bloklu olduğundan migration 028 İPTAL edildi — gerek kalmadı). **MobileTabBar:** telefonda
+    altta sabit rol-bazlı gezinme (Bugün·Takvim·Odalar·Temizlik / rol varyantları).
+  - i18n: +31 anahtar × 3 dil (1194 × 3, tam parite). `pnpm build` ✓ (admin + guest).
+  - ✅ **Playwright doğrulaması (localhost prod build, gerçek admin girişi):** 8/8 kontrol PASS; masaüstü +
+    390px mobil ekran görüntüsü alındı; mobil kaydırma ~4-6 ekrandan **2.3 ekrana** indi; konsol hatası sıfır.
+  - ⚠️ Kullanıcıda: (1) `012b_recurring_bills_apply.sql`'i SQL Editor'den çalıştır; (2) commit push +
+    admin-panel yeniden deploy onayı; (3) telefonda alt çubuk + Bugün ekranı + push testi.
+
 ## Sonraki Adımlar
+- ⚠️ Canlıya uygula (SQL Editor): `docs/migrations/012b_recurring_bills_apply.sql` — /bills bunu bekliyor
+  (019 + 020'nin canlıda ZATEN uygulanmış olduğu 7 Temmuz'da doğrulandı; eski notlar bayattı).
+- ⚠️ admin-panel yeniden deploy (güvenlik + senkron + rezervasyon + yeni dashboard kodu canlıya gitsin);
+  guest-site deploy (availability.ts ayna güncellemesi — davranış değişikliği yok, yorum hizalaması).
 - Guest-site eksik oda fotoğrafları (101/102/103/301) + cephe/mutfak/resepsiyon/koridor common görselleri
   (kullanıcı çekip `photos-incoming/`e atınca `process-photos.mjs` çalıştırılır).
 - Faz 2 (3D): Anor Baba maskotu + dönen nar — `.glb` gelince (bkz. plan Faz 2). Video kullanılmayacak.
-- ⚠️ Canlıya uygula (SQL Editor): `019_reservation_no_overlap.sql` (önce çakışma kontrol sorgusu) +
-  `020_reservation_may_extend.sql`. Sonra admin-panel + guest-site yeniden deploy.
-- ⚠️ ÖNCELİK: admin-panel + guest-site yeniden deploy (oda tipi + tek-nokta fiyat senkronu kodu için).
-- ✅ Channex TAM ÇALIŞIYOR (016+017+018 canlı, env staging'de, müsaitlik + 6 fiyat senkronu doğrulandı).
+- ✅ Channex TAM ÇALIŞIYOR (016+017+018 canlı, env staging'de; 7 Temmuz: fiyat push artık anında).
 - Channex kullanıcıda kalan: Channex panelinde Booking.com/Airbnb bağla.
 - ✅ Google Cloud Vision kurulu.
-- ✅ Canlı DB doğrulaması (5 Tem): 013/014/015/016/017 uygulanmış. ⚠️ İSTİSNA: `recurring_bills` (012) canlıda
-  YOK görünüyor — `/bills` sayfası etkilenebilir; kontrol edilecek.
 - Payme/Click/Uzum gerçek entegrasyon — UI + endpoint hazır, sadece merchant credentials bekleniyor
 
 ## Deploy Bilgisi

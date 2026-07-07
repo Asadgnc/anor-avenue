@@ -6,6 +6,7 @@ import { redirect, notFound } from 'next/navigation'
 import { Link } from '@/i18n/navigation'
 import { getTranslations } from 'next-intl/server'
 import ReservationActions from './ReservationActions'
+import StayTools from './StayTools'
 import AddPaymentFormClient from './AddPaymentFormClient'
 import CreateRegistrationForm from './CreateRegistrationForm'
 import EditReservationFormClient from './EditReservationFormClient'
@@ -102,6 +103,7 @@ export default async function ReservationDetailPage({
   const supabase = await createClient()
   const auth = await getAuthClaims()
   if (!auth) redirect('/login')
+  if (!['admin', 'receptionist'].includes(auth.role)) redirect('/dashboard?blocked=1')
 
   const t = await getTranslations('reservations.detail')
   const tf = await getTranslations('reservations.detail.fields')
@@ -201,11 +203,14 @@ export default async function ReservationDetailPage({
         </div>
       </div>
 
-      {/* Yarı kayıt → tam kayıt tamamla */}
+      {/* Half registration → complete full registration */}
       {res.registration_pending && <CompleteRegistrationButton reservationId={id} />}
 
       {/* Actions (check-in / check-out / cancel / no-show) */}
       <ReservationActions reservationId={id} status={res.status} checkIn={res.check_in} />
+
+      {/* Stay tools: extend + move room */}
+      <StayTools reservationId={id} status={res.status} checkOut={res.check_out} />
 
       {/* Edit reservation */}
       {!['cancelled', 'no_show', 'checked_out'].includes(res.status) && (
@@ -249,6 +254,19 @@ export default async function ReservationDetailPage({
               </span>
             }
           />
+          {remaining < 0 && (
+            <Row
+              label={tf('overpaid')}
+              value={
+                <span
+                  className="inline-block rounded-full px-3 py-0.5 text-xs font-bold"
+                  style={{ backgroundColor: dash.blueLight, color: dash.blue }}
+                >
+                  {formatUZS(-remaining)}
+                </span>
+              }
+            />
+          )}
           {res.special_requests && (
             <Row label={tf('specialRequest')} value={res.special_requests} />
           )}

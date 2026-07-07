@@ -22,6 +22,7 @@ const ROLE_COLORS: Record<string, string> = {
 export default async function StaffPage() {
   const auth = await getAuthClaims()
   if (!auth) redirect('/login')
+  if (!['admin'].includes(auth.role)) redirect('/dashboard?blocked=1')
 
   const locale = await getLocale()
   const dateLocale = LOCALE_BCP47[locale] ?? 'ru-RU'

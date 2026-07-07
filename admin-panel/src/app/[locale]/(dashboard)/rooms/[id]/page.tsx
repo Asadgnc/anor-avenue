@@ -17,6 +17,7 @@ export default async function RoomDetailPage({
   const supabase = await createClient()
   const auth = await getAuthClaims()
   if (!auth) redirect('/login')
+  if (!['admin', 'receptionist'].includes(auth.role)) redirect('/dashboard?blocked=1')
 
   const t = await getTranslations('roomItems')
   const tFloor = await getTranslations('rooms.floors')

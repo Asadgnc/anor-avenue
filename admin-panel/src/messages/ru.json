@@ -194,7 +194,29 @@
     "financeSection": "Финансы",
     "todayRevenue": "Выручка сегодня",
     "monthRevenue": "Выручка за месяц",
-    "pendingPaymentsCount": "Ожидают оплаты"
+    "pendingPaymentsCount": "Ожидают оплаты",
+    "chipArrivals": "Приезд",
+    "chipDepartures": "Выезд",
+    "chipInHouse": "В отеле",
+    "chipDirty": "Грязные",
+    "financeLink": "Финансы и выручка →",
+    "today": {
+      "arrivalsSection": "Приезды сегодня",
+      "departuresSection": "Выезды сегодня",
+      "noShowSection": "Не приехали (просрочено)",
+      "checkInBtn": "Заселить",
+      "checkOutBtn": "Выселить",
+      "noShowBtn": "No-show",
+      "noArrivals": "Сегодня приездов нет",
+      "noDepartures": "Сегодня выездов нет",
+      "personCount": "{n} чел.",
+      "breakfastTag": "завтрак",
+      "expectedAt": "к {time}",
+      "balanceDue": "долг {amount}",
+      "confirmCheckIn": "Заселить: {name}?",
+      "confirmCheckOut": "Выселить: {name}?",
+      "confirmNoShow": "Отметить как не явившегося: {name}?"
+    }
   },
   "timesheet": {
     "title": "Табель учёта рабочего времени",
@@ -405,7 +427,8 @@
         "breakfast": "Завтрак",
         "mayExtend": "Статус выезда",
         "actualCheckIn": "Фактический заезд",
-        "actualCheckOut": "Фактический выезд"
+        "actualCheckOut": "Фактический выезд",
+        "overpaid": "Переплата (кредит)"
       },
       "breakfastIncluded": "Включён ✓",
       "breakfastNotIncluded": "Не включён",
@@ -451,7 +474,16 @@
         "checkIn": "Будет выполнен заезд. Продолжить?",
         "checkOut": "Будет выполнен выезд. Продолжить?"
       },
-      "errorPrefix": "Ошибка: "
+      "errorPrefix": "Ошибка: ",
+      "moveRoom": "Переселить в другой номер",
+      "extend": "Продлить проживание",
+      "newCheckOutLabel": "Новая дата выезда",
+      "chooseRoom": "Выберите номер",
+      "noFreeRooms": "Нет свободных номеров на эти даты",
+      "extendBlocked": "Текущий номер занят на эти даты. Свободные варианты (переезд + продление):",
+      "moveConfirm": "Гость будет переселён в номер {room}. Продолжить?",
+      "apply": "Применить",
+      "perNight": "за ночь"
     },
     "deletePayment": {
       "confirmDialog": "Отменить этот платёж? Запись сохранится как возврат.",
@@ -1306,6 +1338,7 @@
     "checkOutAfterCheckIn": "Дата выезда должна быть позже даты заезда.",
     "roomNotFound": "Номер не найден или неактивен.",
     "roomConflict": "Этот номер занят на выбранные даты ({code}). Выберите другие даты или номер.",
+    "roomConflictDates": "Номер занят в выбранные даты",
     "guestCreateFailed": "Не удалось создать гостя: {msg}",
     "reservationCreateFailed": "Не удалось создать бронь: {msg}",
     "reservationNotFound": "Бронь не найдена.",
@@ -1421,6 +1454,7 @@
       "testOk": "Связь установлена ✓",
       "resync": "Отправить всё заново",
       "resyncing": "Отправка…",
+      "resyncSummary": "Отправлено: доступность {availability} + цены {rates}",
       "lastSync": "Последняя синхронизация",
       "never": "ещё не было"
     }

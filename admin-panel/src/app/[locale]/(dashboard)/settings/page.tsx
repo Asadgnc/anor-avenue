@@ -30,6 +30,7 @@ interface HotelSettings {
 export default async function SettingsPage() {
   const auth = await getAuthClaims()
   if (!auth) redirect('/login')
+  if (!['admin'].includes(auth.role)) redirect('/dashboard?blocked=1')
 
   const t = await getTranslations('settings')
 

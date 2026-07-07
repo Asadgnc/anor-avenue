@@ -194,7 +194,29 @@
     "financeSection": "Moliya",
     "todayRevenue": "Bugungi tushum",
     "monthRevenue": "Oylik tushum",
-    "pendingPaymentsCount": "Toʻlov kutilmoqda"
+    "pendingPaymentsCount": "Toʻlov kutilmoqda",
+    "chipArrivals": "Kirish",
+    "chipDepartures": "Chiqish",
+    "chipInHouse": "Mehmonxonada",
+    "chipDirty": "Iflos",
+    "financeLink": "Moliya va tushum →",
+    "today": {
+      "arrivalsSection": "Bugungi kirishlar",
+      "departuresSection": "Bugungi chiqishlar",
+      "noShowSection": "Kelmaganlar (muddati o'tgan)",
+      "checkInBtn": "Joylashtirish",
+      "checkOutBtn": "Chiqarish",
+      "noShowBtn": "Kelmadi",
+      "noArrivals": "Bugun kirishlar yo'q",
+      "noDepartures": "Bugun chiqishlar yo'q",
+      "personCount": "{n} kishi",
+      "breakfastTag": "nonushta",
+      "expectedAt": "{time} da",
+      "balanceDue": "qarz {amount}",
+      "confirmCheckIn": "Joylashtirilsinmi: {name}?",
+      "confirmCheckOut": "Chiqarilsinmi: {name}?",
+      "confirmNoShow": "Kelmagan deb belgilansinmi: {name}?"
+    }
   },
   "reservations": {
     "calendar": {
@@ -304,7 +326,8 @@
         "breakfast": "Nonushta",
         "mayExtend": "Chiqish holati",
         "actualCheckIn": "Haqiqiy kirish",
-        "actualCheckOut": "Haqiqiy chiqish"
+        "actualCheckOut": "Haqiqiy chiqish",
+        "overpaid": "Ortiqcha to'lov (kredit)"
       },
       "breakfastIncluded": "Kiritilgan ✓",
       "breakfastNotIncluded": "Kiritilmagan",
@@ -350,7 +373,16 @@
         "checkIn": "Kirish amalga oshiriladi. Davom etilsinmi?",
         "checkOut": "Chiqish amalga oshiriladi. Davom etilsinmi?"
       },
-      "errorPrefix": "Xatolik: "
+      "errorPrefix": "Xatolik: ",
+      "moveRoom": "Boshqa xonaga ko'chirish",
+      "extend": "Muddatni uzaytirish",
+      "newCheckOutLabel": "Yangi chiqish sanasi",
+      "chooseRoom": "Xonani tanlang",
+      "noFreeRooms": "Bu sanalarda bo'sh xona yo'q",
+      "extendBlocked": "Joriy xona bu sanalarda band. Bo'sh variantlar (ko'chirish + uzaytirish):",
+      "moveConfirm": "Mehmon {room}-xonaga ko'chiriladi. Davom etilsinmi?",
+      "apply": "Qo'llash",
+      "perNight": "bir kecha uchun"
     },
     "deletePayment": {
       "confirmDialog": "Bu to'lov bekor qilinsinmi? Yozuv qaytarilgan sifatida saqlanadi.",
@@ -1306,6 +1338,7 @@
     "checkOutAfterCheckIn": "Chiqish sanasi kirish sanasidan keyin boʻlishi kerak.",
     "roomNotFound": "Xona topilmadi yoki faol emas.",
     "roomConflict": "Bu xona tanlangan sanalarga band ({code}). Boshqa sana yoki xona tanlang.",
+    "roomConflictDates": "Tanlangan sanalarda xona band",
     "guestCreateFailed": "Mehmon yaratib boʻlmadi: {msg}",
     "reservationCreateFailed": "Bron yaratib boʻlmadi: {msg}",
     "reservationNotFound": "Bron topilmadi.",
@@ -1421,6 +1454,7 @@
       "testOk": "Aloqa o'rnatildi ✓",
       "resync": "Hammasini qayta yuborish",
       "resyncing": "Yuborilmoqda…",
+      "resyncSummary": "Yuborildi: bandlik {availability} + narxlar {rates}",
       "lastSync": "Oxirgi sinxronlash",
       "never": "hali bo'lmagan"
     }

@@ -3,24 +3,14 @@
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import { getTranslations } from 'next-intl/server'
-import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase'
+import { requireRole } from '@/lib/require-role'
 import { testConnection } from '@/lib/channex'
-import { syncAll, syncRates } from '@/lib/channex-sync'
-
-// Sadece admin/manager Channex ayarlarını değiştirebilir.
-async function requireManager() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { ok: false as const, reason: 'session' }
-  const role = (user.user_metadata?.role as string | undefined) ?? ''
-  if (role !== 'admin') return { ok: false as const, reason: 'forbidden' }
-  return { ok: true as const }
-}
+import { syncAll, syncRates, triggerAvailabilitySync } from '@/lib/channex-sync'
 
 export type ChannexActionState = { error?: string; success?: boolean; message?: string }
 
-// ─── Varyant aç/kapa (fiyat DEĞİL — fiyat oda tipi ayarlarından gelir) ───────
+// ─── Variant enable/disable (NOT price — price comes from room type settings) ─
 
 const variantsSchema = z.array(
   z.object({
@@ -34,8 +24,8 @@ export async function saveVariantsAction(
   formData: FormData,
 ): Promise<ChannexActionState> {
   const t = await getTranslations('errors')
-  const auth = await requireManager()
-  if (!auth.ok) return { error: t(auth.reason === 'forbidden' ? 'forbidden' : 'sessionInvalid') }
+  const auth = await requireRole('admin')
+  if (!auth.ok) return { error: auth.error }
 
   let payload: unknown
   try { payload = JSON.parse(String(formData.get('payload') ?? '[]')) } catch { return { error: t('invalidData') } }
@@ -52,38 +42,47 @@ export async function saveVariantsAction(
   }
 
   revalidatePath('/settings')
-  // Aç/kapa değişince müsaitlik + fiyatları yeniden gönder (env yoksa no-op)
+
+  // Re-push rates AND availability when variants are toggled (no-op without env).
+  // Awaited: on Vercel a fire-and-forget promise is killed when the response
+  // returns, so the push would often never reach Channex.
   const from = new Date().toISOString().slice(0, 10)
   const to = new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10)
-  syncRates(from, to).catch((e) => console.error('[channex] rate sync failed:', e))
+  try {
+    const rateResult = await syncRates(from, to)
+    if (rateResult.error) console.error('[channex] rate sync failed:', rateResult.error)
+  } catch (e) {
+    console.error('[channex] rate sync failed:', e)
+  }
+  await triggerAvailabilitySync()
+
   return { success: true }
 }
 
-// ─── Bağlantı testi ─────────────────────────────────────────────────────────
+// ─── Connection test ─────────────────────────────────────────────────────────
 
 export async function testChannexConnectionAction(
   _prev: ChannexActionState,
 ): Promise<ChannexActionState> {
-  const t = await getTranslations('errors')
-  const auth = await requireManager()
-  if (!auth.ok) return { error: t(auth.reason === 'forbidden' ? 'forbidden' : 'sessionInvalid') }
+  const auth = await requireRole('admin')
+  if (!auth.ok) return { error: auth.error }
 
   const res = await testConnection()
   if (!res.ok) return { error: res.error || `HTTP ${res.status}` }
   return { success: true, message: 'OK' }
 }
 
-// ─── Tam yeniden gönder ─────────────────────────────────────────────────────
+// ─── Full resync ─────────────────────────────────────────────────────────────
 
 export async function fullResyncAction(
   _prev: ChannexActionState,
 ): Promise<ChannexActionState> {
-  const t = await getTranslations('errors')
-  const auth = await requireManager()
-  if (!auth.ok) return { error: t(auth.reason === 'forbidden' ? 'forbidden' : 'sessionInvalid') }
+  const auth = await requireRole('admin')
+  if (!auth.ok) return { error: auth.error }
 
+  const tc = await getTranslations('channex.connect')
   const summary = await syncAll(365)
-  if (!summary.configured) return { error: 'Channex API key yok' }
+  if (!summary.configured) return { error: tc('notConfigured') }
   if (!summary.ok) return { error: summary.error || 'sync failed' }
 
   const service = createServiceClient()
@@ -91,6 +90,9 @@ export async function fullResyncAction(
   revalidatePath('/settings')
   return {
     success: true,
-    message: `${summary.availabilityPushed} müsaitlik + ${summary.ratesPushed} fiyat gönderildi`,
+    message: tc('resyncSummary', {
+      availability: summary.availabilityPushed,
+      rates: summary.ratesPushed,
+    }),
   }
 }

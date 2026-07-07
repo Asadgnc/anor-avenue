@@ -194,7 +194,29 @@
     "financeSection": "Молия",
     "todayRevenue": "Бугунги тушум",
     "monthRevenue": "Ойлик тушум",
-    "pendingPaymentsCount": "Тўлов кутилмоқда"
+    "pendingPaymentsCount": "Тўлов кутилмоқда",
+    "chipArrivals": "Кириш",
+    "chipDepartures": "Чиқиш",
+    "chipInHouse": "Меҳмонхонада",
+    "chipDirty": "Ифлос",
+    "financeLink": "Молия ва тушум →",
+    "today": {
+      "arrivalsSection": "Бугунги киришлар",
+      "departuresSection": "Бугунги чиқишлар",
+      "noShowSection": "Келмаганлар (муддати ўтган)",
+      "checkInBtn": "Жойлаштириш",
+      "checkOutBtn": "Чиқариш",
+      "noShowBtn": "Келмади",
+      "noArrivals": "Бугун киришлар йўқ",
+      "noDepartures": "Бугун чиқишлар йўқ",
+      "personCount": "{n} киши",
+      "breakfastTag": "нонушта",
+      "expectedAt": "{time} да",
+      "balanceDue": "қарз {amount}",
+      "confirmCheckIn": "Жойлаштирилсинми: {name}?",
+      "confirmCheckOut": "Чиқарилсинми: {name}?",
+      "confirmNoShow": "Келмаган деб белгилансинми: {name}?"
+    }
   },
   "reservations": {
     "calendar": {
@@ -304,7 +326,8 @@
         "breakfast": "Нонушта",
         "mayExtend": "Чиқиш ҳолати",
         "actualCheckIn": "Ҳақиқий кириш",
-        "actualCheckOut": "Ҳақиқий чиқиш"
+        "actualCheckOut": "Ҳақиқий чиқиш",
+        "overpaid": "Ортиқча тўлов (кредит)"
       },
       "breakfastIncluded": "Киритилган ✓",
       "breakfastNotIncluded": "Киритилмаган",
@@ -350,7 +373,16 @@
         "checkIn": "Кириш амалга оширилади. Давом этилсинми?",
         "checkOut": "Чиқиш амалга оширилади. Давом этилсинми?"
       },
-      "errorPrefix": "Хатолик: "
+      "errorPrefix": "Хатолик: ",
+      "moveRoom": "Бошқа хонага кўчириш",
+      "extend": "Муддатни узайтириш",
+      "newCheckOutLabel": "Янги чиқиш санаси",
+      "chooseRoom": "Хонани танланг",
+      "noFreeRooms": "Бу саналарда бўш хона йўқ",
+      "extendBlocked": "Жорий хона бу саналарда банд. Бўш вариантлар (кўчириш + узайтириш):",
+      "moveConfirm": "Меҳмон {room}-хонага кўчирилади. Давом этилсинми?",
+      "apply": "Қўллаш",
+      "perNight": "бир кеча учун"
     },
     "deletePayment": {
       "confirmDialog": "Бу тўлов бекор қилинсинми? Ёзув қайтарилган сифатида сақланади.",
@@ -1306,6 +1338,7 @@
     "checkOutAfterCheckIn": "Чиқиш санаси кириш санасидан кейин бўлиши керак.",
     "roomNotFound": "Хона топилмади ёки фаол эмас.",
     "roomConflict": "Бу хона танланган саналарга банд ({code}). Бошқа сана ёки хона танланг.",
+    "roomConflictDates": "Танланган саналарда хона банд",
     "guestCreateFailed": "Меҳмон яратиб бўлмади: {msg}",
     "reservationCreateFailed": "Брон яратиб бўлмади: {msg}",
     "reservationNotFound": "Брон топилмади.",
@@ -1421,6 +1454,7 @@
       "testOk": "Алоқа ўрнатилди ✓",
       "resync": "Ҳаммасини қайта юбориш",
       "resyncing": "Юборилмоқда…",
+      "resyncSummary": "Юборилди: бандлик {availability} + нархлар {rates}",
       "lastSync": "Охирги синхронлаш",
       "never": "ҳали бўлмаган"
     }

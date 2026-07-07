@@ -1,18 +1,20 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Akıllı Müsaitlik + Oda Kombinasyon Motoru (server-safe, saf mantık)
+// MIRRORED FILE — admin-panel/src/lib/availability.ts and
+// guest-site/src/lib/availability.ts must stay BYTE-IDENTICAL.
+// Edit both copies together and run: node scripts/check-availability-parity.mjs
+// (the two apps deploy separately on Vercel, so a shared package is not used).
 //
-// guest-site/src/lib/availability.ts ile birebir aynı motor — admin panelinde
-// dashboard oda panelinin çok-odalı giriş/rezervasyon önerileri için port edildi.
+// Smart availability + room-combination engine (server-safe, pure logic).
+// Given dates + party size it ranks ALL valid room combinations by real
+// date-based availability, cheapest total first.
 //
-// Tarih + kişi sayısı girince, tarih-bazlı gerçek müsaitliğe göre TÜM geçerli oda
-// kombinasyonlarını en ucuz toplamdan pahalıya sıralar.
+// Price source: the `rooms_with_effective_price` view
+// (COALESCE(price_override, base_price)) — NEVER raw base_price.
+// Capacity source: `channex_variants.occupancy` (via rooms.channex_variant_id),
+// falling back to room_types.max_occupancy. This touches neither the SECURITY
+// DEFINER price view nor any new view.
 //
-// Fiyat kaynağı: `rooms_with_effective_price` view'i (COALESCE(price_override,
-// base_price)). Kapasite kaynağı: `channex_variants.occupancy` (rooms.channex_
-// variant_id FK ile), yoksa room_types.max_occupancy. Böylece SECURITY DEFINER
-// fiyat view'ine dokunmadan, ayrıca yeni bir view'e bağımlı olmadan çalışır.
-//
-// `computeOffers` saf ve DB'siz → birim testi kolaydır.
+// `computeOffers` is pure and DB-free → easy to unit-test.
 // ─────────────────────────────────────────────────────────────────────────────
 
 import type { SupabaseClient } from '@supabase/supabase-js'
@@ -42,7 +44,7 @@ export interface Offer {
   roomCount: number
   totalCapacity: number
   perNightPrice: number
-  totalPrice: number // tüm konaklama (perNight * nights)
+  totalPrice: number // whole stay (perNight * nights)
   waste: number // totalCapacity - partySize
   exactFit: boolean
 }
@@ -52,9 +54,9 @@ export interface AvailabilityResult {
   partySize: number
   status: 'ok' | 'insufficient'
   offers: Offer[]
-  freeCapacity: number // FREE odaların toplam kapasitesi
-  totalCapacity: number // aktif tüm odaların toplam kapasitesi
-  partial: Offer | null // status='insufficient' iken ağırlanabilecek en büyük küme
+  freeCapacity: number // combined capacity of FREE rooms
+  totalCapacity: number // combined capacity of all active rooms
+  partial: Offer | null // when status='insufficient': the largest hostable set
 }
 
 const TYPE_SLUG_MAP: Record<string, TypeSlug> = {
@@ -63,10 +65,10 @@ const TYPE_SLUG_MAP: Record<string, TypeSlug> = {
   Luxury: 'luxury',
 }
 
-// Kaç teklif gösterilecek (sıralama sonrası)
+// How many offers to show (after sorting)
 const MAX_OFFERS = 8
 
-// ─── DB satır tipleri (dar) ──────────────────────────────────────────────────
+// ─── Narrow DB row types ─────────────────────────────────────────────────────
 
 interface PriceRow {
   id: string
@@ -88,8 +90,8 @@ interface CapacityRow {
 }
 
 /**
- * Aktif odaların id → kapasite haritasını döner. Kapasite önce channex
- * varyantından (gerçek fiziksel kapasite), yoksa oda tipinden alınır.
+ * Returns the id → capacity map for active rooms. Capacity comes from the
+ * channex variant first (real physical capacity), else from the room type.
  */
 export async function fetchRoomCapacities(
   client: SupabaseClient
@@ -109,9 +111,10 @@ export async function fetchRoomCapacities(
 }
 
 /**
- * Verilen tarihler için tüm aktif odaları, kapasite + durum (FREE/BLOCKED) ile
- * yükler. Çakışma testi yarı-açık aralık: res.check_in < checkOut && res.check_out
- * > checkIn (odanın çıkış günü = yeni girişin günü çakışma DEĞİLDİR).
+ * Loads all active rooms for the given dates with capacity + state
+ * (FREE/BLOCKED). Conflict test uses the half-open interval:
+ * res.check_in < checkOut && res.check_out > checkIn (a room's checkout day
+ * equals the new check-in day WITHOUT conflicting).
  */
 export async function loadBookableRooms(
   client: SupabaseClient,
@@ -143,8 +146,8 @@ export async function loadBookableRooms(
 
   const blocked = new Set((conflicts ?? []).map((c) => c.room_id as string))
 
-  // UNCERTAIN: devir günü (çıkış == istenen giriş) boşalacak ama misafir
-  // "uzatabilir" işaretli odalar → riskli, öneride gösterilmez.
+  // UNCERTAIN: rooms freeing up on the turnover day (checkout == requested
+  // check-in) whose guest is flagged "may extend" → risky, never offered.
   const uncertain = new Set<string>()
   const { data: extRows, error: extErr } = await client
     .from('reservations')
@@ -174,7 +177,7 @@ export async function loadBookableRooms(
   }))
 }
 
-// ─── Saf kombinasyon mantığı (DB'siz, test edilebilir) ───────────────────────
+// ─── Pure combination logic (DB-free, testable) ──────────────────────────────
 
 function makeOffer(rooms: BookableRoom[], partySize: number, nights: number): Offer {
   const totalCapacity = rooms.reduce((s, r) => s + r.capacity, 0)
@@ -190,7 +193,7 @@ function makeOffer(rooms: BookableRoom[], partySize: number, nights: number): Of
   }
 }
 
-/** Aynı "şekildeki" (tip + fiyat çokluğu) teklifleri ayırt eden imza. */
+/** Signature distinguishing offers of the same "shape" (type + price multiset). */
 function offerSignature(offer: Offer): string {
   return offer.rooms
     .map((r) => `${r.typeSlug}:${r.capacity}:${r.pricePerNight}`)
@@ -199,12 +202,12 @@ function offerSignature(offer: Offer): string {
 }
 
 /**
- * FREE odalardan, partySize'ı karşılayan MİNİMAL kombinasyonları üretir
- * (herhangi bir oda çıkarılınca kapasite partySize altına düşmeli → israf yok),
- * en ucuz toplamdan pahalıya sıralar ve benzerleri tekilleştirip ilk MAX_OFFERS
- * tanesini döner.
+ * From FREE rooms, builds the MINIMAL combinations covering partySize
+ * (removing any room must drop capacity below partySize → no waste), sorts
+ * cheapest total first, dedupes similar shapes and returns the first
+ * MAX_OFFERS.
  *
- * ≤12 oda için 2^12 = 4096 alt küme taranır → milisaniyeler.
+ * For ≤12 rooms it scans 2^12 = 4096 subsets → milliseconds.
  */
 export function computeOffers(
   rooms: BookableRoom[],
@@ -228,7 +231,7 @@ export function computeOffers(
     }
     if (cap < partySize) continue
 
-    // Minimallik: her odayı tek tek çıkarınca kapasite eşiğin altına düşmeli
+    // Minimality: removing any single room must drop capacity below the threshold
     let minimal = true
     for (const r of subset) {
       if (cap - r.capacity >= partySize) {
@@ -241,7 +244,7 @@ export function computeOffers(
     minimalCovers.push(makeOffer(subset, partySize, nights))
   }
 
-  // Sırala: en ucuz toplam → az oda → az israf
+  // Sort: cheapest total → fewer rooms → less waste
   minimalCovers.sort(
     (a, b) =>
       a.totalPrice - b.totalPrice ||
@@ -249,7 +252,7 @@ export function computeOffers(
       a.waste - b.waste
   )
 
-  // Benzer şekilli tekliflerden en ucuzunu tut
+  // Keep the cheapest of similarly shaped offers
   const seen = new Set<string>()
   const unique: Offer[] = []
   for (const offer of minimalCovers) {
@@ -263,7 +266,7 @@ export function computeOffers(
   return unique
 }
 
-/** status='insufficient' iken: FREE odaların en ucuz sıralı tümü (max ağırlama). */
+/** When status='insufficient': all FREE rooms cheapest-first (max hosting). */
 function buildPartial(rooms: BookableRoom[], partySize: number, nights: number): Offer | null {
   const free = rooms
     .filter((r) => r.state === 'FREE')
@@ -272,7 +275,7 @@ function buildPartial(rooms: BookableRoom[], partySize: number, nights: number):
   return makeOffer(free, partySize, nights)
 }
 
-// ─── Orkestrasyon ────────────────────────────────────────────────────────────
+// ─── Orchestration ───────────────────────────────────────────────────────────
 
 export function nightsBetween(checkIn: string, checkOut: string): number {
   return Math.round(

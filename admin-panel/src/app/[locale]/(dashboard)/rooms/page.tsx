@@ -10,6 +10,7 @@ export default async function RoomsPage() {
   const supabase = await createClient()
   const auth = await getAuthClaims()
   if (!auth) redirect('/login')
+  if (!['admin', 'receptionist'].includes(auth.role)) redirect('/dashboard?blocked=1')
 
   const role = auth.role || 'receptionist'
 

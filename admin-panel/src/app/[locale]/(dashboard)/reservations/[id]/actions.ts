@@ -3,10 +3,18 @@
 import { z } from 'zod'
 import { revalidatePath } from 'next/cache'
 import { getTranslations } from 'next-intl/server'
-import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase'
+import { requireRole } from '@/lib/require-role'
 import { triggerAvailabilitySync } from '@/lib/channex-sync'
+import { loadBookableRooms, nightsBetween } from '@/lib/availability'
+import { isOverlapViolation } from '@/lib/reservation-service'
 import type { ReservationStatus } from '@/types/hotel'
+
+const ACTIVE_STATUSES = ['pending', 'confirmed', 'checked_in'] as const
+
+function todayStr(): string {
+  return new Date().toISOString().split('T')[0]
+}
 
 // ─── Edit reservation ────────────────────────────────────────────────────────
 
@@ -35,9 +43,8 @@ export async function updateReservationAction(
   formData: FormData
 ): Promise<UpdateResState> {
   const te = await getTranslations('errors')
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: te('sessionInvalid') }
+  const auth = await requireRole('admin', 'receptionist')
+  if (!auth.ok) return { error: auth.error }
 
   const parsed = updateResSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) {
@@ -54,6 +61,26 @@ export async function updateReservationAction(
   const totalAmount = d.roomRate * nights
 
   const service = createServiceClient()
+
+  // Re-check conflicts for the new dates (excluding this reservation) so the
+  // user gets a friendly message instead of a raw DB constraint error.
+  const { data: current } = await service
+    .from('reservations')
+    .select('room_id')
+    .eq('id', reservationId)
+    .single()
+  if (!current) return { error: te('reservationNotFound') }
+
+  const { data: conflicts } = await service
+    .from('reservations')
+    .select('id')
+    .eq('room_id', current.room_id)
+    .neq('id', reservationId)
+    .in('status', [...ACTIVE_STATUSES])
+    .lt('check_in', d.checkOut)
+    .gt('check_out', d.checkIn)
+  if (conflicts && conflicts.length > 0) return { error: te('roomConflictDates') }
+
   const { error } = await service
     .from('reservations')
     .update({
@@ -71,7 +98,11 @@ export async function updateReservationAction(
     })
     .eq('id', reservationId)
 
-  if (error) return { error: error.message }
+  if (error) {
+    // Race: the DB EXCLUDE constraint (019) caught an overlap the check missed
+    if (isOverlapViolation(error)) return { error: te('roomConflictDates') }
+    return { error: error.message }
+  }
 
   await triggerAvailabilitySync()
 
@@ -87,13 +118,8 @@ export async function cancelPaymentAction(
   paymentId: string,
   reservationId: string
 ): Promise<{ error?: string }> {
-  const te = await getTranslations('errors')
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: te('sessionInvalid') }
-
-  const role = (user.user_metadata?.role as string | undefined) ?? ''
-  if (!['admin', 'accountant', 'receptionist'].includes(role)) return { error: te('forbidden') }
+  const auth = await requireRole('admin', 'accountant', 'receptionist')
+  if (!auth.ok) return { error: auth.error }
 
   // Payments are never deleted (accounting integrity). Mark as refunded + who/when.
   const service = createServiceClient()
@@ -102,7 +128,7 @@ export async function cancelPaymentAction(
     .update({
       status: 'refunded',
       cancelled_at: new Date().toISOString(),
-      cancelled_by: user.id,
+      cancelled_by: auth.userId,
     })
     .eq('id', paymentId)
   if (error) return { error: error.message }
@@ -118,10 +144,8 @@ export async function updateReservationStatusAction(
   reservationId: string,
   newStatus: ReservationStatus
 ): Promise<{ error?: string }> {
-  const te = await getTranslations('errors')
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: te('sessionInvalid') }
+  const auth = await requireRole('admin', 'receptionist')
+  if (!auth.ok) return { error: auth.error }
 
   const service = createServiceClient()
 
@@ -178,9 +202,8 @@ export async function addPaymentAction(
   formData: FormData
 ): Promise<AddPaymentState> {
   const te = await getTranslations('errors')
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) return { error: te('sessionInvalid') }
+  const auth = await requireRole('admin', 'receptionist', 'accountant')
+  if (!auth.ok) return { error: auth.error }
 
   const parsed = paymentSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) {
@@ -195,7 +218,7 @@ export async function addPaymentAction(
   const service = createServiceClient()
 
   // If the user has a profile, record received_by (otherwise null)
-  const { data: profile } = await service.from('profiles').select('id').eq('id', user.id).single()
+  const { data: profile } = await service.from('profiles').select('id').eq('id', auth.userId).single()
 
   const { error } = await service.from('payments').insert({
     reservation_id: reservationId,
@@ -205,7 +228,7 @@ export async function addPaymentAction(
     revenue_category: parsed.data.revenue_category,
     status: 'completed',
     paid_at: new Date().toISOString(),
-    received_by: profile ? user.id : null,
+    received_by: profile ? auth.userId : null,
     notes: parsed.data.notes || null,
   })
 
@@ -213,5 +236,211 @@ export async function addPaymentAction(
 
   revalidatePath(`/reservations/${reservationId}`)
   revalidatePath('/payments')
+  return { success: true }
+}
+
+// ─── Stay tools: room move + extension ───────────────────────────────────────
+// MVP semantics (owner-approved): a move updates room_id on the SAME record
+// (no split rows / per-room night history); the rate stays as-is and can be
+// edited separately. An extension first tries the current room; if it is
+// booked, the UI offers alternative rooms that are free for the whole
+// remaining window (move now + extend).
+
+export interface MoveTarget {
+  roomId: string
+  roomNumber: string
+  pricePerNight: number
+  capacity: number
+}
+
+interface StayRow {
+  id: string
+  room_id: string
+  check_in: string
+  check_out: string
+  status: string
+  adults: number
+  room_rate: number
+  notes: string | null
+  rooms: { room_number: string } | null
+}
+
+async function loadStay(
+  service: ReturnType<typeof createServiceClient>,
+  reservationId: string
+): Promise<StayRow | null> {
+  const { data } = await service
+    .from('reservations')
+    .select('id, room_id, check_in, check_out, status, adults, room_rate, notes, rooms(room_number)')
+    .eq('id', reservationId)
+    .single()
+  return (data as unknown as StayRow) ?? null
+}
+
+/** The remaining occupancy window: from today for in-house stays, else from check-in. */
+function stayWindowStart(stay: StayRow): string {
+  const today = todayStr()
+  return stay.status === 'checked_in' && stay.check_in < today ? today : stay.check_in
+}
+
+/**
+ * Rooms this stay could move into (free for the whole remaining window,
+ * big enough for the party). Also used to offer alternatives when extending.
+ */
+export async function getMoveTargetsAction(
+  reservationId: string,
+  newCheckOut?: string
+): Promise<{ error?: string; targets?: MoveTarget[] }> {
+  const te = await getTranslations('errors')
+  const auth = await requireRole('admin', 'receptionist')
+  if (!auth.ok) return { error: auth.error }
+  if (!z.string().uuid().safeParse(reservationId).success) return { error: te('invalidData') }
+
+  const service = createServiceClient()
+  const stay = await loadStay(service, reservationId)
+  if (!stay || !(ACTIVE_STATUSES as readonly string[]).includes(stay.status)) {
+    return { error: te('reservationNotFound') }
+  }
+
+  const windowEnd = newCheckOut && newCheckOut > stay.check_out ? newCheckOut : stay.check_out
+  const rooms = await loadBookableRooms(service, stayWindowStart(stay), windowEnd)
+
+  const targets = rooms
+    .filter((r) => r.id !== stay.room_id && r.state === 'FREE' && r.capacity >= stay.adults)
+    .sort((a, b) => a.pricePerNight - b.pricePerNight)
+    .map((r) => ({
+      roomId: r.id,
+      roomNumber: r.roomNumber,
+      pricePerNight: r.pricePerNight,
+      capacity: r.capacity,
+    }))
+
+  return { targets }
+}
+
+export async function moveRoomAction(
+  reservationId: string,
+  newRoomId: string,
+  newCheckOut?: string
+): Promise<{ error?: string; success?: boolean }> {
+  const te = await getTranslations('errors')
+  const auth = await requireRole('admin', 'receptionist')
+  if (!auth.ok) return { error: auth.error }
+  if (
+    !z.string().uuid().safeParse(reservationId).success ||
+    !z.string().uuid().safeParse(newRoomId).success ||
+    (newCheckOut !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(newCheckOut))
+  ) {
+    return { error: te('invalidData') }
+  }
+
+  const service = createServiceClient()
+  const stay = await loadStay(service, reservationId)
+  if (!stay || !(ACTIVE_STATUSES as readonly string[]).includes(stay.status)) {
+    return { error: te('reservationNotFound') }
+  }
+  if (newRoomId === stay.room_id) return { error: te('invalidData') }
+
+  const targetCheckOut = newCheckOut && newCheckOut > stay.check_out ? newCheckOut : stay.check_out
+  const windowStart = stayWindowStart(stay)
+
+  const rooms = await loadBookableRooms(service, windowStart, targetCheckOut)
+  const target = rooms.find((r) => r.id === newRoomId)
+  if (!target) return { error: te('roomNotFound') }
+  if (target.state !== 'FREE') return { error: te('roomConflict', { code: target.roomNumber }) }
+  if (target.capacity < stay.adults) return { error: te('capacityInsufficient') }
+
+  const nights = Math.max(1, nightsBetween(stay.check_in, targetCheckOut))
+  const moveNote = `${stay.rooms?.room_number ?? '?'} → ${target.roomNumber} (${todayStr()})`
+
+  const { error } = await service
+    .from('reservations')
+    .update({
+      room_id: newRoomId,
+      check_out: targetCheckOut,
+      total_amount: stay.room_rate * nights,
+      notes: stay.notes ? `${stay.notes}\n${moveNote}` : moveNote,
+    })
+    .eq('id', reservationId)
+
+  if (error) {
+    if (isOverlapViolation(error)) return { error: te('roomConflict', { code: target.roomNumber }) }
+    return { error: error.message }
+  }
+
+  // Room status side effects only when the guest is physically in-house
+  if (stay.status === 'checked_in') {
+    await service.from('rooms').update({ status: 'available', cleaning_status: 'dirty' }).eq('id', stay.room_id)
+    await service.from('rooms').update({ status: 'occupied' }).eq('id', newRoomId)
+  }
+
+  await triggerAvailabilitySync()
+
+  revalidatePath(`/reservations/${reservationId}`)
+  revalidatePath('/reservations')
+  revalidatePath('/dashboard')
+  return { success: true }
+}
+
+export type ExtendStayResult = {
+  error?: string
+  success?: boolean
+  /** Set when the current room is booked: rooms free for the whole remaining window. */
+  alternatives?: MoveTarget[]
+}
+
+export async function extendStayAction(
+  reservationId: string,
+  newCheckOut: string
+): Promise<ExtendStayResult> {
+  const te = await getTranslations('errors')
+  const auth = await requireRole('admin', 'receptionist')
+  if (!auth.ok) return { error: auth.error }
+  if (
+    !z.string().uuid().safeParse(reservationId).success ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(newCheckOut)
+  ) {
+    return { error: te('invalidData') }
+  }
+
+  const service = createServiceClient()
+  const stay = await loadStay(service, reservationId)
+  if (!stay || !(ACTIVE_STATUSES as readonly string[]).includes(stay.status)) {
+    return { error: te('reservationNotFound') }
+  }
+  if (newCheckOut <= stay.check_out) return { error: te('checkOutAfterCheckIn') }
+
+  // Is the current room free for the added nights?
+  const { data: conflicts } = await service
+    .from('reservations')
+    .select('id')
+    .eq('room_id', stay.room_id)
+    .neq('id', reservationId)
+    .in('status', [...ACTIVE_STATUSES])
+    .lt('check_in', newCheckOut)
+    .gt('check_out', stay.check_out)
+
+  if (conflicts && conflicts.length > 0) {
+    // Blocked → offer rooms that are free for the WHOLE remaining window (move + extend)
+    const alt = await getMoveTargetsAction(reservationId, newCheckOut)
+    return { alternatives: alt.targets ?? [] }
+  }
+
+  const nights = Math.max(1, nightsBetween(stay.check_in, newCheckOut))
+  const { error } = await service
+    .from('reservations')
+    .update({ check_out: newCheckOut, total_amount: stay.room_rate * nights })
+    .eq('id', reservationId)
+
+  if (error) {
+    if (isOverlapViolation(error)) return { error: te('roomConflictDates') }
+    return { error: error.message }
+  }
+
+  await triggerAvailabilitySync()
+
+  revalidatePath(`/reservations/${reservationId}`)
+  revalidatePath('/reservations')
+  revalidatePath('/dashboard')
   return { success: true }
 }

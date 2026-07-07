@@ -22,6 +22,7 @@ export default async function HousekeepingPage() {
   const supabase = await createClient()
   const auth = await getAuthClaims()
   if (!auth) redirect('/login')
+  if (!['admin', 'receptionist', 'housekeeper'].includes(auth.role)) redirect('/dashboard?blocked=1')
 
   const role = auth.role || 'receptionist'
   const t = await getTranslations('housekeeping')

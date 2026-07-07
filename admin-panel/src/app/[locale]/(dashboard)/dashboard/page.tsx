@@ -8,21 +8,20 @@ import {
   TrendingUp,
   LogIn,
   LogOut,
-  CalendarPlus,
   AlertCircle,
-  LayoutGrid,
   BedDouble,
   Users,
-  DoorOpen,
-  DoorClosed,
   Receipt,
   Wallet,
+  Sparkles,
+  ChevronRight,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import StatCard from '@/components/admin/StatCard'
 import RoomStatusGrid, { type RoomStatusRow } from '@/components/admin/RoomStatusGrid'
 import RecentBookingsList, { type RecentBooking } from '@/components/admin/RecentBookingsList'
 import CleaningStatusCards from '@/components/admin/CleaningStatusCards'
+import TodayActionList, { type TodayRow } from '@/components/admin/TodayActionList'
 
 // ─── Helpers ───────────────────────────────────────────────────────────────
 
@@ -34,11 +33,6 @@ const LOCALE_BCP47: Record<string, string> = {
 
 function toDateStr(d: Date): string {
   return d.toISOString().split('T')[0]
-}
-
-function delta(curr: number, prev: number): number {
-  if (prev === 0) return curr > 0 ? 100 : 0
-  return ((curr - prev) / prev) * 100
 }
 
 function formatUZS(n: number): string {
@@ -108,6 +102,18 @@ interface DashboardData {
   finance: { todayRevenue: number; monthRevenue: number; pendingPayments: number }
 }
 
+// Row shape for the arrivals / departures / no-show queries
+interface StayQueryRow {
+  id: string
+  reservation_code: string
+  adults: number
+  total_amount: number
+  breakfast_included: boolean | null
+  expected_check_in_time: string | null
+  rooms: { room_number: string } | null
+  guests: { first_name: string | null; last_name: string | null } | null
+}
+
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function DashboardPage({
@@ -131,23 +137,82 @@ export default async function DashboardPage({
   const t = await getTranslations('dashboard')
 
   const todayStr = toDateStr(new Date())
-  const tomorrowStr = toDateStr(new Date(Date.now() + 24 * 60 * 60 * 1000))
 
-  // Tüm dashboard verisi tek round-trip: get_dashboard_data (RLS geçerli)
+  // All base dashboard data in one round-trip: get_dashboard_data (RLS applies)
   const supabase = await createClient()
-  const { data: rpcData, error } = await supabase.rpc('get_dashboard_data', { p_today: todayStr })
-  if (error) throw new Error(`get_dashboard_data failed: ${error.message}`)
-  const d = rpcData as unknown as DashboardData
+  const stayFields =
+    'id, reservation_code, adults, total_amount, breakfast_included, expected_check_in_time, rooms(room_number), guests(first_name, last_name)'
+  const [rpcResult, arrivalsQ, departuresQ, noShowQ] = await Promise.all([
+    supabase.rpc('get_dashboard_data', { p_today: todayStr }),
+    // Today's action lists (front desk); cheap parallel queries, sin1 region
+    frontDesk
+      ? supabase
+          .from('reservations')
+          .select(stayFields)
+          .in('status', ['pending', 'confirmed'])
+          .eq('check_in', todayStr)
+          .order('expected_check_in_time', { ascending: true, nullsFirst: false })
+      : Promise.resolve({ data: null }),
+    frontDesk
+      ? supabase
+          .from('reservations')
+          .select(stayFields)
+          .eq('status', 'checked_in')
+          .lte('check_out', todayStr)
+      : Promise.resolve({ data: null }),
+    frontDesk
+      ? supabase
+          .from('reservations')
+          .select(stayFields)
+          .in('status', ['pending', 'confirmed'])
+          .lt('check_in', todayStr)
+      : Promise.resolve({ data: null }),
+  ])
+  if (rpcResult.error) throw new Error(`get_dashboard_data failed: ${rpcResult.error.message}`)
+  const d = rpcResult.data as unknown as DashboardData
 
   const guestName = (first: string | null, last: string | null, fallback: string) =>
     first || last ? `${first ?? ''} ${last ?? ''}`.trim() : fallback
 
+  const toTodayRow = (r: StayQueryRow): TodayRow => ({
+    id: r.id,
+    code: r.reservation_code,
+    roomNumber: r.rooms?.room_number ?? null,
+    guestName: guestName(r.guests?.first_name ?? null, r.guests?.last_name ?? null, t('guestFallback')),
+    adults: r.adults,
+    breakfast: r.breakfast_included ?? false,
+    expectedTime: r.expected_check_in_time,
+  })
+
+  const arrivals = ((arrivalsQ.data ?? []) as unknown as StayQueryRow[]).map(toTodayRow)
+  const noShowRows = ((noShowQ.data ?? []) as unknown as StayQueryRow[]).map(toTodayRow)
+  const departureRows = (departuresQ.data ?? []) as unknown as StayQueryRow[]
+
+  // Balance due per departure (completed payments only)
+  let departures: TodayRow[] = []
+  if (departureRows.length > 0) {
+    const ids = departureRows.map((r) => r.id)
+    const { data: pays } = await supabase
+      .from('payments')
+      .select('reservation_id, amount')
+      .in('reservation_id', ids)
+      .eq('status', 'completed')
+    const paidBy = new Map<string, number>()
+    for (const p of pays ?? []) {
+      paidBy.set(p.reservation_id, (paidBy.get(p.reservation_id) ?? 0) + Number(p.amount))
+    }
+    departures = departureRows.map((r) => ({
+      ...toTodayRow(r),
+      balanceDue: Math.max(0, Number(r.total_amount) - (paidBy.get(r.id) ?? 0)),
+    }))
+  }
+
   const userName = d.userName || auth.fullName || auth.email || t('userFallback')
-  const stats = d.stats
   const occupancy = {
     ...d.occupancy,
     availableRooms: d.occupancy.totalRooms - d.occupancy.occupiedRooms,
   }
+  const dirtyCount = d.cleaning.dirty.length
   const recentBookings: RecentBooking[] = d.recentBookings.map((r) => ({
     id: r.id,
     reservation_code: r.reservation_code,
@@ -168,8 +233,46 @@ export default async function DashboardPage({
     day: 'numeric',
   })
 
+  // ─── KPI chips (replace the old 11 stat cards for ops roles) ────────────────
+  const chips = ops
+    ? [
+        ...(frontDesk
+          ? [
+              {
+                key: 'arrivals',
+                icon: <LogIn size={14} />,
+                label: t('chipArrivals'),
+                value: arrivals.length,
+                href: `/reservations/list?checkIn=${todayStr}`,
+              },
+              {
+                key: 'departures',
+                icon: <LogOut size={14} />,
+                label: t('chipDepartures'),
+                value: departures.length,
+                href: '/reservations/list?status=checked_in',
+              },
+            ]
+          : []),
+        {
+          key: 'inhouse',
+          icon: <Users size={14} />,
+          label: t('chipInHouse'),
+          value: occupancy.guestCount,
+          href: frontDesk ? '/reservations/list?status=checked_in' : '/housekeeping',
+        },
+        {
+          key: 'dirty',
+          icon: <Sparkles size={14} />,
+          label: t('chipDirty'),
+          value: dirtyCount,
+          href: '/housekeeping',
+        },
+      ]
+    : []
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-5 pb-20 lg:pb-0">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight text-foreground">
           {t('greeting', { name: userName })}
@@ -184,76 +287,114 @@ export default async function DashboardPage({
         </div>
       )}
 
+      {/* KPI chips — tappable, replace the old stat-card walls */}
+      {chips.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {chips.map((c) => (
+            <Link
+              key={c.key}
+              href={c.href}
+              className="inline-flex items-center gap-2 rounded-full bg-card px-4 py-2 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
+              style={{ boxShadow: 'var(--shadow-card)' }}
+            >
+              <span className="text-primary">{c.icon}</span>
+              {c.label}
+              <span className="tabular-nums rounded-full bg-primary/10 px-2 py-0.5 text-xs font-bold text-primary">
+                {c.value}
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {/* Housekeeper first sees cleaning state */}
+      {role === 'housekeeper' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>{t('cleaningStatus')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <CleaningStatusCards dirtyRooms={d.cleaning.dirty} cleanRooms={d.cleaning.clean} />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* TODAY action lists — the heart of the front-desk screen */}
+      {frontDesk && (
+        <>
+          <TodayActionList mode="arrivals" rows={arrivals} />
+          <TodayActionList mode="departures" rows={departures} />
+          <TodayActionList mode="noshow" rows={noShowRows} />
+        </>
+      )}
+
+      {/* Pending reservations — collapsed accordion */}
       {frontDesk && pendingReservations.length > 0 && (
-        <div className="rounded-lg p-4 bg-amber-500/10">
-          <div className="flex items-start gap-3">
-            <AlertCircle size={18} className="text-amber-700 dark:text-amber-400 shrink-0 mt-px" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-foreground">
-                {t('pendingReservations', { n: pendingReservations.length })}
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {pendingReservations.slice(0, 5).map((r) => (
-                  <Link
-                    key={r.id}
-                    href={`/reservations/${r.id}`}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-card ring-1 ring-foreground/10 hover:opacity-80 text-foreground"
-                  >
-                    <span className="font-mono">{r.reservation_code}</span>
-                    {(r.guest_first || r.guest_last) && (
-                      <span className="text-muted-foreground">
-                        · {r.guest_first} {r.guest_last}
-                      </span>
-                    )}
-                  </Link>
-                ))}
-                {pendingReservations.length > 5 && (
-                  <Link
-                    href="/reservations/list?status=pending"
-                    className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium text-amber-700 dark:text-amber-400"
-                  >
-                    {t('morePending', { n: pendingReservations.length - 5 })}
-                  </Link>
+        <details className="rounded-2xl bg-amber-500/10 open:pb-4">
+          <summary className="flex cursor-pointer list-none items-center gap-3 p-4 text-sm font-semibold text-foreground">
+            <AlertCircle size={18} className="shrink-0 text-amber-700" />
+            <span className="flex-1">{t('pendingReservations', { n: pendingReservations.length })}</span>
+            <ChevronRight size={16} className="text-amber-700" />
+          </summary>
+          <div className="flex flex-wrap gap-2 px-4">
+            {pendingReservations.slice(0, 5).map((r) => (
+              <Link
+                key={r.id}
+                href={`/reservations/${r.id}`}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-secondary"
+                style={{ boxShadow: 'var(--shadow-card)' }}
+              >
+                <span className="font-mono">{r.reservation_code}</span>
+                {(r.guest_first || r.guest_last) && (
+                  <span className="text-muted-foreground">
+                    · {r.guest_first} {r.guest_last}
+                  </span>
                 )}
-              </div>
-            </div>
+              </Link>
+            ))}
+            {pendingReservations.length > 5 && (
+              <Link
+                href="/reservations/list?status=pending"
+                className="inline-flex items-center px-3 py-1.5 text-xs font-medium text-amber-700"
+              >
+                {t('morePending', { n: pendingReservations.length - 5 })}
+              </Link>
+            )}
           </div>
-        </div>
+        </details>
       )}
 
-      {/* Yarı kayıt (registration_pending) banner — tam kaydı bekleyen girişler */}
+      {/* Half registrations — collapsed accordion */}
       {frontDesk && pendingRegistrations.length > 0 && (
-        <div className="rounded-lg p-4 bg-amber-500/10">
-          <div className="flex items-start gap-3">
-            <AlertCircle size={18} className="text-amber-700 dark:text-amber-400 shrink-0 mt-px" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-foreground">
-                {t('pendingRegistrations', { n: pendingRegistrations.length })}
-              </p>
-              <div className="mt-3 flex flex-wrap gap-2">
-                {pendingRegistrations.map((r) => (
-                  <Link
-                    key={r.id}
-                    href={`/reservations/${r.id}`}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-card ring-1 ring-foreground/10 hover:opacity-80 text-foreground"
-                  >
-                    {r.room_number && <span className="font-mono">#{r.room_number}</span>}
-                    {(r.guest_first || r.guest_last) && (
-                      <span className="text-muted-foreground">
-                        {r.guest_first} {r.guest_last}
-                      </span>
-                    )}
-                  </Link>
-                ))}
-              </div>
-            </div>
+        <details className="rounded-2xl bg-amber-500/10 open:pb-4">
+          <summary className="flex cursor-pointer list-none items-center gap-3 p-4 text-sm font-semibold text-foreground">
+            <AlertCircle size={18} className="shrink-0 text-amber-700" />
+            <span className="flex-1">{t('pendingRegistrations', { n: pendingRegistrations.length })}</span>
+            <ChevronRight size={16} className="text-amber-700" />
+          </summary>
+          <div className="flex flex-wrap gap-2 px-4">
+            {pendingRegistrations.map((r) => (
+              <Link
+                key={r.id}
+                href={`/reservations/${r.id}`}
+                className="inline-flex items-center gap-1.5 rounded-lg bg-card px-3 py-1.5 text-xs font-medium text-foreground hover:bg-secondary"
+                style={{ boxShadow: 'var(--shadow-card)' }}
+              >
+                {r.room_number && <span className="font-mono">#{r.room_number}</span>}
+                {(r.guest_first || r.guest_last) && (
+                  <span className="text-muted-foreground">
+                    {r.guest_first} {r.guest_last}
+                  </span>
+                )}
+              </Link>
+            ))}
           </div>
-        </div>
+        </details>
       )}
 
-      {/* Upcoming bills banner */}
+      {/* Upcoming bills banner — money roles */}
       {money && upcomingBills.length > 0 && (
-        <div className="rounded-lg p-4 bg-blue-500/10">
+        <div className="rounded-2xl p-4 bg-blue-500/10">
           <div className="flex items-start gap-3">
             <Receipt size={18} className="text-blue-700 shrink-0 mt-px" />
             <div className="flex-1 min-w-0">
@@ -264,7 +405,8 @@ export default async function DashboardPage({
                 {upcomingBills.map((b) => (
                   <span
                     key={b.id}
-                    className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-medium bg-card ring-1 ring-foreground/10 text-foreground"
+                    className="inline-flex items-center rounded-lg bg-card px-3 py-1.5 text-xs font-medium text-foreground"
+                    style={{ boxShadow: 'var(--shadow-card)' }}
                   >
                     {b.name}
                     <span className="ml-1.5 text-muted-foreground">· {b.dueDateStr.slice(8)}</span>
@@ -282,8 +424,8 @@ export default async function DashboardPage({
         </div>
       )}
 
-      {/* Finance summary — money roles only (admin + accountant) */}
-      {money && financeSummary && (
+      {/* Finance cards — accountant keeps them; admin gets a compact link strip */}
+      {role === 'accountant' && financeSummary && (
         <section className="space-y-3">
           <h2 className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             <Wallet size={14} /> {t('financeSection')}
@@ -295,102 +437,51 @@ export default async function DashboardPage({
           </div>
         </section>
       )}
-
-      {/* Overview — room & guest counts (non-clickable, no badges) */}
-      {ops && (
-      <section className="space-y-3">
-        <h2 className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          <LayoutGrid size={14} /> {t('overview')}
-        </h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard
-            icon={<BedDouble size={16} />}
-            label={t('totalRooms')}
-            value={String(occupancy.totalRooms)}
-          />
-          <StatCard
-            icon={<DoorClosed size={16} />}
-            label={t('occupiedRooms')}
-            value={String(occupancy.occupiedRooms)}
-          />
-          <StatCard
-            icon={<DoorOpen size={16} />}
-            label={t('availableRooms')}
-            value={String(occupancy.availableRooms)}
-          />
-          <StatCard
-            icon={<Users size={16} />}
-            label={t('guestsStaying')}
-            value={String(occupancy.guestCount)}
-          />
-        </div>
-      </section>
+      {isAdmin && (
+        <Link
+          href="/finance"
+          className="flex items-center justify-between rounded-2xl bg-card px-5 py-3.5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
+          style={{ boxShadow: 'var(--shadow-card)' }}
+        >
+          <span className="inline-flex items-center gap-2">
+            <Wallet size={16} className="text-primary" /> {t('financeLink')}
+          </span>
+          <ChevronRight size={16} className="text-muted-foreground" />
+        </Link>
       )}
 
-      {/* Today's movement — front desk only */}
-      {frontDesk && (
-      <section className="space-y-3">
-        <h2 className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          <CalendarPlus size={14} /> {t('todayMovement')}
-        </h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard
-            icon={<CalendarPlus size={16} />}
-            label={t('newReservations')}
-            value={String(stats.newToday)}
-            deltaPercent={delta(stats.newToday, stats.newYesterday)}
-            href={`/reservations/list?createdOn=${todayStr}`}
-          />
-          <StatCard
-            icon={<TrendingUp size={16} />}
-            label={t('tomorrowCheckIn')}
-            value={String(stats.scheduledTomorrow)}
-            deltaPercent={delta(stats.scheduledTomorrow, stats.scheduledToday)}
-            href={`/reservations/list?checkIn=${tomorrowStr}`}
-          />
-          <StatCard
-            icon={<LogIn size={16} />}
-            label={t('todayCheckIn')}
-            value={String(stats.checkinToday)}
-            deltaPercent={delta(stats.checkinToday, stats.checkinYesterday)}
-            href={`/reservations/list?checkIn=${todayStr}&status=checked_in`}
-          />
-          <StatCard
-            icon={<LogOut size={16} />}
-            label={t('todayCheckOut')}
-            value={String(stats.checkoutToday)}
-            deltaPercent={delta(stats.checkoutToday, stats.checkoutYesterday)}
-            href={`/reservations/list?checkOut=${todayStr}&status=checked_out`}
-          />
-        </div>
-      </section>
-      )}
-
-      {/* Operation — room status + cleaning (operational roles) */}
+      {/* Rooms — the primary interactive object, full width */}
       {ops && (
-      <section className="space-y-3">
-        <h2 className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
-          <BedDouble size={14} /> {t('operation')}
-        </h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <section className="space-y-3">
+          <h2 className="flex items-center gap-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
+            <BedDouble size={14} /> {t('operation')}
+          </h2>
           <RoomStatusGrid rooms={d.rooms} role={role} />
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('cleaningStatus')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <CleaningStatusCards
-                dirtyRooms={d.cleaning.dirty}
-                cleanRooms={d.cleaning.clean}
-              />
-            </CardContent>
-          </Card>
-        </div>
-      </section>
+          {role !== 'housekeeper' && (
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('cleaningStatus')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <CleaningStatusCards dirtyRooms={d.cleaning.dirty} cleanRooms={d.cleaning.clean} />
+              </CardContent>
+            </Card>
+          )}
+        </section>
       )}
 
-      {/* Recent reservations — front desk only */}
-      {frontDesk && <RecentBookingsList bookings={recentBookings} />}
+      {/* Recent reservations — collapsed to keep the screen short */}
+      {frontDesk && recentBookings.length > 0 && (
+        <details className="rounded-2xl bg-card open:pb-2" style={{ boxShadow: 'var(--shadow-card)' }}>
+          <summary className="flex cursor-pointer list-none items-center gap-3 p-4 text-xs font-semibold uppercase tracking-widest text-muted-foreground">
+            <span className="flex-1">{t('recentTitle')}</span>
+            <ChevronRight size={16} />
+          </summary>
+          <div className="px-2">
+            <RecentBookingsList bookings={recentBookings} />
+          </div>
+        </details>
+      )}
     </div>
   )
 }

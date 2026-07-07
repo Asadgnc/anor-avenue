@@ -7,6 +7,7 @@ import NewGuestFormClient from './NewGuestFormClient'
 export default async function NewGuestPage() {
   const auth = await getAuthClaims()
   if (!auth) redirect('/login')
+  if (!['admin', 'receptionist'].includes(auth.role)) redirect('/dashboard?blocked=1')
 
   const t = await getTranslations('guests')
   const tt = await getTranslations('topbar')
