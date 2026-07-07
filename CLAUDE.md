@@ -275,14 +275,11 @@ Detaylı geçmiş: `docs/session-log.md`
 - Google Cloud Vision: pasaport MRZ tarama aktif ✅
 
 ### Bekleyen migration (kullanıcı SQL Editor'den uygulayacak — DEPLOY'DAN ÖNCE!)
-- `docs/migrations/029_fiscal_receipt_fields.sql` — payments'a fiş (Soliq QR) alanları
-- `docs/migrations/030_bill_period_fiscal.sql` — bill_payments'a dönem + fiş alanları
-- `docs/migrations/032_reservation_price_adjustment.sql` — reservations'a `price_adjustment`
-  kolonu (oda taşımasında oransal fatura düzeltmesi). ⚠️ Uygulanmadan yeni kod deploy edilirse
-  /reservations/[id] oda taşıma/uzatma ve düzenleme aksiyonları kolon eksikliğinden hata verir.
-- (028 `payment_method 'card'` zaten uygulandı ✅ — dosya kayıt için duruyor)
-- ⚠️ Bu migration'lar uygulanmadan yeni kod deploy edilirse /reservations/[id],
-  /payments ve /bills sayfaları kolon eksikliğinden hata verir (SELECT'ler bu kolonları okuyor).
+- `docs/migrations/033_room_public_visibility.sql` — `rooms.is_public` kolonu +
+  `rooms_with_effective_price` view'inin yeniden oluşturulması (101/102/103 → is_public=false).
+- ⚠️ 033 uygulanmadan yeni kod deploy edilirse guest-site oda sorguları
+  (`is_public` kolonu bulunamadığından) ana sayfa/odalar/rezervasyon sayfalarında hata verir.
+- (029/030/031/032 canlıda uygulandı ✅ — 7 Tem 2026'da DB'den doğrulandı; 028 de uygulandı ✅)
 
 ### Kritik notlar
 - Silme yetkisi (7 Tem 2026): TÜM işlemsel tablolarda DELETE artık yalnızca admin
@@ -311,8 +308,23 @@ Detaylı geçmiş: `docs/session-log.md`
   eksikte mevcut "Ödeme Ekle" (kalan ön-dolu). İade = **negatif tutarlı** `completed` ödeme satırı
   → tüm gelir toplamları (dashboard/finance/tax/reports/folio) otomatik net'ler. Ödeme kaydı silinmez.
 
+### Standart odalar iç satışa alındı (7 Temmuz 2026 kararı — KRİTİK)
+- Bodrum kat Standart odalar (101/102/103) HİÇBİR dış kanalda pazarlanmaz:
+  guest-site'ta görünmez/booklenemez, Channex/OTA'ya müsaitlik gitmez.
+  Yalnızca walk-in (kapıdan gelen) misafirlere admin panelden satılır.
+- Mekanizma: `rooms.is_public=false` (migration 033). Guest-site tüm oda
+  sorguları `.eq('is_public', true)` filtreli; müsaitlik motoru
+  (`availability.ts`) guest tarafında `{ publicOnly: true }` ile çağrılır,
+  admin çağrıları parametresiz (12 odayı görür).
+- Channex: 3 Standart varyant (`channex_variants`) `enabled=false` yapılır;
+  channex-sync artık disabled varyantlar için availability=0 push eder
+  (eski müsaitlik OTA'da satışta kalamaz). Varyant satırlarını ASLA SİLME —
+  gelen webhook eşlemesi bu satırlara bağlı.
+- Guest-site'a yeni oda eklerken/`is_public` değiştirirken bu kuralı hatırla.
+
 ### Sonraki adımlar
-- Guest-site: eksik oda fotoğrafları (101/102/103/301) — `photos-incoming/`e at, `process-photos.mjs` çalıştır
+- Guest-site: eksik oda fotoğrafı (301) — `photos-incoming/`e at, `process-photos.mjs` çalıştır
+  (101/102/103 artık sitede görünmediği için fotoğrafları acil değil)
 - Channex: sahte-profil testi — `staging.channex.io`'da Booking.com test property (5868189 vb.)
   ekle, oda+fiyat eşle, test kartıyla (4111 1111 1111 1111) rezervasyon yap → panelde düşüyor mu bak
 - Faz 2 (3D): Anor Baba maskotu `.glb` gelince

@@ -34,7 +34,6 @@ export default function RoomsFilter({ locale }: { locale: string }) {
           sortView: 'Manzara: eng yaxshi',
           floor: 'Qavat',
           allFloors: 'Barcha qavatlar',
-          gardenFloor: "Bog'cha qavati",
           features: 'Xususiyatlar',
           jacuzziLabel: 'Jakuzili',
           bathtubLabel: 'Hammomli',
@@ -48,7 +47,6 @@ export default function RoomsFilter({ locale }: { locale: string }) {
           sortView: 'Вид: лучший',
           floor: 'Этаж',
           allFloors: 'Все этажи',
-          gardenFloor: 'Садовый этаж',
           features: 'Особенности',
           jacuzziLabel: 'С джакузи',
           bathtubLabel: 'С ванной',
@@ -61,7 +59,6 @@ export default function RoomsFilter({ locale }: { locale: string }) {
           sortView: 'View: best first',
           floor: 'Floor',
           allFloors: 'All floors',
-          gardenFloor: 'Garden Floor',
           features: 'Features',
           jacuzziLabel: 'Jacuzzi',
           bathtubLabel: 'Bathtub',
@@ -69,7 +66,6 @@ export default function RoomsFilter({ locale }: { locale: string }) {
 
   const floorOptions = [
     { value: null, label: L.allFloors },
-    { value: '-1', label: L.gardenFloor },
     { value: '2', label: locale === 'uz' ? '2-qavat' : locale === 'ru' ? '2 этаж' : 'Floor 2' },
     { value: '3', label: locale === 'uz' ? '3-qavat' : locale === 'ru' ? '3 этаж' : 'Floor 3' },
     {

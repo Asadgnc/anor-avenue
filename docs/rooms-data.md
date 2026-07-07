@@ -30,6 +30,9 @@ referans al, bu dosyayı güncelle.
 | 403 | 4 (mansard) | Deluxe (suit) | - | premium | - | - | - | - | 850.000 |
 
 **Önemli notlar:**
+- **Görünürlük (7 Temmuz 2026 kararı):** 101/102/103 (Standart) `rooms.is_public=false` —
+  guest-site ve Channex/OTA'da HİÇ görünmez, yalnızca walk-in misafirlere admin
+  panelden satılır. Dışa dönük her yüzeyde sadece Deluxe + Luxury vardır.
 - Bodrum katın sadece yarısı yer altında — bu nedenle "bodrum" algısı yanıltıcı, içerik metinlerinde "geniş ve ferah, doğal ışık alan" vurgusu yapılmalı, "bodrum" kelimesi misafire dönük metinlerde kullanılmamalı (örn. "-1. kat" veya "Bahçe katı" denebilir — Mert onaylarsa).
 - 202: bina köşesinde izole giriş, en sakin oda. Premium duş başlığı/seçenekleri var (201'de de var).
 - 303 ↔ 304: iç koridorla bağlanabilir, kapı varsayılan kapalı. Misafir aile/grup geldiğinde personel açar. Bu **iki ayrı rezervasyon** olarak satılır — tek "aile odası" paketi DB'de yok (Mert'in kararı, 30 Haziran 2026).

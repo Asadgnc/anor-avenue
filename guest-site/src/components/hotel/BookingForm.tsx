@@ -44,7 +44,6 @@ const labels = {
     success: "So'rovingiz qabul qilindi! Tez orada siz bilan bog'lanamiz.",
     perNight: '/kecha',
     roomNames: {
-      standard: 'Standart xona',
       deluxe: 'Delyuks xona',
       luxury: 'Lyuks xona',
     },
@@ -67,7 +66,6 @@ const labels = {
     success: 'Ваш запрос принят! Мы свяжемся с вами в ближайшее время.',
     perNight: '/ночь',
     roomNames: {
-      standard: 'Стандартный номер',
       deluxe: 'Номер делюкс',
       luxury: 'Люкс',
     },
@@ -90,7 +88,6 @@ const labels = {
     success: "Your request has been received! We'll get back to you soon.",
     perNight: '/night',
     roomNames: {
-      standard: 'Standard Room',
       deluxe: 'Deluxe Room',
       luxury: 'Luxury Room',
     },
@@ -100,7 +97,7 @@ const labels = {
   },
 }
 
-type RoomPrices = { standard: number; deluxe: number; luxury: number }
+type RoomPrices = { deluxe: number; luxury: number }
 
 type Props = {
   locale: string
@@ -272,9 +269,11 @@ function SingleBookingForm({
   const today = new Date().toISOString().split('T')[0]
   const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0]
 
-  const validRoomType = ['standard', 'deluxe', 'luxury'].includes(defaultRoomType ?? '')
-    ? (defaultRoomType as 'standard' | 'deluxe' | 'luxury')
-    : 'standard'
+  // 'standard' bilerek yok: bodrum odaları yalnızca iç sistemde satılır.
+  // Eski ?roomType=standard linkleri hatasız şekilde Deluxe'a düşer.
+  const validRoomType = ['deluxe', 'luxury'].includes(defaultRoomType ?? '')
+    ? (defaultRoomType as 'deluxe' | 'luxury')
+    : 'deluxe'
 
   const checkIn = defaultCheckIn || today
   const checkOut = defaultCheckOut || tomorrow
@@ -338,7 +337,7 @@ function SingleBookingForm({
           defaultValue={validRoomType}
           style={{ ...inputStyle, cursor: 'pointer' }}
         >
-          {(['standard', 'deluxe', 'luxury'] as const).map((key) => (
+          {(['deluxe', 'luxury'] as const).map((key) => (
             <option key={key} value={key}>
               {l.roomNames[key]} — {fmt(roomPrices[key])} UZS{l.perNight}
             </option>

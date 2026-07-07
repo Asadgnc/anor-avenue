@@ -87,6 +87,7 @@ export default async function RoomsPage({ params, searchParams }: Props) {
       'id, room_number, floor, room_type_name, effective_price, view_quality, has_jacuzzi, has_bathtub, is_isolated, connecting_room_id, max_occupancy, is_active'
     )
     .eq('is_active', true)
+    .eq('is_public', true)
     .order('room_number')
 
   const rooms: RoomRow[] = (allRooms ?? []) as RoomRow[]

@@ -59,6 +59,12 @@ export interface AvailabilityResult {
   partial: Offer | null // when status='insufficient': the largest hostable set
 }
 
+export interface AvailabilityQueryOptions {
+  /** true → only publicly marketed rooms (rooms.is_public). Guest-site surfaces
+   * pass true; admin callers omit it and keep seeing every room (walk-in). */
+  publicOnly?: boolean
+}
+
 const TYPE_SLUG_MAP: Record<string, TypeSlug> = {
   Standard: 'standard',
   Deluxe: 'deluxe',
@@ -119,15 +125,18 @@ export async function fetchRoomCapacities(
 export async function loadBookableRooms(
   client: SupabaseClient,
   checkIn: string,
-  checkOut: string
+  checkOut: string,
+  opts?: AvailabilityQueryOptions
 ): Promise<BookableRoom[]> {
+  let priceQuery = client
+    .from('rooms_with_effective_price')
+    .select(
+      'id, room_number, floor, room_type_name, effective_price, has_jacuzzi, has_bathtub, is_isolated, view_quality, connecting_room_id, is_active'
+    )
+    .eq('is_active', true)
+  if (opts?.publicOnly) priceQuery = priceQuery.eq('is_public', true)
   const [{ data: priceData }, capacities] = await Promise.all([
-    client
-      .from('rooms_with_effective_price')
-      .select(
-        'id, room_number, floor, room_type_name, effective_price, has_jacuzzi, has_bathtub, is_isolated, view_quality, connecting_room_id, is_active'
-      )
-      .eq('is_active', true),
+    priceQuery,
     fetchRoomCapacities(client),
   ])
 
@@ -285,10 +294,11 @@ export function nightsBetween(checkIn: string, checkOut: string): number {
 
 export async function findAvailability(
   client: SupabaseClient,
-  input: { checkIn: string; checkOut: string; partySize: number }
+  input: { checkIn: string; checkOut: string; partySize: number },
+  opts?: AvailabilityQueryOptions
 ): Promise<AvailabilityResult> {
   const nights = Math.max(1, nightsBetween(input.checkIn, input.checkOut))
-  const rooms = await loadBookableRooms(client, input.checkIn, input.checkOut)
+  const rooms = await loadBookableRooms(client, input.checkIn, input.checkOut, opts)
 
   const totalCapacity = rooms.reduce((s, r) => s + r.capacity, 0)
   const freeCapacity = rooms

@@ -19,6 +19,7 @@ export default async function HomePage({ params }: Props) {
     .from('rooms_with_effective_price')
     .select('room_type_name, effective_price')
     .eq('is_active', true)
+    .eq('is_public', true)
 
   const minPrice = (dbName: string, fallback: number): number => {
     const rows = roomPriceData?.filter((r) => r.room_type_name === dbName) ?? []
@@ -27,14 +28,12 @@ export default async function HomePage({ params }: Props) {
   }
 
   const prices = {
-    standard: minPrice('Standard', 300000),
     deluxe: minPrice('Deluxe', 500000),
     luxury: minPrice('Luxury', 800000),
   }
 
   // Tip kartları için temsili odaların gerçek kapakları (yoksa nötr fallback).
   const covers = {
-    standard: await getRoomCover('101'),
     deluxe: await getRoomCover('202'),
     luxury: await getRoomCover('303'),
   }
@@ -181,10 +180,9 @@ function HeroSection({ locale }: { locale: string }) {
 
 // Her tip için temsili oda numarası — kart "Detaylar" linki bu odanın
 // detay sayfasına gider (oda-bazlı detay; tip-slug rotası yok).
-const REP_ROOM: Record<string, string> = { standard: '101', deluxe: '202', luxury: '303' }
+const REP_ROOM: Record<string, string> = { deluxe: '202', luxury: '303' }
 
 const roomData = [
-  { key: 'standard' as const, floor: '-1', amenities: ['WiFi', 'TV', 'A/C'] },
   { key: 'deluxe' as const, floor: '2-4', amenities: ['WiFi', 'TV', 'A/C', 'Minibar'] },
   { key: 'luxury' as const, floor: '2-3', amenities: ['WiFi', 'TV', 'A/C', 'Minibar', 'Panorama'] },
 ]
@@ -234,7 +232,7 @@ function RoomsPreviewSection({
           </h2>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-4xl mx-auto">
           {roomData.map((room) => (
             <div
               key={room.key}

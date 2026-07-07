@@ -19,7 +19,6 @@
     "viewDetails": "View Details",
     "bookNow": "Book Now",
     "types": {
-      "standard": "Standard Room",
       "deluxe": "Deluxe Room",
       "luxury": "Luxury Room"
     }

@@ -85,6 +85,7 @@ async function fetchRoom(roomNumber: string): Promise<RoomRow | null> {
     )
     .eq('room_number', roomNumber)
     .eq('is_active', true)
+    .eq('is_public', true)
     .maybeSingle()
   return (data as RoomRow) ?? null
 }

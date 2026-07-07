@@ -41,7 +41,8 @@ export default async function BookPage({ params, searchParams }: Props) {
           .from('rooms_with_effective_price')
           .select('id, room_number, room_type_name, effective_price')
           .in('id', ids)
-          .eq('is_active', true),
+          .eq('is_active', true)
+          .eq('is_public', true),
         fetchRoomCapacities(service),
       ])
       if (comboRows && comboRows.length > 0) {
@@ -79,6 +80,7 @@ export default async function BookPage({ params, searchParams }: Props) {
     .from('rooms_with_effective_price')
     .select('room_type_name, effective_price')
     .eq('is_active', true)
+    .eq('is_public', true)
 
   const minPrice = (dbName: string, fallback: number): number => {
     const rows = roomPriceData?.filter((r) => r.room_type_name === dbName) ?? []
@@ -87,7 +89,6 @@ export default async function BookPage({ params, searchParams }: Props) {
   }
 
   const roomPrices = {
-    standard: minPrice('Standard', 300000),
     deluxe: minPrice('Deluxe', 500000),
     luxury: minPrice('Luxury', 800000),
   }

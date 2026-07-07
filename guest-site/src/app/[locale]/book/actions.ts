@@ -5,14 +5,14 @@ import { createServiceClient } from '@/lib/supabase'
 import { fetchRoomCapacities, nightsBetween } from '@/lib/availability'
 import { sendEmail } from '@/lib/email'
 
+// 'standard' bilerek yok: bodrum odaları (101-103) yalnızca iç sistemde
+// satılır, misafir sitesinden asla booklenemez.
 const ROOM_TYPE_LABELS: Record<string, string> = {
-  standard: 'Standart Xona / Стандартный / Standard',
   deluxe:   'Delyuks Xona / Делюкс / Deluxe',
   luxury:   'Lyuks Xona / Люкс / Luxury',
 }
 
 const ROOM_TYPE_NAMES: Record<string, string> = {
-  standard: 'Standard',
   deluxe: 'Deluxe',
   luxury: 'Luxury',
 }
@@ -28,7 +28,7 @@ const schema = z.object({
   lastName: z.string().min(1).max(100),
   phone: z.string().min(7).max(30),
   email: z.string().email().optional().or(z.literal('')),
-  roomType: z.enum(['standard', 'deluxe', 'luxury']),
+  roomType: z.enum(['deluxe', 'luxury']),
   checkIn: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   checkOut: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   adults: z.coerce.number().int().min(1).max(4),
@@ -91,6 +91,7 @@ export async function submitBookingInquiry(
     .select('id, effective_price')
     .eq('room_type_name', typeName)
     .eq('is_active', true)
+    .eq('is_public', true)
 
   if (roomsErr || !rooms || rooms.length === 0) {
     const msg = locale === 'uz' ? 'Bu turdagi xona mavjud emas.' : locale === 'ru' ? 'Нет номеров данного типа.' : 'No rooms of this type available.'
@@ -332,6 +333,7 @@ export async function bookRoomCombination(
     .select('id, effective_price, room_number, room_type_name')
     .in('id', roomIds)
     .eq('is_active', true)
+    .eq('is_public', true)
 
   if (roomsErr || !rooms || rooms.length !== roomIds.length) {
     return { error: locale === 'ru' ? 'Некоторые номера недоступны.' : locale === 'uz' ? 'Ba\'zi xonalar mavjud emas.' : 'Some rooms are unavailable.' }

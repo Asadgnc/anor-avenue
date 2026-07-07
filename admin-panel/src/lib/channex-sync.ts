@@ -51,10 +51,11 @@ async function loadContext() {
     .single()
   const propertyId: string | null = hotel?.channex_property_id ?? null
 
+  // Disabled varyantlar da yüklenir: müsaitlikleri 0 olarak push edilir ki
+  // OTA'da kalan eski müsaitlik satışa devam etmesin (bkz. syncAvailability).
   const { data: variantRows } = await service
     .from('channex_variants')
     .select('id, channex_room_type_id, channex_rate_plan_id, ota_price, enabled')
-    .eq('enabled', true)
   const variants = (variantRows ?? []) as Variant[]
 
   return { service, propertyId, variants }
@@ -112,7 +113,8 @@ export async function syncAvailability(
   // Gün başına müsaitlik → eşit ardışık günleri aralığa grupla
   const values: AvailabilityValue[] = []
   for (const v of variants) {
-    const cap = capacity.get(v.id) ?? 0
+    // enabled=false → OTA'da satışa kapalı: her gün için 0 push edilir.
+    const cap = v.enabled ? (capacity.get(v.id) ?? 0) : 0
     const dayMap = occupied.get(v.id) ?? new Map<string, number>()
     let runStart: string | null = null
     let runVal = -1
@@ -160,6 +162,7 @@ export async function syncRates(
 
   const values: RateValue[] = []
   for (const v of variants) {
+    if (!v.enabled) continue  // satışa kapalı varyanta fiyat push edilmez
     if (v.ota_price == null || Number(v.ota_price) <= 0) continue  // fiyat girilmemiş → atla
     values.push({
       property_id: propertyId,

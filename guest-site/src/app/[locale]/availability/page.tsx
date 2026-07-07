@@ -114,11 +114,15 @@ export default async function AvailabilityPage({ params, searchParams }: Props) 
   )
 
   const result = hasValidInput
-    ? await findAvailability(createServiceClient(), {
-        checkIn: checkIn!,
-        checkOut: checkOut!,
-        partySize,
-      })
+    ? await findAvailability(
+        createServiceClient(),
+        {
+          checkIn: checkIn!,
+          checkOut: checkOut!,
+          partySize,
+        },
+        { publicOnly: true }
+      )
     : null
 
   return (
