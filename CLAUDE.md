@@ -698,6 +698,46 @@ Mert "nar çarpışması" konsepti önerdi. Konsept henüz karara bağlanmadı �
   - Doğrulandı (curl, 3 dil): gerçek WebP servis (200), 202 jakuzi/401 mansard/304 küvet metni doğru dilde,
     101 fallback. `pnpm build` ✓ (guest-site). ⚠️ Tarayıcı ekran görüntüsü + deploy kullanıcıda.
 
+- [x] Admin panel: PWA + hız yenilemesi + ~1sn Channex senkronu + web push (7 Temmuz 2026)
+  - Plan: `.claude/plans/sharded-dazzling-rossum.md` (onaylı). Guest-site'a DOKUNULMADI.
+  - **Hız — kök neden bulundu:** Supabase DB'si AWS Singapur'da (ap-southeast-1, AWS IP
+    aralığıyla kanıtlandı) ama Vercel fonksiyonları varsayılan ABD'deydi → her sorgu dünya turu.
+    `vercel.json`a `"regions":["sin1"]` eklendi. İkinci neden: dashboard navigasyonu ~23 DB çağrısıydı.
+  - Migration 025 CANLIYA UYGULANDI: `get_dashboard_data(p_today)` + `get_nav_badges()` RPC
+    (SECURITY INVOKER, RLS geçerli; recurring_bills yoksa dinamik SQL ile atlar). Dashboard
+    18+ sorgu → 1 RPC; layout 3 rozet sorgusu → 1 RPC. Canlıda doğru veri döndürdüğü doğrulandı.
+  - 26 sayfada `auth.getUser()` (ağ çağrısı) → `getAuthClaims()` (yerel JWT, `src/lib/auth-claims.ts`).
+    Server action + API route'lardaki getUser BİLEREK korundu (mutasyonda sunucu doğrulaması).
+  - 7 ana sayfaya `loading.tsx` iskeleti (`PageSkeleton.tsx`) — navigasyon anında boyanır.
+  - `RealtimeRefresher`: 1.5sn debounce + arka plan sekmesinde yenileme yok (görünür olunca 1 kez)
+    + tablo→sayfa eşlemesi (ilgisiz sayfada refresh yok).
+  - **PWA:** `@serwist/next` SW (`src/app/sw.ts` — veri ASLA cache'lenmez, sadece statik varlıklar),
+    `manifest.ts`, nar ikonları (`public/icons/`, sharp ile üretildi), `/~offline` sayfası ([locale]
+    DIŞINDA, kendi html'i). Middleware matcher'a sw.js/manifest/icons/~offline istisnası eklendi
+    (yoksa SW kaydı login'e yönlenip kırılıyordu). SW dev'de kapalı, sadece prod build'de.
+  - **Web Push:** migration 026 CANLIYA UYGULANDI (`push_subscriptions` + RLS own-row).
+    VAPID anahtarları üretildi → `.env.local` + Vercel (3 ortam): VAPID_PUBLIC_KEY,
+    VAPID_PRIVATE_KEY, NEXT_PUBLIC_VAPID_PUBLIC_KEY. `src/lib/push.ts` (service_role, ölü
+    abonelik temizliği), topbar'da `PushToggle` (aç → izin + abonelik + test bildirimi).
+    Bildirim tetikleri: OTA rezervasyonu (channex webhook) + siteden yeni pending rezervasyon
+    (DB webhook) → admin+receptionist.
+  - **Channex ~1sn (catch-all):** migration 027 — `pg_net` + DB trigger'ları CANLIYA UYGULANDI
+    (reservations: her değişiklik; rooms: status/is_active/channex_variant_id). Trigger →
+    `POST /api/webhooks/supabase` (x-internal-secret; repo dosyasında placeholder, gerçek secret
+    sadece canlı DB fonksiyonunda). Endpoint `after()` ile yanıttan sonra senkron yapar + 2sn
+    debounce. Kanıt: reservations UPDATE → prod'a HTTP isteği gitti (deploy öncesi 404 — normal).
+    Ayrıca: `updateRoomStatusAction` artık senkron tetikliyor; fiyat kaydında `syncRates` awaited.
+  - **Dürüstlük notu:** "1 saniye" bizim taraf için geçerli (değişiklik → Channex push). Channex →
+    Booking.com/Airbnb iletim süresi ONLARIN altyapısı (tipik saniyeler–dakikalar).
+  - **Test:** `pnpm build` ✓ (sw.js üretildi, tüm rotalar). Playwright smoke (localhost prod server,
+    gerçek admin girişi): login + dashboard + 6 sayfa + manifest + SW kaydı → HEPSİ OK. Dashboard
+    ekran görüntüsü alındı, tek RPC ile doğru render doğrulandı.
+  - Keşifte bulunan ayrı sorun: `recurring_bills`/`bill_payments` canlı DB'de YOK (012 uygulanmamış)
+    → `/bills` canlıda boş/kırık; RPC buna dayanıklı yazıldı. Kullanıcıya bildirildi.
+  - ⚠️ KULLANICI ONAYI BEKLİYOR: `git push origin main` + `vercel --prod` (otomatik mod izin
+    vermedi). Deploy olana kadar canlıda eski kod çalışır; DB webhook 404 alır (zararsız, cron telafi eder).
+  - ⚠️ Telefon doğrulaması kullanıcıda: Android/iPhone'da kurulum + push bildirimi testi.
+
 ## Sonraki Adımlar
 - Guest-site eksik oda fotoğrafları (101/102/103/301) + cephe/mutfak/resepsiyon/koridor common görselleri
   (kullanıcı çekip `photos-incoming/`e atınca `process-photos.mjs` çalıştırılır).
