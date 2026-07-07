@@ -23,6 +23,7 @@ interface RawPayment {
   status: PaymentStatus
   paid_at: string | null
   notes: string | null
+  fiscal_url: string | null
   created_at: string
   received_by: string | null
   reservations: {
@@ -52,7 +53,7 @@ export default async function PaymentsPage() {
   const { data: rawPayments } = await supabase
     .from('payments')
     .select(`
-      id, reservation_id, amount, currency, method, status, paid_at, notes, created_at, received_by,
+      id, reservation_id, amount, currency, method, status, paid_at, notes, fiscal_url, created_at, received_by,
       reservations(reservation_code, guests(first_name, last_name)),
       profiles!payments_received_by_fkey(full_name)
     `)
@@ -75,6 +76,7 @@ export default async function PaymentsPage() {
     createdAt: p.created_at,
     receivedByName: p.profiles?.full_name ?? null,
     notes: p.notes,
+    fiscalUrl: p.fiscal_url ?? null,
   }))
 
   const totalCompleted = rows

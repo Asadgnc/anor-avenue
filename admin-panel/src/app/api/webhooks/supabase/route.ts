@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { after } from 'next/server'
 import { syncAvailability } from '@/lib/channex-sync'
 import { sendPushToRoles } from '@/lib/push'
+import { createServiceClient } from '@/lib/supabase'
 
 // Supabase Database Webhook alıcısı (catch-all senkron).
 // reservations/rooms tablosunda HANGİ yoldan değişiklik olursa olsun
@@ -43,9 +44,29 @@ export async function POST(request: Request) {
       const isPending = r.status === 'pending'
       const fromChannex = Boolean(r.channex_booking_id)
       if (isPending && !fromChannex) {
+        // Misafir adı + telefonu ekle ki resepsiyonist hemen arayabilsin.
+        let who = ''
+        const guestId = typeof r.guest_id === 'string' ? r.guest_id : null
+        if (guestId) {
+          try {
+            const service = createServiceClient()
+            const { data: g } = await service
+              .from('guests')
+              .select('first_name, last_name, phone')
+              .eq('id', guestId)
+              .single()
+            if (g) {
+              const name = `${g.first_name ?? ''} ${g.last_name ?? ''}`.trim()
+              who = [name, g.phone].filter(Boolean).join(' · ')
+            }
+          } catch (e) {
+            console.error('[push] guest lookup failed:', e)
+          }
+        }
+        const dates = `${String(r.check_in ?? '')} → ${String(r.check_out ?? '')}`
         await sendPushToRoles(['admin', 'receptionist'], {
-          title: 'Anor Avenue',
-          body: `Новая бронь с сайта · ${String(r.check_in ?? '')} → ${String(r.check_out ?? '')}`,
+          title: 'Anor Avenue — yangi bron (sayt)',
+          body: who ? `${who} · ${dates}` : `Yangi bron · ${dates}`,
           url: '/reservations/list?status=pending',
         }).catch((e) => console.error('[push] db-webhook notify failed:', e))
       }

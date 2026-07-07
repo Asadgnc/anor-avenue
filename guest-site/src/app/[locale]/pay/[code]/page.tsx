@@ -184,7 +184,7 @@ export default async function PaymentPage({ params }: Props) {
           </div>
 
           {/* Payment options */}
-          <PaymentOptions locale={locale} reservationId={reservation.id} isPaid={isPaid} />
+          <PaymentOptions locale={locale} isPaid={isPaid} />
         </div>
       </main>
       <Footer />

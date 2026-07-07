@@ -297,7 +297,9 @@
       "notes": "Примечание",
       "amount": "Сумма оплаты",
       "paidDate": "Дата оплаты",
-      "paidBy": "Кто оплатил"
+      "paidBy": "Кто оплатил",
+      "periodStart": "Начало периода",
+      "periodEnd": "Конец периода"
     },
     "categories": {
       "utility": "Коммунальные",
@@ -317,7 +319,9 @@
     "historyDate": "Дата",
     "historyBill": "Счёт",
     "historyAmount": "Сумма",
-    "historyPaidBy": "Кто оплатил"
+    "historyPaidBy": "Кто оплатил",
+    "historyPeriod": "Период",
+    "receipt": "Чек"
   },
   "reservations": {
     "calendar": {
@@ -497,7 +501,8 @@
     },
     "methods": {
       "cash": "Наличные",
-      "transfer": "Перевод"
+      "transfer": "Перевод",
+      "card": "Карта (терминал)"
     },
     "calendarView": {
       "roomHeader": "Номер",
@@ -723,7 +728,8 @@
     },
     "methods": {
       "cash": "Наличные",
-      "transfer": "Перевод"
+      "transfer": "Перевод",
+      "card": "Карта (терминал)"
     },
     "statuses": {
       "pending": "Ожидает",
@@ -1458,5 +1464,19 @@
       "lastSync": "Последняя синхронизация",
       "never": "ещё не было"
     }
+  },
+  "fiscalScan": {
+    "button": "Сканировать фискальный чек (QR)",
+    "hint": "Наведите камеру на QR-код на чеке терминала.",
+    "align": "Разместите QR-код в рамке",
+    "scanning": "Поиск QR…",
+    "cancel": "Отмена",
+    "manualLabel": "Или введите ссылку на чек вручную",
+    "manualPlaceholder": "https://ofd.soliq.uz/epi?...",
+    "invalid": "Этот QR не является ссылкой на чек.",
+    "captured": "Чек прикреплён ✓",
+    "cameraError": "Нет доступа к камере. Введите ссылку вручную.",
+    "receiptLink": "Чек",
+    "applyToSiblings": "Прикрепить этот чек и к другим номерам гостя"
   }
 }

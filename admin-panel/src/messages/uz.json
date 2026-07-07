@@ -396,7 +396,8 @@
     },
     "methods": {
       "cash": "Naqd",
-      "transfer": "O'tkazma"
+      "transfer": "O'tkazma",
+      "card": "Karta (terminal)"
     },
     "calendarView": {
       "roomHeader": "Xona",
@@ -622,7 +623,8 @@
     },
     "methods": {
       "cash": "Naqd",
-      "transfer": "O'tkazma"
+      "transfer": "O'tkazma",
+      "card": "Karta (terminal)"
     },
     "statuses": {
       "pending": "Kutilmoqda",
@@ -1135,7 +1137,9 @@
       "notes": "Izoh",
       "amount": "To'lov summasi",
       "paidDate": "To'lov sanasi",
-      "paidBy": "Kim to'ladi"
+      "paidBy": "Kim to'ladi",
+      "periodStart": "Davr boshi",
+      "periodEnd": "Davr oxiri"
     },
     "categories": {
       "utility": "Kommunal",
@@ -1155,7 +1159,9 @@
     "historyDate": "Sana",
     "historyBill": "Schyot",
     "historyAmount": "Summa",
-    "historyPaidBy": "Kim to'ladi"
+    "historyPaidBy": "Kim to'ladi",
+    "historyPeriod": "Davr",
+    "receipt": "Chek"
   },
   "login": {
     "panelTitle": "Boshqaruv paneli",
@@ -1458,5 +1464,19 @@
       "lastSync": "Oxirgi sinxronlash",
       "never": "hali bo'lmagan"
     }
+  },
+  "fiscalScan": {
+    "button": "Fiskal chek (QR) skanerlash",
+    "hint": "Terminal chekidagi QR kodni kameraga koʻrsating.",
+    "align": "QR kodni ramka ichiga joylashtiring",
+    "scanning": "QR qidirilmoqda…",
+    "cancel": "Bekor qilish",
+    "manualLabel": "Yoki chek havolasini qoʻlda kiriting",
+    "manualPlaceholder": "https://ofd.soliq.uz/epi?...",
+    "invalid": "Bu QR chek havolasi emas.",
+    "captured": "Chek biriktirildi ✓",
+    "cameraError": "Kameraga kirish yoʻq. Havolani qoʻlda kiriting.",
+    "receiptLink": "Chek",
+    "applyToSiblings": "Shu chekni mehmonning boshqa xonalariga ham biriktirish"
   }
 }

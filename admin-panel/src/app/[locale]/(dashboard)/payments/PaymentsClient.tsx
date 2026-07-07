@@ -19,6 +19,7 @@ export interface PaymentRowData {
   createdAt: string
   receivedByName: string | null
   notes: string | null
+  fiscalUrl: string | null
 }
 
 const STATUS_TONE: Record<PaymentStatus, StatusTone> = {
@@ -43,6 +44,7 @@ function PaymentDetailModal({
 }) {
   const t = useTranslations('payments')
   const tStatus = useTranslations('status.payment')
+  const tf = useTranslations('fiscalScan')
 
   const dateStr = (iso: string | null) =>
     iso
@@ -60,6 +62,7 @@ function PaymentDetailModal({
     if (m === 'click') return 'Click'
     if (m === 'uzum') return 'Uzum'
     if (m === 'cash') return t('methods.cash')
+    if (m === 'card') return t('methods.card')
     return t('methods.transfer')
   }
 
@@ -154,6 +157,23 @@ function PaymentDetailModal({
           {payment.notes && (
             <Row label={t('detail.notes')} value={payment.notes} />
           )}
+          {payment.fiscalUrl && (
+            <Row
+              label={tf('receiptLink')}
+              value=""
+              badge={
+                <a
+                  href={payment.fiscalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm underline"
+                  style={{ color: 'var(--color-accent)' }}
+                >
+                  {tf('receiptLink')}
+                </a>
+              }
+            />
+          )}
         </div>
       </div>
     </div>
@@ -205,6 +225,7 @@ export default function PaymentsClient({ payments, dateLocale }: Props) {
     if (method === 'click') return 'Click'
     if (method === 'uzum') return 'Uzum'
     if (method === 'cash') return t('methods.cash')
+    if (method === 'card') return t('methods.card')
     return t('methods.transfer')
   }
 

@@ -4,6 +4,7 @@ import { useState, useActionState, useEffect } from 'react'
 import { useTranslations, useLocale } from 'next-intl'
 import { CheckCircle2, Clock, AlertTriangle, Plus, X, ChevronDown, ChevronUp, Power } from 'lucide-react'
 import { addBillAction, markBillPaidAction, toggleBillAction, type AddBillState, type MarkPaidState } from './actions'
+import FiscalQrScanButton, { isFiscalUrl } from '@/components/admin/FiscalQrScanButton'
 
 const LOCALE_BCP47: Record<string, string> = {
   ru: 'ru-RU',
@@ -32,6 +33,9 @@ export interface BillHistoryRow {
   amount: number
   currency: string
   notes: string | null
+  period_start: string | null
+  period_end: string | null
+  fiscal_url: string | null
   recurring_bills: { name: string } | null
   profiles: { full_name: string } | null
 }
@@ -54,11 +58,13 @@ function fmt(n: number) { return n.toLocaleString('uz-UZ') }
 function MarkPaidForm({ bill, onDone }: { bill: BillWithStatus; onDone: () => void }) {
   const t = useTranslations('bills')
   const tc = useTranslations('common')
+  const tf = useTranslations('fiscalScan')
   const locale = useLocale()
   const som = locale === 'uz' ? "so'm" : locale === 'uz-cyrl' ? 'сўм' : 'сум'
 
   const boundAction = markBillPaidAction.bind(null, bill.id, bill.dueDateStr)
   const [state, action, isPending] = useActionState<MarkPaidState, FormData>(boundAction, {})
+  const [fiscalUrl, setFiscalUrl] = useState('')
 
   useEffect(() => {
     if (state.success) onDone()
@@ -82,6 +88,14 @@ function MarkPaidForm({ bill, onDone }: { bill: BillWithStatus; onDone: () => vo
           placeholder={`UZS (${som})`}
         />
       </div>
+      <div className="w-36">
+        <label className="block text-xs mb-1 text-muted-foreground">{t('fields.periodStart')}</label>
+        <input name="period_start" type="date" disabled={isPending} className={inputCls} />
+      </div>
+      <div className="w-36">
+        <label className="block text-xs mb-1 text-muted-foreground">{t('fields.periodEnd')}</label>
+        <input name="period_end" type="date" disabled={isPending} className={inputCls} />
+      </div>
       <div className="flex-1 min-w-32">
         <label className="block text-xs mb-1 text-muted-foreground">{t('fields.notes')}</label>
         <input name="notes" type="text" disabled={isPending} className={inputCls} />
@@ -96,6 +110,30 @@ function MarkPaidForm({ bill, onDone }: { bill: BillWithStatus; onDone: () => vo
       <button type="button" onClick={onDone} className="px-4 py-2 rounded-lg text-sm text-muted-foreground bg-card ring-1 ring-foreground/10 hover:ring-foreground/20">
         {t('cancelBtn')}
       </button>
+
+      {/* Fiskal chek (Soliq QR) — ixtiyoriy */}
+      <div className="w-full flex flex-wrap items-end gap-2 pt-1">
+        <input type="hidden" name="fiscal_url" value={fiscalUrl} />
+        <FiscalQrScanButton onResult={setFiscalUrl} />
+        <div className="flex-1 min-w-48">
+          <label className="block text-xs mb-1 text-muted-foreground">{tf('manualLabel')}</label>
+          <input
+            type="url"
+            inputMode="url"
+            value={fiscalUrl}
+            onChange={(e) => setFiscalUrl(e.target.value)}
+            placeholder={tf('manualPlaceholder')}
+            disabled={isPending}
+            className={inputCls}
+          />
+        </div>
+        {fiscalUrl && (
+          isFiscalUrl(fiscalUrl)
+            ? <span className="text-xs pb-2 text-green-600">{tf('captured')}</span>
+            : <span className="text-xs pb-2 text-destructive">{tf('invalid')}</span>
+        )}
+      </div>
+
       {state.error && <p className="w-full text-xs text-destructive mt-1">{state.error}</p>}
     </form>
   )
@@ -355,8 +393,10 @@ export default function BillsClient({ bills, history, role, selectedMonth }: Pro
                   <tr className="border-b border-border bg-muted/20">
                     <th className="text-left px-4 py-2.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('historyDate')}</th>
                     <th className="text-left px-4 py-2.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('historyBill')}</th>
+                    <th className="text-left px-4 py-2.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('historyPeriod')}</th>
                     <th className="text-right px-4 py-2.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('historyAmount')}</th>
                     <th className="text-left px-4 py-2.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('historyPaidBy')}</th>
+                    <th className="text-left px-4 py-2.5 text-xs font-semibold text-muted-foreground uppercase tracking-wide">{t('receipt')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -366,8 +406,29 @@ export default function BillsClient({ bills, history, role, selectedMonth }: Pro
                         {row.paid_date ? fmtDate(row.paid_date) : fmtDate(row.due_date)}
                       </td>
                       <td className="px-4 py-3 text-foreground">{row.recurring_bills?.name ?? '—'}</td>
+                      <td className="px-4 py-3 text-muted-foreground tabular-nums">
+                        {row.period_start && row.period_end
+                          ? `${fmtDate(row.period_start)} – ${fmtDate(row.period_end)}`
+                          : row.period_start
+                            ? fmtDate(row.period_start)
+                            : '—'}
+                      </td>
                       <td className="px-4 py-3 text-right tabular-nums font-medium text-foreground">{fmtSom(row.amount)}</td>
                       <td className="px-4 py-3 text-muted-foreground">{row.profiles?.full_name ?? '—'}</td>
+                      <td className="px-4 py-3">
+                        {row.fiscal_url ? (
+                          <a
+                            href={row.fiscal_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs underline text-primary"
+                          >
+                            {t('receipt')}
+                          </a>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>

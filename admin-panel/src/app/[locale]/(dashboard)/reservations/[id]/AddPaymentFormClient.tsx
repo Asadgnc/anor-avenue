@@ -1,22 +1,26 @@
 'use client'
 
-import { useActionState, useEffect } from 'react'
+import { useActionState, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useTranslations } from 'next-intl'
 import { addPaymentAction, type AddPaymentState } from './actions'
 import { dash } from '@/lib/dashboardTheme'
+import FiscalQrScanButton, { isFiscalUrl } from '@/components/admin/FiscalQrScanButton'
 
 export default function AddPaymentFormClient({ reservationId }: { reservationId: string }) {
   const router = useRouter()
   const t = useTranslations('reservations.addPayment')
   const tm = useTranslations('reservations.methods')
   const tcat = useTranslations('finance.categories')
+  const tf = useTranslations('fiscalScan')
   const tc = useTranslations('common')
   const boundAction = addPaymentAction.bind(null, reservationId)
   const [state, action, isPending] = useActionState<AddPaymentState, FormData>(boundAction, {})
+  const [fiscalUrl, setFiscalUrl] = useState('')
 
   const methods = [
     { value: 'cash', label: tm('cash') },
+    { value: 'card', label: tm('card') },
     { value: 'payme', label: 'Payme' },
     { value: 'click', label: 'Click' },
     { value: 'uzum', label: 'Uzum' },
@@ -125,6 +129,30 @@ export default function AddPaymentFormClient({ reservationId }: { reservationId:
       >
         {isPending ? '…' : tc('save')}
       </button>
+
+      {/* Fiskal chek (Soliq QR) — ixtiyoriy */}
+      <div className="w-full flex flex-wrap items-end gap-2 pt-1">
+        <input type="hidden" name="fiscal_url" value={fiscalUrl} />
+        <FiscalQrScanButton onResult={setFiscalUrl} />
+        <div className="flex-1 min-w-48">
+          <label className="block text-xs mb-1" style={{ color: 'var(--color-admin-muted)' }}>{tf('manualLabel')}</label>
+          <input
+            type="url"
+            inputMode="url"
+            value={fiscalUrl}
+            onChange={(e) => setFiscalUrl(e.target.value)}
+            placeholder={tf('manualPlaceholder')}
+            disabled={isPending}
+            className={inputClass}
+            style={inputStyle}
+          />
+        </div>
+        {fiscalUrl && (
+          isFiscalUrl(fiscalUrl)
+            ? <span className="text-xs pb-2" style={{ color: dash.green }}>{tf('captured')}</span>
+            : <span className="text-xs pb-2" style={{ color: dash.red }}>{tf('invalid')}</span>
+        )}
+      </div>
 
       {state.error && (
         <p className="w-full text-xs mt-1" style={{ color: dash.red }}>{state.error}</p>

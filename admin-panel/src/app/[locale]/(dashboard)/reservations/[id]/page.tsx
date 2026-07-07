@@ -59,6 +59,7 @@ interface PaymentRow {
   status: PaymentStatus
   paid_at: string | null
   notes: string | null
+  fiscal_url: string | null
   created_at: string
 }
 
@@ -110,11 +111,13 @@ export default async function ReservationDetailPage({
   const ts = await getTranslations('reservations.detail.sections')
   const tStatus = await getTranslations('status.reservation')
   const tMethods = await getTranslations('reservations.methods')
+  const tFiscal = await getTranslations('fiscalScan')
   const tg = await getTranslations('guests.headers')
   const dateLocale = LOCALE_BCP47[locale] ?? 'ru-RU'
 
   const methodLabel = (m: PaymentMethod): string => {
     if (m === 'cash') return tMethods('cash')
+    if (m === 'card') return tMethods('card')
     if (m === 'transfer') return tMethods('transfer')
     if (m === 'payme') return 'Payme'
     if (m === 'click') return 'Click'
@@ -129,7 +132,7 @@ export default async function ReservationDetailPage({
       .single(),
     supabase
       .from('payments')
-      .select('id, amount, currency, method, status, paid_at, notes, created_at')
+      .select('id, amount, currency, method, status, paid_at, notes, fiscal_url, created_at')
       .eq('reservation_id', id)
       .order('created_at', { ascending: false }),
   ])
@@ -392,6 +395,17 @@ export default async function ReservationDetailPage({
                   </p>
                 </div>
                 <div className="flex items-center gap-3">
+                  {p.fiscal_url && (
+                    <a
+                      href={p.fiscal_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs underline shrink-0"
+                      style={{ color: 'var(--color-accent)' }}
+                    >
+                      {tFiscal('receiptLink')}
+                    </a>
+                  )}
                   <span className="font-bold tabular-nums" style={{ color: 'var(--color-accent)' }}>
                     {formatUZS(p.amount)}
                   </span>

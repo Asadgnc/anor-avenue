@@ -56,7 +56,24 @@ export async function addBillAction(
 const markPaidSchema = z.object({
   amount: z.coerce.number().positive(),
   notes: z.string().max(500).optional(),
+  period_start: z.string().optional(),
+  period_end: z.string().optional(),
+  fiscal_url: z.string().optional(),
 })
+
+const dateOrNull = (v?: string): string | null => (v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null)
+
+/** Soliq (OFD) chek havolasini tekshiradi; yaroqsiz boʻlsa null. */
+const fiscalUrlOrNull = (v?: string): string | null => {
+  const text = v?.trim()
+  if (!text) return null
+  try {
+    const u = new URL(text)
+    return /(^|\.)soliq\.uz$/i.test(u.hostname) ? text : null
+  } catch {
+    return null
+  }
+}
 
 export type MarkPaidState = { error?: string; success?: boolean }
 
@@ -77,8 +94,9 @@ export async function markBillPaidAction(
   const parsed = markPaidSchema.safeParse(Object.fromEntries(formData))
   if (!parsed.success) return { error: te('amountPositive') }
 
-  const service = createServiceClient()
-  const { error } = await service.from('bill_payments').upsert({
+  // Dönem/fiş alanları yalnızca değer varsa yazılır; 030 migration'ı henüz
+  // uygulanmamış olsa bile normal fatura ödemesi çalışmaya devam eder.
+  const row: Record<string, unknown> = {
     bill_id: billId,
     due_date: dueDate,
     paid_date: new Date().toISOString().split('T')[0],
@@ -87,7 +105,16 @@ export async function markBillPaidAction(
     status: 'paid',
     notes: parsed.data.notes || null,
     paid_by: user.id,
-  }, { onConflict: 'bill_id,due_date' })
+  }
+  const periodStart = dateOrNull(parsed.data.period_start)
+  const periodEnd = dateOrNull(parsed.data.period_end)
+  const fiscalUrl = fiscalUrlOrNull(parsed.data.fiscal_url)
+  if (periodStart) row.period_start = periodStart
+  if (periodEnd) row.period_end = periodEnd
+  if (fiscalUrl) row.fiscal_url = fiscalUrl
+
+  const service = createServiceClient()
+  const { error } = await service.from('bill_payments').upsert(row, { onConflict: 'bill_id,due_date' })
 
   if (error) return { error: error.message }
 

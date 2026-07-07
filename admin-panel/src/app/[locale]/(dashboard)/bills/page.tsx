@@ -48,7 +48,7 @@ export default async function BillsPage({
       .lte('due_date', monthEnd),
     supabase
       .from('bill_payments')
-      .select('id, due_date, paid_date, amount, currency, notes, recurring_bills(name), profiles(full_name)')
+      .select('id, due_date, paid_date, amount, currency, notes, period_start, period_end, fiscal_url, recurring_bills(name), profiles(full_name)')
       .eq('status', 'paid')
       .gte('due_date', toDateStr(new Date(today.getFullYear(), today.getMonth() - 3, 1)))
       .order('due_date', { ascending: false })

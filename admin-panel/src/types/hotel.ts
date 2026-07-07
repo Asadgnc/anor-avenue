@@ -2,7 +2,7 @@ export type RoomStatus = 'available' | 'occupied' | 'cleaning' | 'maintenance' |
 export type CleaningStatus = 'clean' | 'dirty' | 'in_progress' | 'cleaned' | 'inspected'
 export type ReservationStatus = 'pending' | 'confirmed' | 'checked_in' | 'checked_out' | 'cancelled' | 'no_show'
 export type Channel = 'direct' | 'booking_com' | 'agoda' | 'walk_in' | 'phone'
-export type PaymentMethod = 'payme' | 'click' | 'uzum' | 'cash' | 'transfer'
+export type PaymentMethod = 'payme' | 'click' | 'uzum' | 'cash' | 'transfer' | 'card'
 export type PaymentStatus = 'pending' | 'completed' | 'failed' | 'refunded'
 
 export interface RoomType {

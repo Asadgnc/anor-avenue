@@ -52,6 +52,7 @@ export async function GET(req: NextRequest) {
     if (method === 'click') return 'Click'
     if (method === 'uzum') return 'Uzum'
     if (method === 'cash') return tMethods('cash')
+    if (method === 'card') return tMethods('card')
     if (method === 'transfer') return tMethods('transfer')
     return method
   }

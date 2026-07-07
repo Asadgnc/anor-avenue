@@ -224,24 +224,21 @@ function SuccessScreen({
           </p>
         </div>
       )}
-      <div style={{ marginTop: '2rem', display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-        {reservationCode && (
-          <Link
-            href={`/${locale}/pay/${reservationCode}`}
-            style={{
-              backgroundColor: 'var(--color-gold)',
-              color: 'var(--color-white)',
-              padding: '0.75rem 1.75rem',
-              borderRadius: 'var(--radius-md)',
-              fontWeight: '700',
-              fontSize: 'var(--text-base)',
-              display: 'inline-block',
-              boxShadow: 'var(--shadow-gold)',
-            }}
-          >
-            {locale === 'uz' ? '💳 Hozir to\'lash' : locale === 'ru' ? '💳 Оплатить сейчас' : '💳 Pay Now'}
-          </Link>
-        )}
+      <p
+        style={{
+          marginTop: '1.25rem',
+          color: 'var(--color-text-secondary)',
+          fontSize: 'var(--text-sm)',
+          lineHeight: 1.5,
+        }}
+      >
+        {locale === 'uz'
+          ? "To'lov mehmonxonada, kirishda (oldindan) olinadi. Administratorimiz tez orada siz bilan bog'lanadi."
+          : locale === 'ru'
+          ? 'Оплата производится в отеле при заезде (предоплата). Наш администратор свяжется с вами в ближайшее время.'
+          : 'Payment is made at the hotel upon check-in (paid in advance). Our team will contact you shortly.'}
+      </p>
+      <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
         <Link
           href={`/${locale}`}
           style={{

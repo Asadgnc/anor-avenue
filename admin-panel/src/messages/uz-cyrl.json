@@ -396,7 +396,8 @@
     },
     "methods": {
       "cash": "Нақд",
-      "transfer": "Ўтказма"
+      "transfer": "Ўтказма",
+      "card": "Карта (терминал)"
     },
     "calendarView": {
       "roomHeader": "Хона",
@@ -622,7 +623,8 @@
     },
     "methods": {
       "cash": "Нақд",
-      "transfer": "Ўтказма"
+      "transfer": "Ўтказма",
+      "card": "Карта (терминал)"
     },
     "statuses": {
       "pending": "Кутилмоқда",
@@ -1135,7 +1137,9 @@
       "notes": "Изоҳ",
       "amount": "Тўлов суммаси",
       "paidDate": "Тўлов санаси",
-      "paidBy": "Ким тўлади"
+      "paidBy": "Ким тўлади",
+      "periodStart": "Давр боши",
+      "periodEnd": "Давр охири"
     },
     "categories": {
       "utility": "Коммунал",
@@ -1155,7 +1159,9 @@
     "historyDate": "Сана",
     "historyBill": "Ҳисоб",
     "historyAmount": "Сумма",
-    "historyPaidBy": "Ким тўлади"
+    "historyPaidBy": "Ким тўлади",
+    "historyPeriod": "Давр",
+    "receipt": "Чек"
   },
   "login": {
     "panelTitle": "Бошқарув панели",
@@ -1458,5 +1464,19 @@
       "lastSync": "Охирги синхронлаш",
       "never": "ҳали бўлмаган"
     }
+  },
+  "fiscalScan": {
+    "button": "Фискал чек (QR) сканерлаш",
+    "hint": "Терминал чекидаги QR кодни камерага кўрсатинг.",
+    "align": "QR кодни рамка ичига жойлаштиринг",
+    "scanning": "QR қидирилмоқда…",
+    "cancel": "Бекор қилиш",
+    "manualLabel": "Ёки чек ҳаволасини қўлда киритинг",
+    "manualPlaceholder": "https://ofd.soliq.uz/epi?...",
+    "invalid": "Бу QR чек ҳаволаси эмас.",
+    "captured": "Чек бириктирилди ✓",
+    "cameraError": "Камерага кириш йўқ. Ҳаволани қўлда киритинг.",
+    "receiptLink": "Чек",
+    "applyToSiblings": "Шу чекни меҳмоннинг бошқа хоналарига ҳам бириктириш"
   }
 }

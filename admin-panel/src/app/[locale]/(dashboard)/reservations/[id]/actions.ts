@@ -189,10 +189,24 @@ export async function updateReservationStatusAction(
 
 const paymentSchema = z.object({
   amount: z.coerce.number().positive(),
-  method: z.enum(['payme', 'click', 'uzum', 'cash', 'transfer']),
+  method: z.enum(['payme', 'click', 'uzum', 'cash', 'transfer', 'card']),
   revenue_category: z.enum(['accommodation', 'breakfast', 'extra_service', 'deposit', 'other']).default('accommodation'),
   notes: z.string().optional(),
+  fiscal_url: z.string().optional(),
 })
+
+/** Soliq (OFD) chek havolasidan strukturani ajratadi; yaroqsiz boʻlsa null. */
+function parseFiscal(raw?: string): { url: string; receiptId: string | null; scannedAt: string } | null {
+  const text = raw?.trim()
+  if (!text) return null
+  try {
+    const u = new URL(text)
+    if (!/(^|\.)soliq\.uz$/i.test(u.hostname)) return null
+    return { url: text, receiptId: u.searchParams.get('r'), scannedAt: new Date().toISOString() }
+  } catch {
+    return null
+  }
+}
 
 export type AddPaymentState = { error?: string; fieldErrors?: Record<string, string>; success?: boolean }
 
@@ -220,7 +234,11 @@ export async function addPaymentAction(
   // If the user has a profile, record received_by (otherwise null)
   const { data: profile } = await service.from('profiles').select('id').eq('id', auth.userId).single()
 
-  const { error } = await service.from('payments').insert({
+  const fiscal = parseFiscal(parsed.data.fiscal_url)
+
+  // Fiş alanları yalnızca değer varsa yazılır; böylece 029 migration'ı henüz
+  // uygulanmamış olsa bile normal ödeme kaydı (fişsiz) çalışmaya devam eder.
+  const row: Record<string, unknown> = {
     reservation_id: reservationId,
     amount: parsed.data.amount,
     currency: 'UZS',
@@ -230,7 +248,14 @@ export async function addPaymentAction(
     paid_at: new Date().toISOString(),
     received_by: profile ? auth.userId : null,
     notes: parsed.data.notes || null,
-  })
+  }
+  if (fiscal) {
+    row.fiscal_url = fiscal.url
+    row.fiscal_receipt_id = fiscal.receiptId
+    row.fiscal_scanned_at = fiscal.scannedAt
+  }
+
+  const { error } = await service.from('payments').insert(row)
 
   if (error) return { error: error.message }
 
