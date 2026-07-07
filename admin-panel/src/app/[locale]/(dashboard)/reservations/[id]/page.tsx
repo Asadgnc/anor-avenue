@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
 import { createClient } from '@/lib/supabase-server'
+import { getAuthClaims } from '@/lib/auth-claims'
 import { createServiceClient } from '@/lib/supabase'
 import { redirect, notFound } from 'next/navigation'
 import { Link } from '@/i18n/navigation'
@@ -99,8 +100,8 @@ export default async function ReservationDetailPage({
 }) {
   const { locale, id } = await params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const auth = await getAuthClaims()
+  if (!auth) redirect('/login')
 
   const t = await getTranslations('reservations.detail')
   const tf = await getTranslations('reservations.detail.fields')
@@ -138,7 +139,7 @@ export default async function ReservationDetailPage({
   const cfg = STATUS_COLORS[res.status]
 
   // Pasaport görselleri — SADECE admin (imzalı URL server'da üretilir)
-  const role = (user.user_metadata?.role as string | undefined) ?? ''
+  const role = auth.role
   let passportImages: string[] = []
   if (role === 'admin') {
     const service = createServiceClient()

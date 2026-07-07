@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase-server'
+import { getAuthClaims } from '@/lib/auth-claims'
 import { redirect } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import { Coins, TrendingUp, CalendarDays } from 'lucide-react'
@@ -21,11 +22,11 @@ interface TaxRow {
 
 export default async function TaxPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const auth = await getAuthClaims()
+  if (!auth) redirect('/login')
 
   // Money page — admin + accountant only.
-  const role = (user.user_metadata?.role as string | undefined) ?? ''
+  const role = auth.role
   if (!['admin', 'accountant'].includes(role)) redirect('/dashboard?blocked=1')
 
   const t = await getTranslations('tax')

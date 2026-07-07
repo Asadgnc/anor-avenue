@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase-server'
+import { getAuthClaims } from '@/lib/auth-claims'
 import { redirect } from 'next/navigation'
 import { getLocale } from 'next-intl/server'
 import { getTranslations } from 'next-intl/server'
@@ -25,13 +26,13 @@ export default async function TimesheetPage({
   searchParams: Promise<{ week?: string }>
 }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
+  const auth = await getAuthClaims()
+  if (!auth) {
     const locale = await getLocale()
     redirect(`/${locale}/login`)
   }
 
-  const role = (user.user_metadata?.role as string) ?? ''
+  const role = auth.role
   if (!['admin', 'accountant'].includes(role)) {
     redirect('/dashboard?blocked=1')
   }

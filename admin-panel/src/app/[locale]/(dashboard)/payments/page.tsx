@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase-server'
+import { getAuthClaims } from '@/lib/auth-claims'
 import { redirect } from 'next/navigation'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { Wallet, CreditCard } from 'lucide-react'
@@ -37,11 +38,11 @@ function formatUZS(amount: number): string {
 
 export default async function PaymentsPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const auth = await getAuthClaims()
+  if (!auth) redirect('/login')
 
   // Money page — admin + accountant only.
-  const role = (user.user_metadata?.role as string | undefined) ?? ''
+  const role = auth.role
   if (!['admin', 'accountant'].includes(role)) redirect('/dashboard?blocked=1')
 
   const locale = await getLocale()

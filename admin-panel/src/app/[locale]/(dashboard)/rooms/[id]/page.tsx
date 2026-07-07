@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase-server'
+import { getAuthClaims } from '@/lib/auth-claims'
 import { redirect, notFound } from 'next/navigation'
 import { Link } from '@/i18n/navigation'
 import { getTranslations } from 'next-intl/server'
@@ -14,8 +15,8 @@ export default async function RoomDetailPage({
 }) {
   const { id } = await params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const auth = await getAuthClaims()
+  if (!auth) redirect('/login')
 
   const t = await getTranslations('roomItems')
   const tFloor = await getTranslations('rooms.floors')

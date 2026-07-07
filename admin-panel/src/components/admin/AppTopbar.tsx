@@ -8,6 +8,7 @@ import { Link, usePathname } from '@/i18n/navigation'
 import { useTranslations, useLocale } from 'next-intl'
 import { Bell, Mail, Package } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import PushToggle from '@/components/admin/PushToggle'
 
 // Bell (pending reservations) → front-desk roles; Mail (pending payments) → money roles;
 // Package (stock need-requests) → admin.
@@ -101,6 +102,8 @@ export default function AppTopbar({
             </button>
           ))}
         </div>
+
+        <PushToggle />
 
         {showBell && (
           <Link

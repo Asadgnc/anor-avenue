@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase-server'
+import { getAuthClaims } from '@/lib/auth-claims'
 import { redirect } from 'next/navigation'
 import { Link } from '@/i18n/navigation'
 import { getTranslations } from 'next-intl/server'
@@ -16,10 +17,10 @@ export default async function DepoPage({
   searchParams: Promise<{ area?: string }>
 }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const auth = await getAuthClaims()
+  if (!auth) redirect('/login')
 
-  const role = (user.user_metadata?.role as string | undefined) ?? 'receptionist'
+  const role = auth.role || 'receptionist'
   const isHousekeeper = role === 'housekeeper'
   const isAdmin = role === 'admin'
 

@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase-server'
+import { getAuthClaims } from '@/lib/auth-claims'
 import { redirect, notFound } from 'next/navigation'
 import { Link } from '@/i18n/navigation'
 import { getTranslations } from 'next-intl/server'
@@ -48,13 +49,13 @@ function formatUZS(n: number) {
 export default async function GuestDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const auth = await getAuthClaims()
+  if (!auth) redirect('/login')
 
   const t = await getTranslations('guests.detail')
   const tStatus = await getTranslations('status.reservation')
 
-  const role = (user.user_metadata?.role as string) ?? 'receptionist'
+  const role = auth.role || 'receptionist'
 
   const [guestResult, reservationsResult, notesResult, tagsResult, loyaltyResult] = await Promise.all([
     supabase

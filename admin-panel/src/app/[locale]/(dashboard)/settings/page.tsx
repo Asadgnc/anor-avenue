@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase-server'
+import { getAuthClaims } from '@/lib/auth-claims'
 import { createServiceClient } from '@/lib/supabase'
 import { redirect } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
@@ -28,9 +28,8 @@ interface HotelSettings {
 }
 
 export default async function SettingsPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const auth = await getAuthClaims()
+  if (!auth) redirect('/login')
 
   const t = await getTranslations('settings')
 

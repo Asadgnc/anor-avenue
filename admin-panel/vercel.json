@@ -4,6 +4,7 @@
   "buildCommand": "pnpm build",
   "installCommand": "pnpm install --no-frozen-lockfile",
   "outputDirectory": ".next",
+  "regions": ["sin1"],
   "crons": [
     { "path": "/api/cron/channex-sync", "schedule": "0 3 * * *" }
   ]

@@ -1,13 +1,12 @@
-import { createClient } from '@/lib/supabase-server'
+import { getAuthClaims } from '@/lib/auth-claims'
 import { redirect } from 'next/navigation'
 import { Link } from '@/i18n/navigation'
 import { getTranslations } from 'next-intl/server'
 import NewGuestFormClient from './NewGuestFormClient'
 
 export default async function NewGuestPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const auth = await getAuthClaims()
+  if (!auth) redirect('/login')
 
   const t = await getTranslations('guests')
   const tt = await getTranslations('topbar')

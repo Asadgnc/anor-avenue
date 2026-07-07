@@ -63,11 +63,17 @@ export async function updateRoomTypePriceAction(
   revalidatePath('/settings')
   revalidatePath('/rooms')
 
-  // Channex'e fiyat + musaitlik push (env yoksa sessiz no-op)
+  // Channex'e fiyat + musaitlik push (env yoksa sessiz no-op).
+  // Awaited: "Kaydet" tamamlandiginda fiyat Channex'e gitmis olur (fire-and-forget degil).
   const from = new Date().toISOString().slice(0, 10)
   const to = new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10)
-  syncRates(from, to).catch((e) => console.error('[channex] rate sync failed:', e))
-  triggerAvailabilitySync().catch(() => {})
+  try {
+    const rateResult = await syncRates(from, to)
+    if (rateResult.error) console.error('[channex] rate sync failed:', rateResult.error)
+  } catch (e) {
+    console.error('[channex] rate sync failed:', e)
+  }
+  await triggerAvailabilitySync()
 
   return { success: true }
 }

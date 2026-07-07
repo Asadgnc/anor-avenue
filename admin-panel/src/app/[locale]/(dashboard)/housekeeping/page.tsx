@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase-server'
+import { getAuthClaims } from '@/lib/auth-claims'
 import { redirect } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import HousekeepingBoard from '@/components/admin/HousekeepingBoard'
@@ -19,10 +20,10 @@ interface HousekeepingTask {
 
 export default async function HousekeepingPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const auth = await getAuthClaims()
+  if (!auth) redirect('/login')
 
-  const role = (user.user_metadata?.role as string | undefined) ?? 'receptionist'
+  const role = auth.role || 'receptionist'
   const t = await getTranslations('housekeeping')
 
   const [roomsResult, tasksResult] = await Promise.all([

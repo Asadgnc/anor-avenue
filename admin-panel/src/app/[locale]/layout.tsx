@@ -17,6 +17,20 @@ export function generateStaticParams() {
 export const metadata: Metadata = {
   title: 'Anor Avenue — Admin Panel',
   description: 'Anor Avenue Hotel management system',
+  manifest: '/manifest.webmanifest',
+  icons: {
+    apple: '/icons/icon-192.png',
+  },
+  // iOS "Ana Ekrana Ekle" tam ekran uygulama davranışı
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Anor Avenue',
+  },
+}
+
+export const viewport = {
+  themeColor: '#16233B',
 }
 
 export default async function LocaleLayout({

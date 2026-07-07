@@ -4,6 +4,11 @@
     "Luxury": "Lyuks",
     "Deluxe": "Deluxe"
   },
+  "push": {
+    "enable": "Bildirishnomalarni yoqish",
+    "disable": "Bildirishnomalarni o'chirish",
+    "denied": "Bildirishnomalar brauzer sozlamalarida bloklangan. Ushbu sayt uchun ruxsat bering."
+  },
   "common": {
     "save": "Saqlash",
     "saving": "Saqlanmoqda…",

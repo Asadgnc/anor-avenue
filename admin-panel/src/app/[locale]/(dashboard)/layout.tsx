@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase-server'
+import { getAuthClaims } from '@/lib/auth-claims'
 import SidebarNav from '@/components/admin/SidebarNav'
 import AppTopbar from '@/components/admin/AppTopbar'
 import RealtimeRefresher from '@/components/admin/RealtimeRefresher'
@@ -19,11 +20,11 @@ export default async function DashboardLayout({ children }: { children: React.Re
     accountant: t('accountant'),
   }
 
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
+  // Middleware oturumu her istekte ağ üzerinden doğruluyor; burada JWT yerel okunur.
+  const auth = await getAuthClaims()
 
   // No insecure fallback: an unknown/unassigned role gets an "unauthorized" screen.
-  const role = (user?.user_metadata?.role as string | undefined) ?? ''
+  const role = auth?.role ?? ''
 
   if (!KNOWN_ROLES.includes(role)) {
     const tu = await getTranslations('unauthorized')
@@ -45,22 +46,23 @@ export default async function DashboardLayout({ children }: { children: React.Re
       </div>
     )
   }
-  const userEmail = user?.email ?? ''
-  const userName =
-    (user?.user_metadata?.full_name as string | undefined) ||
-    (userEmail ? userEmail.split('@')[0] : 'User')
+  const userEmail = auth?.email ?? ''
+  const userName = auth?.fullName || (userEmail ? userEmail.split('@')[0] : 'User')
 
-  const [pendingReservations, pendingPayments, pendingRequests] = await Promise.all([
-    supabase.from('reservations').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-    supabase.from('payments').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-    supabase.from('inventory_requests').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-  ])
+  // 3 ayrı count sorgusu yerine tek RPC (docs/migrations/025_dashboard_rpc.sql)
+  const supabase = await createClient()
+  const { data: badgeData } = await supabase.rpc('get_nav_badges')
+  const navBadges = (badgeData ?? {}) as {
+    pendingReservations?: number
+    pendingPayments?: number
+    pendingRequests?: number
+  }
 
   const badges = {
-    reservations: pendingReservations.count ?? 0,
-    payments: pendingPayments.count ?? 0,
+    reservations: navBadges.pendingReservations ?? 0,
+    payments: navBadges.pendingPayments ?? 0,
   }
-  const stockRequests = pendingRequests.count ?? 0
+  const stockRequests = navBadges.pendingRequests ?? 0
 
   return (
     <div className="min-h-screen flex bg-background">

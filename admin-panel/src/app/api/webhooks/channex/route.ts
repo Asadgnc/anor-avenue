@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServiceClient } from '@/lib/supabase'
 import { getBooking, type ChannexBooking } from '@/lib/channex'
 import { triggerAvailabilitySync } from '@/lib/channex-sync'
+import { sendPushToRoles } from '@/lib/push'
 
 // Channex webhook: sadece BİLDİRİM gelir → tam kaydı API'den çekeriz.
 // URL: /api/webhooks/channex?secret=<CHANNEX_WEBHOOK_SECRET>
@@ -180,6 +181,13 @@ async function processBooking(booking: ChannexBooking, bookingId: string, revisi
   }
 
   await triggerAvailabilitySync()
+
+  // Resepsiyona anlık bildirim: OTA'dan yeni rezervasyon düştü
+  await sendPushToRoles(['admin', 'receptionist'], {
+    title: `${booking.ota_name ?? 'OTA'} — новая бронь`,
+    body: `${booking.customer?.name ?? ''} ${booking.customer?.surname ?? ''} · ${checkIn} → ${checkOut}`.trim(),
+    url: '/reservations/list',
+  }).catch((e) => console.error('[push] ota notify failed:', e))
 }
 
 type Service = ReturnType<typeof createServiceClient>

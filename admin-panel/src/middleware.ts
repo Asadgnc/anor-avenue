@@ -90,6 +90,8 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|api/).*)',
+    // PWA dosyaları (sw.js, manifest, ikonlar, offline sayfası) auth/i18n dışında kalır —
+    // aksi halde service worker kaydı login'e yönlenir ve kurulum kırılır.
+    '/((?!_next/static|_next/image|favicon.ico|api/|sw\\.js|swe-worker|manifest\\.webmanifest|icons/|~offline).*)',
   ],
 }

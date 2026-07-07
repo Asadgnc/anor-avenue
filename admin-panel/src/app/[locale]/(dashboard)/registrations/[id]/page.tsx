@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase-server'
+import { getAuthClaims } from '@/lib/auth-claims'
 import { createServiceClient } from '@/lib/supabase'
 import { redirect, notFound } from 'next/navigation'
 import { Link } from '@/i18n/navigation'
@@ -58,8 +59,8 @@ export default async function RegistrationDetailPage({
 }) {
   const { id } = await params
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const auth = await getAuthClaims()
+  if (!auth) redirect('/login')
 
   const locale = await getLocale()
   const dateLocale = LOCALE_BCP47[locale] ?? 'ru-RU'

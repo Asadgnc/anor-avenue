@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase-server'
+import { getAuthClaims } from '@/lib/auth-claims'
 import { redirect } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import ReservationCalendar from '@/components/admin/ReservationCalendar'
@@ -18,10 +19,8 @@ type Props = {
 
 export default async function ReservationsPage({ searchParams }: Props) {
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const auth = await getAuthClaims()
+  if (!auth) redirect('/login')
 
   const { start } = await searchParams
   const t = await getTranslations('reservations.calendar')

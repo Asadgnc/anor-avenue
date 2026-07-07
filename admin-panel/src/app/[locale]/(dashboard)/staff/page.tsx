@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase-server'
+import { getAuthClaims } from '@/lib/auth-claims'
 import { createServiceClient } from '@/lib/supabase'
 import { redirect } from 'next/navigation'
 import { getLocale, getTranslations } from 'next-intl/server'
@@ -20,9 +20,8 @@ const ROLE_COLORS: Record<string, string> = {
 }
 
 export default async function StaffPage() {
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const auth = await getAuthClaims()
+  if (!auth) redirect('/login')
 
   const locale = await getLocale()
   const dateLocale = LOCALE_BCP47[locale] ?? 'ru-RU'
@@ -104,7 +103,7 @@ export default async function StaffPage() {
         ) : (
           <div className="divide-y" style={{ borderColor: 'var(--color-admin-border)' }}>
             {users.map((u) => {
-              const isMe = u.id === user.id
+              const isMe = u.id === auth.userId
               return (
                 <div
                   key={u.id}

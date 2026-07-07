@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase-server'
+import { getAuthClaims } from '@/lib/auth-claims'
 import { redirect } from 'next/navigation'
 import { getTranslations } from 'next-intl/server'
 import RoomsManager from '@/components/admin/RoomsManager'
@@ -7,12 +8,10 @@ import type { Room, RoomType } from '@/types/hotel'
 export default async function RoomsPage() {
   const t = await getTranslations('rooms')
   const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const auth = await getAuthClaims()
+  if (!auth) redirect('/login')
 
-  const role = (user.user_metadata?.role as string | undefined) ?? 'receptionist'
+  const role = auth.role || 'receptionist'
 
   const [roomsResult, typesResult] = await Promise.all([
     supabase

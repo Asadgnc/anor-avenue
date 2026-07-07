@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase-server'
+import { getAuthClaims } from '@/lib/auth-claims'
 import { redirect } from 'next/navigation'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { dash } from '@/lib/dashboardTheme'
@@ -134,8 +135,8 @@ function EmptyRow({ text }: { text: string }) {
 
 export default async function HousekeepingOverviewPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const auth = await getAuthClaims()
+  if (!auth) redirect('/login')
 
   const locale = await getLocale()
   const t = await getTranslations('housekeeping.overview')

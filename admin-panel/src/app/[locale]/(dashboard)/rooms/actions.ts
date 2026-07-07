@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache'
 import { getTranslations } from 'next-intl/server'
 import { createClient } from '@/lib/supabase-server'
 import { createServiceClient } from '@/lib/supabase'
+import { triggerAvailabilitySync } from '@/lib/channex-sync'
 
 // ─── Add room ─────────────────────────────────────────────────────────────────
 
@@ -71,6 +72,10 @@ export async function updateRoomStatusAction(
     .eq('id', roomId)
 
   if (error) return { error: error.message }
+
+  // maintenance/blocked müsaitliği değiştirir → Channex'e hemen bildir
+  // (DB webhook'u da yakalar; bu açık tetik gecikmeyi kısaltır)
+  await triggerAvailabilitySync()
 
   revalidatePath('/rooms')
   revalidatePath('/dashboard')

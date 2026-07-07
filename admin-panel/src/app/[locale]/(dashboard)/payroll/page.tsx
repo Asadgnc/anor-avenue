@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase-server'
+import { getAuthClaims } from '@/lib/auth-claims'
 import { redirect } from 'next/navigation'
 import { getLocale, getTranslations } from 'next-intl/server'
 import { Link } from '@/i18n/navigation'
@@ -7,13 +8,13 @@ import PayrollClient, { type PayrollPeriod, type PayrollItem, type StaffOption }
 
 export default async function PayrollPage() {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
+  const auth = await getAuthClaims()
+  if (!auth) {
     const locale = await getLocale()
     redirect(`/${locale}/login`)
   }
 
-  const role = (user.user_metadata?.role as string) ?? ''
+  const role = auth.role
   if (!['admin', 'accountant'].includes(role)) {
     redirect('/dashboard?blocked=1')
   }

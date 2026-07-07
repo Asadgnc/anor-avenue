@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase-server'
+import { getAuthClaims } from '@/lib/auth-claims'
 import { redirect } from 'next/navigation'
 import { getLocale } from 'next-intl/server'
 import AccountingTabs from '@/components/admin/AccountingTabs'
@@ -14,11 +15,11 @@ export default async function BillsPage({
   searchParams: Promise<{ month?: string }>
 }) {
   const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) redirect('/login')
+  const auth = await getAuthClaims()
+  if (!auth) redirect('/login')
 
   // Bills are part of accounting — admin + accountant only.
-  const role = (user.user_metadata?.role as string) ?? ''
+  const role = auth.role
   if (!['admin', 'accountant'].includes(role)) {
     redirect('/dashboard?blocked=1')
   }
