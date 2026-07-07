@@ -191,3 +191,10 @@ Geçmiş oturum notları. CLAUDE.md'den taşındı (7 Temmuz 2026).
   - `src/lib/reservation-service.ts`: createReservationCore tek çekirdek; moveRoomAction + extendStayAction
   - Dashboard "Bugün" ekranı: 4 KPI çipi + giriş/çıkış listeleri + MobileTabBar
   - Deploy: commit b3abc3a, prod READY (sin1), Playwright doğrulaması ✅
+
+- [x] Standart (bodrum) odalar dış kanallardan gizlendi — sadece iç satış (7 Temmuz 2026)
+  - Migration 033: rooms.is_public + rooms_with_effective_price yeniden oluşturuldu (canlı ✅)
+  - Guest-site: tüm oda sorguları is_public=true; /rooms/101→404; formda standart yok (zod dahil)
+  - availability.ts: publicOnly parametresi (iki kopya bayt-eşit, parite ✅); admin etkilenmedi
+  - Channex: 3 Standart varyant disabled + sync artık disabled varyantlara availability=0 push eder
+  - Doğrulama: lokal Playwright screenshot'ları, prod 404/200 kontrolleri, panel "доступность 7 + цены 3"
