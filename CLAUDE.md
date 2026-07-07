@@ -778,14 +778,17 @@ Mert "nar çarpışması" konsepti önerdi. Konsept henüz karara bağlanmadı �
   - i18n: +31 anahtar × 3 dil (1194 × 3, tam parite). `pnpm build` ✓ (admin + guest).
   - ✅ **Playwright doğrulaması (localhost prod build, gerçek admin girişi):** 8/8 kontrol PASS; masaüstü +
     390px mobil ekran görüntüsü alındı; mobil kaydırma ~4-6 ekrandan **2.3 ekrana** indi; konsol hatası sıfır.
-  - ⚠️ Kullanıcıda: (1) `012b_recurring_bills_apply.sql`'i SQL Editor'den çalıştır; (2) commit push +
-    admin-panel yeniden deploy onayı; (3) telefonda alt çubuk + Bugün ekranı + push testi.
+  - ✅ PUSH + DEPLOY TAMAM (kullanıcı onayı "push et"): commit b3abc3a main'de; GitHub entegrasyonu
+    production deploy'u otomatik tetikledi (dpl_5q3BYtX6…, READY, sin1). Canlı doğrulama (Playwright,
+    prod domain, mobil): Bugün ekranı 389 ms'de render, alt çubuk çalışıyor, eski finans kartları yok.
+  - ⚠️ Kullanıcıda: (1) `012b_recurring_bills_apply.sql`'i SQL Editor'den çalıştır (/bills bunu bekliyor);
+    (2) telefonda alt çubuk + Bugün ekranı testi.
 
 ## Sonraki Adımlar
 - ⚠️ Canlıya uygula (SQL Editor): `docs/migrations/012b_recurring_bills_apply.sql` — /bills bunu bekliyor
   (019 + 020'nin canlıda ZATEN uygulanmış olduğu 7 Temmuz'da doğrulandı; eski notlar bayattı).
-- ⚠️ admin-panel yeniden deploy (güvenlik + senkron + rezervasyon + yeni dashboard kodu canlıya gitsin);
-  guest-site deploy (availability.ts ayna güncellemesi — davranış değişikliği yok, yorum hizalaması).
+- ✅ admin-panel deploy edildi (7 Temmuz, otomatik GitHub deploy) — güvenlik + senkron + rezervasyon +
+  Bugün ekranı canlıda; guest-site değişikliği yalnız yorum hizalamasıydı (davranış aynı).
 - Guest-site eksik oda fotoğrafları (101/102/103/301) + cephe/mutfak/resepsiyon/koridor common görselleri
   (kullanıcı çekip `photos-incoming/`e atınca `process-photos.mjs` çalıştırılır).
 - Faz 2 (3D): Anor Baba maskotu + dönen nar — `.glb` gelince (bkz. plan Faz 2). Video kullanılmayacak.
