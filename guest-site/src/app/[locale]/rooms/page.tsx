@@ -81,21 +81,37 @@ export default async function RoomsPage({ params, searchParams }: Props) {
   const today = new Date().toISOString().split('T')[0]
   const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0]
 
-  const { data: allRooms } = await supabase
-    .from('rooms_with_effective_price')
-    .select(
-      'id, room_number, floor, room_type_name, effective_price, view_quality, has_jacuzzi, has_bathtub, is_isolated, connecting_room_id, max_occupancy, is_active'
-    )
-    .eq('is_active', true)
-    .eq('is_public', true)
-    .order('room_number')
+  const hasValidDates = !!(checkIn && checkOut && checkIn >= today && checkOut > checkIn)
 
-  const rooms: RoomRow[] = (allRooms ?? []) as RoomRow[]
+  // Üç bağımsız sorgu tek turda paralel çalışır (şelale yok):
+  // odalar + gerçek kapasiteler + (tarih seçiliyse) çakışan rezervasyonlar.
+  const [roomsResult, capMap, conflictsResult] = await Promise.all([
+    supabase
+      .from('rooms_with_effective_price')
+      .select(
+        'id, room_number, floor, room_type_name, effective_price, view_quality, has_jacuzzi, has_bathtub, is_isolated, connecting_room_id, max_occupancy, is_active'
+      )
+      .eq('is_active', true)
+      .eq('is_public', true)
+      .order('room_number'),
+    // Gerçek per-oda kapasite (channex_variants.occupancy); view'deki max_occupancy
+    // oda tipinden gelir ve hepsi 2 döner — bu yüzden ayrıca çekiyoruz.
+    fetchRoomCapacities(createServiceClient()),
+    hasValidDates
+      ? supabase
+          .from('reservations')
+          .select('room_id')
+          .in('status', ['pending', 'confirmed', 'checked_in'])
+          .lt('check_in', checkOut!)
+          .gt('check_out', checkIn!)
+      : Promise.resolve({ data: null }),
+  ])
 
-  // Gerçek per-oda kapasite (channex_variants.occupancy); view'deki max_occupancy
-  // oda tipinden gelir ve hepsi 2 döner — bu yüzden ayrıca çekiyoruz.
-  const capMap = await fetchRoomCapacities(createServiceClient())
+  const rooms: RoomRow[] = (roomsResult.data ?? []) as RoomRow[]
   const roomCapacity = (r: RoomRow) => capMap.get(r.id) ?? r.max_occupancy
+  const bookedRoomIds = new Set(
+    ((conflictsResult.data ?? []) as { room_id: string }[]).map((c) => c.room_id)
+  )
 
   // Oda-bazlı gerçek kapak görselleri (public/hotel-photos/rooms/{odaNo}/) —
   // yoksa nötr fallback. Render senkron olduğu için önceden çözüyoruz.
@@ -103,19 +119,6 @@ export default async function RoomsPage({ params, searchParams }: Props) {
     rooms.map(async (r) => [r.id, await getRoomCover(r.room_number)] as const)
   )
   const coverMap = new Map<string, string>(coverEntries)
-
-  const hasValidDates = !!(checkIn && checkOut && checkIn >= today && checkOut > checkIn)
-  let bookedRoomIds = new Set<string>()
-
-  if (hasValidDates) {
-    const { data: conflicts } = await supabase
-      .from('reservations')
-      .select('room_id')
-      .in('status', ['pending', 'confirmed', 'checked_in'])
-      .lt('check_in', checkOut!)
-      .gt('check_out', checkIn!)
-    bookedRoomIds = new Set((conflicts ?? []).map((c) => c.room_id as string))
-  }
 
   let filtered = rooms
   if (floor) filtered = filtered.filter((r) => String(r.floor) === floor)

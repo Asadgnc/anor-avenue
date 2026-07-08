@@ -236,17 +236,21 @@ export default async function RoomDetailPage({
   const locale = (rawLocale as Locale) ?? 'uz'
   setRequestLocale(rawLocale)
 
-  const room = await fetchRoom(roomNumber)
+  // Oda + kapasite + galeri birbirinden bağımsız — tek turda paralel çözülür
+  // (galeri URL'deki oda numarasıyla bulunur; fetchRoom aynı numarayı döndürür).
+  const [room, capMap, gallery] = await Promise.all([
+    fetchRoom(roomNumber),
+    fetchRoomCapacities(createServiceClient()),
+    getRoomGallery(roomNumber),
+  ])
   if (!room) notFound()
 
   const slug = TYPE_SLUG[room.room_type_name] ?? 'luxury'
   const amenities = AMENITIES[slug]
 
   // Gerçek kapasite (channex_variants.occupancy)
-  const capMap = await fetchRoomCapacities(createServiceClient())
   const capacity = capMap.get(room.id) ?? room.max_occupancy
 
-  const gallery = await getRoomGallery(room.room_number)
   const heroSrc = gallery[0]?.src ?? PHOTO_FALLBACK
 
   const roomFeatures = {

@@ -145,26 +145,29 @@ export async function loadBookableRooms(
 
   const roomIds = priceRows.map((r) => r.id)
 
-  const { data: conflicts } = await client
-    .from('reservations')
-    .select('room_id')
-    .in('room_id', roomIds)
-    .in('status', ['pending', 'confirmed', 'checked_in'])
-    .lt('check_in', checkOut)
-    .gt('check_out', checkIn)
+  // Both reservation lookups depend only on roomIds → run them in parallel.
+  // UNCERTAIN: rooms freeing up on the turnover day (checkout == requested
+  // check-in) whose guest is flagged "may extend" → risky, never offered.
+  const [{ data: conflicts }, { data: extRows, error: extErr }] = await Promise.all([
+    client
+      .from('reservations')
+      .select('room_id')
+      .in('room_id', roomIds)
+      .in('status', ['pending', 'confirmed', 'checked_in'])
+      .lt('check_in', checkOut)
+      .gt('check_out', checkIn),
+    client
+      .from('reservations')
+      .select('room_id')
+      .in('room_id', roomIds)
+      .in('status', ['pending', 'confirmed', 'checked_in'])
+      .eq('check_out', checkIn)
+      .eq('may_extend', true),
+  ])
 
   const blocked = new Set((conflicts ?? []).map((c) => c.room_id as string))
 
-  // UNCERTAIN: rooms freeing up on the turnover day (checkout == requested
-  // check-in) whose guest is flagged "may extend" → risky, never offered.
   const uncertain = new Set<string>()
-  const { data: extRows, error: extErr } = await client
-    .from('reservations')
-    .select('room_id')
-    .in('room_id', roomIds)
-    .in('status', ['pending', 'confirmed', 'checked_in'])
-    .eq('check_out', checkIn)
-    .eq('may_extend', true)
   if (!extErr && extRows) {
     for (const c of extRows) uncertain.add(c.room_id as string)
   }

@@ -30,43 +30,53 @@ export default async function BookPage({ params, searchParams }: Props) {
   const { roomType, checkIn, checkOut, adults, rooms: roomsParam } = await searchParams
   setRequestLocale(locale)
 
-  // Çoklu-oda ("kombinasyon") modu: /availability'den seçilen oda kümesi
-  let combo: ComboData | null = null
-  if (roomsParam && checkIn && checkOut) {
+  // Çoklu-oda ("kombinasyon") modu: /availability'den seçilen oda kümesi.
+  // Kombo doğrulaması ve genel min-fiyat sorgusu birbirinden bağımsız — paralel çalışır.
+  async function loadCombo(): Promise<ComboData | null> {
+    if (!roomsParam || !checkIn || !checkOut) return null
     const ids = [...new Set(roomsParam.split(',').map((s) => s.trim()).filter(Boolean))]
-    if (ids.length > 0) {
-      const service = createServiceClient()
-      const [{ data: comboRows }, capMap] = await Promise.all([
-        service
-          .from('rooms_with_effective_price')
-          .select('id, room_number, room_type_name, effective_price')
-          .in('id', ids)
-          .eq('is_active', true)
-          .eq('is_public', true),
-        fetchRoomCapacities(service),
-      ])
-      if (comboRows && comboRows.length > 0) {
-        const nights = Math.max(1, nightsBetween(checkIn, checkOut))
-        const comboRooms = comboRows.map((r) => ({
-          id: r.id as string,
-          roomNumber: r.room_number as string,
-          typeName: r.room_type_name as string,
-          typeSlug: TYPE_SLUG[r.room_type_name as string] ?? 'luxury',
-          capacity: capMap.get(r.id as string) ?? 2,
-          pricePerNight: Number(r.effective_price),
-        }))
-        const totalCapacity = comboRooms.reduce((s, r) => s + r.capacity, 0)
-        combo = {
-          rooms: comboRooms,
-          checkIn,
-          checkOut,
-          nights,
-          adults: Math.min(Number(adults) || totalCapacity, totalCapacity),
-          totalPrice: comboRooms.reduce((s, r) => s + r.pricePerNight, 0) * nights,
-        }
-      }
+    if (ids.length === 0) return null
+
+    const service = createServiceClient()
+    const [{ data: comboRows }, capMap] = await Promise.all([
+      service
+        .from('rooms_with_effective_price')
+        .select('id, room_number, room_type_name, effective_price')
+        .in('id', ids)
+        .eq('is_active', true)
+        .eq('is_public', true),
+      fetchRoomCapacities(service),
+    ])
+    if (!comboRows || comboRows.length === 0) return null
+
+    const nights = Math.max(1, nightsBetween(checkIn, checkOut))
+    const comboRooms = comboRows.map((r) => ({
+      id: r.id as string,
+      roomNumber: r.room_number as string,
+      typeName: r.room_type_name as string,
+      typeSlug: TYPE_SLUG[r.room_type_name as string] ?? 'luxury',
+      capacity: capMap.get(r.id as string) ?? 2,
+      pricePerNight: Number(r.effective_price),
+    }))
+    const totalCapacity = comboRooms.reduce((s, r) => s + r.capacity, 0)
+    return {
+      rooms: comboRooms,
+      checkIn,
+      checkOut,
+      nights,
+      adults: Math.min(Number(adults) || totalCapacity, totalCapacity),
+      totalPrice: comboRooms.reduce((s, r) => s + r.pricePerNight, 0) * nights,
     }
   }
+
+  const [combo, { data: roomPriceData }] = await Promise.all([
+    loadCombo(),
+    supabase
+      .from('rooms_with_effective_price')
+      .select('room_type_name, effective_price')
+      .eq('is_active', true)
+      .eq('is_public', true),
+  ])
 
   const title = locale === 'uz' ? 'Xona bron qilish' : locale === 'ru' ? 'Забронировать номер' : 'Book a Room'
   const subtitle =
@@ -75,12 +85,6 @@ export default async function BookPage({ params, searchParams }: Props) {
       : locale === 'ru'
       ? 'Заполните форму, мы свяжемся с вами'
       : "Fill in your details, we'll get back to you"
-
-  const { data: roomPriceData } = await supabase
-    .from('rooms_with_effective_price')
-    .select('room_type_name, effective_price')
-    .eq('is_active', true)
-    .eq('is_public', true)
 
   const minPrice = (dbName: string, fallback: number): number => {
     const rows = roomPriceData?.filter((r) => r.room_type_name === dbName) ?? []

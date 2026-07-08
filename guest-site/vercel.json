@@ -1,6 +1,7 @@
 {
   "name": "anor-avenue-guest-site",
   "framework": "nextjs",
+  "regions": ["sin1"],
   "buildCommand": "pnpm build",
   "installCommand": "pnpm install",
   "outputDirectory": ".next"

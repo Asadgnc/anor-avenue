@@ -14,6 +14,9 @@ import { getRoomCover, getCommonCover, getCommonGallery, PHOTO_FALLBACK } from '
 
 type Props = { params: Promise<{ locale: string }> }
 
+// ISR: sayfa statik servis edilir, fiyat/kapak verisi 5 dakikada bir arka planda tazelenir.
+export const revalidate = 300
+
 export default async function HomePage({ params }: Props) {
   const { locale } = await params
   setRequestLocale(locale)
