@@ -59,7 +59,10 @@ export default async function RegistrationsPage({
   const params = await searchParams
   const statusFilter = params.status ?? 'all'
 
-  const { data, error } = await supabase
+  // Sekme sayaçları hafif (sadece status kolonu) sorgudan; ağır birleşimli liste
+  // ise sunucu tarafında filtrelenir + sınırlandırılır — kayıt geçmişi büyüdükçe
+  // sayfa tüm tabloyu çekmez.
+  let listQuery = supabase
     .from('guest_registrations')
     .select(`
       id, status, registered_at,
@@ -67,17 +70,22 @@ export default async function RegistrationsPage({
       reservations(id, reservation_code, check_in, check_out, rooms(room_number))
     `)
     .order('registered_at', { ascending: false })
+    .limit(200)
+  if (statusFilter !== 'all') listQuery = listQuery.eq('status', statusFilter)
 
-  const allRows = (data ?? []) as unknown as RegistrationRow[]
+  const [{ data, error }, statusResult] = await Promise.all([
+    listQuery,
+    supabase.from('guest_registrations').select('status'),
+  ])
 
-  // Small hotel — filtering in JS is sufficient
-  const rows = statusFilter === 'all' ? allRows : allRows.filter((r) => r.status === statusFilter)
+  const rows = (data ?? []) as unknown as RegistrationRow[]
+  const statuses = (statusResult.data ?? []) as { status: string }[]
 
   const counts = {
-    all: allRows.length,
-    pending: allRows.filter((r) => r.status === 'pending').length,
-    submitted: allRows.filter((r) => r.status === 'submitted').length,
-    confirmed: allRows.filter((r) => r.status === 'confirmed').length,
+    all: statuses.length,
+    pending: statuses.filter((r) => r.status === 'pending').length,
+    submitted: statuses.filter((r) => r.status === 'submitted').length,
+    confirmed: statuses.filter((r) => r.status === 'confirmed').length,
   }
 
   return (

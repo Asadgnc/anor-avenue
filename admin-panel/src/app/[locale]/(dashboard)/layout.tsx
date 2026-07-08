@@ -7,8 +7,6 @@ import RealtimeRefresher from '@/components/admin/RealtimeRefresher'
 import { getTranslations } from 'next-intl/server'
 import { logoutAction } from '@/app/actions/logout'
 
-export const dynamic = 'force-dynamic'
-
 const KNOWN_ROLES = ['admin', 'receptionist', 'housekeeper', 'accountant']
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
@@ -21,7 +19,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     accountant: t('accountant'),
   }
 
-  // Middleware verifies the session over the network on every request; here the JWT is read locally.
+  // Middleware da bu katman da JWT'yi çerezden yerel doğrular (getClaims) — ağ turu yok.
   const auth = await getAuthClaims()
 
   // No insecure fallback: an unknown/unassigned role gets an "unauthorized" screen.

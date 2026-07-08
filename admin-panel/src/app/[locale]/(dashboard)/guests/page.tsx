@@ -13,17 +13,22 @@ export default async function GuestsPage() {
 
   const t = await getTranslations('guests')
 
-  // Fetch guests with their reservations (to show last stay info)
+  // Fetch guests with ONLY their most recent reservation (last stay info) +
+  // a server-side stay count — tüm rezervasyon/ödeme geçmişini çekmek yerine
+  // misafir başına 1 satır döner (500 misafirde ~binlerce satır tasarrufu).
   const { data: guests } = await supabase
     .from('guests')
     .select(`
       id, first_name, last_name, nationality,
-      reservations(
-        id, check_in, check_out, nights, total_amount, room_rate,
+      stays:reservations(count),
+      last:reservations(
+        check_in, nights, total_amount,
         rooms(room_number),
         payments(amount, status)
       )
     `)
+    .order('check_in', { ascending: false, referencedTable: 'last' })
+    .limit(1, { referencedTable: 'last' })
     .order('created_at', { ascending: false })
     .limit(500)
 
@@ -32,24 +37,18 @@ export default async function GuestsPage() {
     first_name: string
     last_name: string
     nationality: string | null
-    reservations: Array<{
-      id: string
+    stays: Array<{ count: number }>
+    last: Array<{
       check_in: string
-      check_out: string
       nights: number
       total_amount: number
-      room_rate: number
       rooms: { room_number: string } | null
       payments: Array<{ amount: number; status: string }>
     }>
   }
 
   const rows: GuestRow[] = ((guests ?? []) as unknown as RawGuest[]).map((g) => {
-    // Find most recent reservation by check_in date
-    const sorted = [...g.reservations].sort((a, b) =>
-      b.check_in.localeCompare(a.check_in)
-    )
-    const last = sorted[0] ?? null
+    const last = g.last[0] ?? null
     const paid = last
       ? last.payments
           .filter((p) => p.status === 'completed')
@@ -65,7 +64,7 @@ export default async function GuestsPage() {
       lastNights: last?.nights ?? null,
       lastTotalAmount: last?.total_amount ?? null,
       lastPaid: last ? paid : null,
-      stayCount: g.reservations.length,
+      stayCount: g.stays[0]?.count ?? 0,
     }
   })
 

@@ -241,3 +241,16 @@ kullanıcı onayıyla). DB: 0 rezervasyon/misafir/ödeme, 12 oda müsait+temiz.
   - availability.ts: publicOnly parametresi (iki kopya bayt-eşit, parite ✅); admin etkilenmedi
   - Channex: 3 Standart varyant disabled + sync artık disabled varyantlara availability=0 push eder
   - Doğrulama: lokal Playwright screenshot'ları, prod 404/200 kontrolleri, panel "доступность 7 + цены 3"
+
+- [x] Performans hızlandırma: guest-site + admin panel (8 Temmuz 2026)
+  - KÖK NEDEN kanıtlandı: guest fonksiyonları iad1'de (ABD), DB Singapur'da → /rooms TTFB 6.7s
+  - guest-site/vercel.json: "regions": ["sin1"] eklendi (en büyük kazanç)
+  - Ana sayfa ISR (revalidate=300): statik hız korunur, fiyatlar artık build'de donmaz (3 dilde doğrulandı)
+  - Sorgu paralelleştirme: /rooms, /rooms/[type], /book, availability.ts (aynalı, parite ✅)
+  - Admin middleware getUser()→getClaims(): her sayfada 1 Supabase Auth ağ turu tasarrufu (ES256/JWKS teyitli)
+  - Dashboard payments şelalesi embedded select'e; guests sadece son konaklama+count (canlı DB'de test edildi)
+  - registrations server-side filtre+limit; layout force-dynamic kaldırıldı (prerender-manifest: bayat veri yok)
+  - finance/reports/guests[id]/reservations[id] loading.tsx iskeletleri
+  - Temizlik: 9 referanssız stok JPEG silindi (~57MB), guest-site'tan kullanılmayan @tanstack/react-query çıktı
+  - finance sorguları bilinçli değiştirilmedi (para toplamlarının doğruluğu > mikro hız; ileride aggregate RPC)
+  - Build+lint iki app'te yeşil; prod ölçümü deploy sonrası yapılacak (hedef: /rooms <1s)

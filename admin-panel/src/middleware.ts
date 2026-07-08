@@ -54,9 +54,12 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  // getClaims: JWT çerezden yerel olarak doğrulanır (proje ES256/asimetrik imza kullanıyor,
+  // JWKS bellekte cache'lenir) — her istekte Supabase Auth'a ağ turu atılmaz. Süresi dolmuş
+  // token'da oturum tazelemesi getClaims'in oturum yükleme adımında yine çalışır.
+  const { data: claimsData } = await supabase.auth.getClaims()
+  const claims = claimsData?.claims
+  const user = claims && typeof claims.sub === 'string' ? claims : null
 
   const { pathname } = request.nextUrl
   const isLoginPage =
@@ -75,7 +78,8 @@ export async function middleware(request: NextRequest) {
 
   if (user && !isLoginPage) {
     // No insecure fallback: an unknown/unassigned role gets dashboard-only access.
-    const role = (user.user_metadata?.role as string | undefined) ?? ''
+    const meta = (user.user_metadata ?? {}) as Record<string, unknown>
+    const role = typeof meta.role === 'string' ? meta.role : ''
     if (!isAllowed(role, pathname)) return makeRedirect('/dashboard?blocked=1')
   }
 

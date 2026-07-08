@@ -7,9 +7,8 @@ export interface AuthClaims {
   fullName: string
 }
 
-// Middleware her istekte auth.getUser() ile oturumu ağ üzerinden zaten doğruluyor.
-// Sayfa/layout katmanı ise JWT claim'lerini yerel olarak okur (getClaims) —
-// böylece her navigasyonda ikinci bir Supabase Auth ağ çağrısı yapılmaz.
+// Hem middleware hem sayfa/layout katmanı JWT claim'lerini yerel olarak doğrular
+// (getClaims + ES256/JWKS) — normal akışta hiçbir istekte Supabase Auth'a ağ turu atılmaz.
 export async function getAuthClaims(): Promise<AuthClaims | null> {
   const supabase = await createClient()
   const { data, error } = await supabase.auth.getClaims()

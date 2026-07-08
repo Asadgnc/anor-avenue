@@ -368,6 +368,30 @@ Detaylı geçmiş: `docs/session-log.md`
 - Booking.com bağlanmak ÜCRETSİZ (komisyon ~%15/rezervasyon); Channex canlı plan ~$29-30/ay
   (channex.io/pricing'den teyit edilmeli). EUR test rezervasyonları staging yapaylığı — property UZS.
 
+### Performans hızlandırma (8 Temmuz 2026 — kod tamam, deploy bekliyor)
+- KÖK NEDEN: guest-site Vercel fonksiyonları ABD'de (iad1), Supabase Singapur'da →
+  /rooms TTFB 6.7s ölçüldü. Çözüm: `guest-site/vercel.json`a `"regions": ["sin1"]` eklendi
+  (admin panel zaten sin1'deydi). Deploy sonrası `x-vercel-id` başlığında sin1 doğrulanmalı.
+- Guest ana sayfa ISR'a alındı (`revalidate = 300`): eskiden fiyatlar build anında donuyordu;
+  artık statik hız + 5 dk'da bir arka planda fiyat tazeleme. Build'de 3 dilde doğrulandı.
+- Sorgu şelaleleri paralellendi: guest /rooms (3 sorgu), /rooms/[type] (3 çağrı), /book
+  (kombo+fiyat), `availability.ts` (çakışma+may_extend — AYNALI dosya, iki kopya birlikte
+  güncellendi, parity script geçti).
+- Admin middleware: `getUser()` (her istekte Supabase Auth'a ağ turu) → `getClaims()`
+  (JWT çerezden lokal doğrulama; proje ES256/JWKS — teyit edildi). Deploy sonrası login/rol
+  yönlendirmeleri tarayıcıda test edilmeli.
+- Admin: dashboard payments şelalesi embedded select'e alındı; guests sayfası misafir başına
+  TÜM rezervasyon+ödeme yerine sadece son konaklama + count çekiyor (sorgu canlı DB'de test
+  edildi); registrations server-side filtre+limit; layout'tan `force-dynamic` kaldırıldı
+  (prerender-manifest ile bayat veri riski olmadığı doğrulandı); finance/reports/guests[id]/
+  reservations[id]'ye loading.tsx iskeleti eklendi.
+- Finance sayfası sorguları BİLİNÇLİ değiştirilmedi: "tüm zamanlar" para toplamları + 12 ay
+  grafiği tüm satırlara bağımlı; limit koymak toplamları sessizce yanlışlaştırır. Veri
+  büyüyünce DB-side aggregate RPC ile çözülmeli.
+- Temizlik: 9 referanssız stok JPEG silindi (~57MB); guest-site'tan kullanılmayan
+  @tanstack/react-query kaldırıldı.
+- Ana sayfanın ~0.8-1.3s TTFB'si edge-cache kaynaklı ağ mesafesi; sayfa zaten statik.
+
 ### Sonraki adımlar
 - Guest-site: 302 gerçek fotosu bekleniyor (yukarı bak). 101/102/103 sitede gizli, foto gerekmez.
 - Channex webhook doğrulaması (7 Tem 2026): Vercel prod env TAM senkron (CHANNEX_API_KEY/

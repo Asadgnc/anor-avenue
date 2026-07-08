@@ -112,6 +112,7 @@ interface StayQueryRow {
   expected_check_in_time: string | null
   rooms: { room_number: string } | null
   guests: { first_name: string | null; last_name: string | null } | null
+  payments?: { amount: number; status: string }[] | null
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -156,7 +157,8 @@ export default async function DashboardPage({
     frontDesk
       ? supabase
           .from('reservations')
-          .select(stayFields)
+          // Ödemeler iç-içe (embedded) çekilir — ayrı bir "payments" sorgu turu gerekmez.
+          .select(`${stayFields}, payments(amount, status)`)
           .eq('status', 'checked_in')
           .lte('check_out', todayStr)
       : Promise.resolve({ data: null }),
@@ -188,24 +190,16 @@ export default async function DashboardPage({
   const noShowRows = ((noShowQ.data ?? []) as unknown as StayQueryRow[]).map(toTodayRow)
   const departureRows = (departuresQ.data ?? []) as unknown as StayQueryRow[]
 
-  // Balance due per departure (completed payments only)
-  let departures: TodayRow[] = []
-  if (departureRows.length > 0) {
-    const ids = departureRows.map((r) => r.id)
-    const { data: pays } = await supabase
-      .from('payments')
-      .select('reservation_id, amount')
-      .in('reservation_id', ids)
-      .eq('status', 'completed')
-    const paidBy = new Map<string, number>()
-    for (const p of pays ?? []) {
-      paidBy.set(p.reservation_id, (paidBy.get(p.reservation_id) ?? 0) + Number(p.amount))
-    }
-    departures = departureRows.map((r) => ({
+  // Balance due per departure (completed payments only) — embedded payments'tan hesaplanır
+  const departures: TodayRow[] = departureRows.map((r) => {
+    const paid = (r.payments ?? [])
+      .filter((p) => p.status === 'completed')
+      .reduce((sum, p) => sum + Number(p.amount), 0)
+    return {
       ...toTodayRow(r),
-      balanceDue: Math.max(0, Number(r.total_amount) - (paidBy.get(r.id) ?? 0)),
-    }))
-  }
+      balanceDue: Math.max(0, Number(r.total_amount) - paid),
+    }
+  })
 
   const userName = d.userName || auth.fullName || auth.email || t('userFallback')
   const occupancy = {
