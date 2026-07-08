@@ -33,6 +33,9 @@ export default function OfflinePage() {
           <br />
           Internet aloqasi yo&#39;q. Aloqani tekshirib, qayta urinib ko&#39;ring.
         </p>
+        {/* Bilerek <a>: offline sayfasında tam sayfa yenileme gerekir (bağlantı
+            geri geldiğinde sunucudan taze veri çekilsin diye) */}
+        {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
         <a
           href="/dashboard"
           style={{

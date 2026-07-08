@@ -3,6 +3,10 @@ packages:
   - "admin-panel"
   - "packages/*"
 
+allowBuilds:
+  # ffmpeg-static yalnızca lokal video işleme scripti için; prod build'de derlenmesin
+  ffmpeg-static: false
+
 onlyBuiltDependencies:
   - sharp
   - unrs-resolver

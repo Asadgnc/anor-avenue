@@ -4,6 +4,49 @@ Geçmiş oturum notları. CLAUDE.md'den taşındı (7 Temmuz 2026).
 
 ---
 
+## 8 Temmuz 2026 — Teslim öncesi tam QA denetimi (9 faz) + düzeltmeler
+
+**Denetim kapsamı:** build/lint, RLS+roller, guest-site 3 dil, admin panel 21 sayfa +
+tam rezervasyon yaşam döngüsü (tarayıcı otomasyonu, prod), overbooking, Channex,
+PWA/push/mobil, registratsiya + CSV export. Tüm testler ekran görüntülü/SQL kanıtlı.
+
+**Bulunan ve düzeltilen hatalar:**
+- [x] 🔴 KRİTİK: `accounting_ledger` + `guest_loyalty_balance` view'leri anon'a açıktı
+  (SECURITY DEFINER → RLS bypass, finans verisi internetten okunabiliyordu — anon rolüyle
+  kanıtlandı). Düzeltme: `docs/migrations/034_secure_views.sql` (revoke + security_invoker;
+  `rooms_with_effective_price` de invoker moduna alındı, guest-site etkilenmez çünkü
+  rooms/room_types'ta public SELECT policy var). **Kullanıcı SQL Editor'den uygulayacak.**
+- [x] 🟠 Receptionist `rooms` UPDATE'i üzerinden `price_override`/`is_public` değiştirebiliyordu
+  (fiyat/gizlilik kuralı ihlali) → 034 içinde kolon-koruma trigger'ı (`protect_room_sensitive_columns`).
+- [x] 🟠 Walk-in/ön-rezervasyon formu: ödeme yöntemi "—" bırakılınca Zod `optional()` boş
+  string'i reddedip anlamsız "Invalid input" veriyordu → `.or(z.literal(''))` (iki şemada).
+- [x] 🟠 Lint altyapısı iki app'te de bozuktu (eslint-config-next ESLint 9.39 uyumsuz) →
+  `@next/eslint-plugin-next` + `eslint-plugin-react-hooks` ile sade flat config; lint yeşil.
+  Lint'in yakaladığı gerçek hatalar düzeltildi: finance + NewReservationForm `<a>` → i18n `Link`.
+- [x] 🟡 Guest-site footer telefonu placeholder'dı → gerçek numara (+998 97 789 78 99, panel
+  ayarlarından); uydurma e-posta satırı kaldırıldı (kullanıcı onayı).
+- [x] 🟡 `HotelVideo` aria-label Türkçe hardcode → 3 dil (uz/ru/en, `useLocale`).
+
+**Doğrulanan (sorunsuz):** RLS 34/34 tabloda açık; DELETE yalnız admin; API key sızıntısı yok;
+gizli odalar (101/102/103) guest-site'ta ve Channex müsaitliğinde YOK ama admin walk-in'de satılabilir;
+overbooking 3 testte de doğru (UI reddi + DB EXCLUDE kısıtı + bitişik tarih kabulü); oda taşıma
+proration doğru (102→201, aynı gün → toplam 800k); iade formu ön-dolu, negatif ödeme satırı;
+check-out → oda otomatik kirli; registratsiya kaydı oluşuyor; fatura sayfası eksiksiz;
+CSV export (1C/Excel) çalışıyor; PWA manifest+SW doğru; mobil panel + guest-site sağlıklı;
+Channex müsaitlik push gerçek zamanlı (check-out sonrası 201 anında müsait göründü);
+Channex property para birimi UZS (EUR test rezervasyonları staging test aracı yapaylığıydı).
+
+**Temizlik:** Tüm test verisi silindi (QATEST ×2, Ivan Ivanov ×2, ttruuy, "— —" kayıtları;
+kullanıcı onayıyla). DB: 0 rezervasyon/misafir/ödeme, 12 oda müsait+temiz.
+
+**Kalan işler (teslim öncesi):**
+- [ ] Migration 034'ü kullanıcı SQL Editor'den uygulayacak (güvenlik — deploy'la birlikte ŞART).
+- [ ] Resepsiyon cihazında panel bildirimi açılmalı (push_subscriptions şu an 0 — zil ikonu → izin ver).
+- [ ] Gerçek Booking.com bağlantısı (ücretsiz, komisyon bazlı; Channex canlı plan ~$29-30/ay) + 1 gerçek test rezervasyonu.
+- [ ] 302 gerçek oda fotoğrafı.
+
+---
+
 ## 7 Temmuz 2026 — Oda değişikliğinde otomatik para mutabakatı (proration + iade)
 
 - [x] Sorun: `moveRoomAction` odayı değiştirip eski fiyatı koruyordu; pahalı/ucuz odaya

@@ -7,6 +7,14 @@
 
 import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
+import { useLocale } from 'next-intl'
+
+// Oynat düğmesi erişilebilirlik etiketi (ekran okuyucular için, 3 dil)
+const PLAY_LABEL: Record<string, string> = {
+  uz: 'Videoni ijro etish',
+  ru: 'Воспроизвести видео',
+  en: 'Play video',
+}
 
 type Props = {
   src: string
@@ -29,6 +37,8 @@ export default function HotelVideo({
   const wrapRef = useRef<HTMLDivElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
   const [playing, setPlaying] = useState(false) // feature: kullanıcı başlattı mı
+  const locale = useLocale()
+  const playLabel = PLAY_LABEL[locale] ?? PLAY_LABEL.uz
 
   // Ambient: görünür olunca oynat, çıkınca duraklat.
   useEffect(() => {
@@ -120,7 +130,7 @@ export default function HotelVideo({
         <button
           type="button"
           onClick={() => setPlaying(true)}
-          aria-label={label ? `${label} — videoyu oynat` : 'Videoyu oynat'}
+          aria-label={label ? `${label} — ${playLabel}` : playLabel}
           style={{
             position: 'absolute',
             inset: 0,

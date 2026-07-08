@@ -1,7 +1,7 @@
 'use client'
 
 import { useActionState, useEffect, useMemo, useState } from 'react'
-import { useRouter } from '@/i18n/navigation'
+import { Link, useRouter } from '@/i18n/navigation'
 import { useTranslations } from 'next-intl'
 import { createReservationAction, type ReservationFormState } from '@/app/[locale]/(dashboard)/reservations/new/actions'
 import PassportScanButton from './PassportScanButton'
@@ -400,13 +400,13 @@ export default function NewReservationForm({ rooms }: Props) {
         >
           {pending ? t('savingButton') : state.reservationId ? t('redirectingButton') : t('submitButton')}
         </button>
-        <a
+        <Link
           href="/reservations"
           className="text-sm transition-opacity hover:opacity-70"
           style={{ color: 'var(--color-admin-muted)' }}
         >
           {t('cancelLink')}
-        </a>
+        </Link>
       </div>
     </form>
   )

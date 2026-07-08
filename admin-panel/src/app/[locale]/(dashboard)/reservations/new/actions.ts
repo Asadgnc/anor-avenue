@@ -35,7 +35,8 @@ const schema = z.object({
   adults:               z.coerce.number().int().min(1).max(8),
   specialRequests:      z.string().optional(),
   advanceAmount:        z.coerce.number().min(0).optional(),
-  paymentMethod:        z.enum(['payme', 'click', 'uzum', 'cash', 'transfer']).optional(),
+  // '—' seçili kalınca form boş string gönderir; optional() bunu reddeder → or(literal(''))
+  paymentMethod:        z.enum(['payme', 'click', 'uzum', 'cash', 'transfer']).optional().or(z.literal('')),
   breakfastIncluded:    z.string().optional().transform(v => v === 'on'),
   expectedCheckInTime:  z.string().optional(),
 })
@@ -109,7 +110,8 @@ const walkInSchema = z.object({
   breakfastIncluded: z.string().optional().transform(v => v === 'on'),
   specialRequests:  z.string().optional(),
   advanceAmount:    z.coerce.number().min(0).optional(),
-  paymentMethod:    z.enum(['payme', 'click', 'uzum', 'cash', 'transfer']).optional(),
+  // '—' seçili kalınca form boş string gönderir; optional() bunu reddeder → or(literal(''))
+  paymentMethod:    z.enum(['payme', 'click', 'uzum', 'cash', 'transfer']).optional().or(z.literal('')),
   guestCount:       z.coerce.number().int().min(1).max(20),
   // Primary guest fields (prefixed with guest_0_)
   guest_0_firstName:     z.string().min(1),

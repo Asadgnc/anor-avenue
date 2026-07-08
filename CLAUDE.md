@@ -274,12 +274,12 @@ Detaylı geçmiş: `docs/session-log.md`
 - Channex: staging ortamı aktif ✅ (müsaitlik+fiyat akıyor; Booking.com/Airbnb bağlantısı kullanıcıda)
 - Google Cloud Vision: pasaport MRZ tarama aktif ✅
 
-### Bekleyen migration (kullanıcı SQL Editor'den uygulayacak — DEPLOY'DAN ÖNCE!)
-- `docs/migrations/033_room_public_visibility.sql` — `rooms.is_public` kolonu +
-  `rooms_with_effective_price` view'inin yeniden oluşturulması (101/102/103 → is_public=false).
-- ⚠️ 033 uygulanmadan yeni kod deploy edilirse guest-site oda sorguları
-  (`is_public` kolonu bulunamadığından) ana sayfa/odalar/rezervasyon sayfalarında hata verir.
-- (029/030/031/032 canlıda uygulandı ✅ — 7 Tem 2026'da DB'den doğrulandı; 028 de uygulandı ✅)
+### Bekleyen migration (kullanıcı SQL Editor'den uygulayacak — DEPLOY'LA BİRLİKTE ŞART!)
+- `docs/migrations/034_secure_views.sql` — 🔴 GÜVENLİK: `accounting_ledger` +
+  `guest_loyalty_balance` view'lerinin anon erişimi kapatılır (finans verisi internetten
+  okunabiliyordu — 8 Tem denetiminde kanıtlandı); 3 view `security_invoker` moduna alınır;
+  receptionist'in `rooms.price_override`/`is_public` değiştirmesini engelleyen trigger eklenir.
+- (033 canlıda uygulandı ✅ — 8 Tem 2026'da DB'den doğrulandı; 028-032 de uygulandı ✅)
 
 ### Kritik notlar
 - Silme yetkisi (7 Tem 2026): TÜM işlemsel tablolarda DELETE artık yalnızca admin
@@ -338,10 +338,31 @@ Detaylı geçmiş: `docs/session-log.md`
 - `ffmpeg-static` build'i `pnpm-workspace.yaml` → `allowBuilds: ffmpeg-static: false` (prod install yalın;
   binary yalnızca lokal video scripti için, gerekirse elle `node node_modules/ffmpeg-static/install.js`).
 
+### Teslim öncesi QA denetimi (8 Temmuz 2026 — TAMAMLANDI ✅)
+- 9 fazlık tam denetim geçti: build/lint yeşil, RLS 34/34, roller uyumlu, guest-site 3 dil,
+  admin 21 sayfa hatasız, tam yaşam döngüsü (walk-in→ödeme→oda taşıma proration→iade→
+  check-out→fatura) tarayıcı otomasyonuyla prod'da kanıtlandı, overbooking 3/3, Channex
+  müsaitlik push gerçek zamanlı, PWA/mobil/CSV export çalışıyor. Detay: docs/session-log.md.
+- Düzeltilen buglar: anon finans view açığı (034), walk-in "Invalid input" (paymentMethod boş
+  string), `<a>`→`Link`, footer placeholder telefon, HotelVideo i18n, lint altyapısı.
+- Test verisi tamamen temizlendi (kullanıcı onayıyla): DB 0 rezervasyon, 12 oda müsait+temiz.
+- ⚠️ Kurulum notu: `push_subscriptions` boş — resepsiyon cihazında panel açılıp zil ikonundan
+  bildirim izni verilmeli, yoksa yeni rezervasyon push'u kimseye gitmez (dashboard uyarısı yine görünür).
+- Booking.com bağlanmak ÜCRETSİZ (komisyon ~%15/rezervasyon); Channex canlı plan ~$29-30/ay
+  (channex.io/pricing'den teyit edilmeli). EUR test rezervasyonları staging yapaylığı — property UZS.
+
 ### Sonraki adımlar
 - Guest-site: 302 gerçek fotosu bekleniyor (yukarı bak). 101/102/103 sitede gizli, foto gerekmez.
-- Channex: sahte-profil testi — `staging.channex.io`'da Booking.com test property (5868189 vb.)
-  ekle, oda+fiyat eşle, test kartıyla (4111 1111 1111 1111) rezervasyon yap → panelde düşüyor mu bak
+- Channex webhook doğrulaması (7 Tem 2026): Vercel prod env TAM senkron (CHANNEX_API_KEY/
+  BASE_URL/WEBHOOK_SECRET vb. hepsi var, .env.local ile aynı). Webhook Channex'te kayıtlı+aktif
+  (callback prod URL, event_mask "booking", secret eşleşiyor). Prod endpoint transport testi 4/4
+  geçti: yanlış secret→401, non-booking→200 skip, booking.created+sahte id→200 ama Channex API
+  "Resource Not Found" (yani prod CHANNEX_API_KEY Channex'e bağlanıyor), booking_id yok→400. DB temiz.
+- KALAN tek adım (DB'ye gerçek yazma testi): Channex API booking OLUŞTURMAYA izin vermiyor (POST
+  /bookings → 403), o yüzden "sahte booking" ile tam uçtan-uca test yapılamıyor — webhook zaten
+  gerçek kaydı Channex'ten çekiyor (getBooking). Booking.com test aracından/Channex UI'dan GERÇEK
+  test rezervasyonu gönderilmeli → webhook otomatik düşer → panelde/Supabase'de reservations satırı
+  + oda kapanması doğrulanır. (Booking.com test rate planları `...BookingTest` zaten mevcut.)
 - Faz 2 (3D): Anor Baba maskotu `.glb` gelince
 
 ---

@@ -38,8 +38,7 @@ function FooterInner() {
               {locale === 'uz' ? 'Aloqa' : locale === 'ru' ? 'Контакты' : 'Contact'}
             </h4>
             <div style={{ color: 'rgba(255,255,255,0.6)', fontSize: 'var(--text-sm)' }} className="flex flex-col gap-2">
-              <span>{t('phone')}: +998 XX XXX XX XX</span>
-              <span>{t('email')}: info@anoravenue.uz</span>
+              <span>{t('phone')}: +998 97 789 78 99</span>
             </div>
           </div>
 

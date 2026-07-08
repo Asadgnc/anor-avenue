@@ -1,3 +1,4 @@
+import { Link } from '@/i18n/navigation'
 import { createClient } from '@/lib/supabase-server'
 import { getAuthClaims } from '@/lib/auth-claims'
 import { redirect } from 'next/navigation'
@@ -201,12 +202,12 @@ export default async function FinancePage({
             </button>
           </form>
           {isFiltered && (
-            <a
+            <Link
               href="/finance"
               className="px-3 py-1.5 rounded-lg text-sm text-muted-foreground bg-card ring-1 ring-foreground/10 hover:ring-foreground/20 transition-all"
             >
               {t('allTime')}
-            </a>
+            </Link>
           )}
         </div>
       </div>
@@ -301,12 +302,12 @@ export default async function FinancePage({
                     className={`hover:bg-muted/20 transition-colors ${row.month === selectedMonth ? 'bg-primary/5 ring-1 ring-primary/20' : ''}`}
                   >
                     <td className="px-5 py-3 font-medium text-foreground">
-                      <a
+                      <Link
                         href={`/finance?month=${row.month}`}
                         className="hover:text-primary transition-colors hover:underline"
                       >
                         {monthLabel(row.month)}
-                      </a>
+                      </Link>
                     </td>
                     <td className="px-5 py-3 text-right tabular-nums text-green-700">
                       {row.income > 0 ? `+${fmtSom(row.income)}` : '—'}
