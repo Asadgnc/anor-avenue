@@ -8,7 +8,6 @@ import BookingWidget from '@/components/hotel/BookingWidget'
 import LocationSection from '@/components/hotel/LocationSection'
 import CoverImage from '@/components/hotel/CoverImage'
 import HotelVideo from '@/components/hotel/HotelVideo'
-import NarSpinner from '@/components/hotel/NarSpinner'
 import { supabase } from '@/lib/supabase'
 import { getRoomCover, getCommonCover, getCommonGallery, PHOTO_FALLBACK } from '@/lib/roomPhotos'
 
@@ -121,9 +120,6 @@ function HeroSection({ locale }: { locale: string }) {
           pointerEvents: 'none',
         }}
       />
-
-      {/* Yavaşça dönen nar amblemi (sağ, sadece geniş ekran) */}
-      <NarSpinner />
 
       <div
         style={{

@@ -184,13 +184,12 @@ metin-öncelikli bölüm tasarla (ikon + kısa açıklama).
 **"Nar çarpışması" konsepti (Mert):** hâlâ karara bağlanmadı —
 **Claude Code bu ÇARPIŞMA animasyonunu UYGULAMAYA BAŞLAMASIN**, önce Mert ile netleştirilecek.
 
-**Basit dönen nar amblemi (8 Tem 2026 — kullanıcı onayladı, uygulandı ✅):**
-Çarpışmadan ayrı, hafif marka dokunuşu. Hero'nun sağında yavaşça (26s) kendi
-ekseninde dönen nar. Görsel `guest-site/public/anor-nar.png` = `NAR.jpeg`'in
-BİREBİR kırpılmış hali (sunum arka planı + "1024x1024" yazısı atıldı; nar ve
-RENKLERİ değiştirilmedi — kullanıcı şeffaf/cutout sürümü reddetti, orijinal
-altın çerçeveli kare amblem kullanılıyor). Bileşen: `components/hotel/NarSpinner.tsx`
-(CSS `@keyframes anor-nar-spin`, `prefers-reduced-motion`'da durur, lg altı gizli).
+**Dönen nar amblemi — GERİ ALINDI (8 Tem 2026, kullanıcı isteği):**
+Hero'ya kısaca eklenen dönen nar amblemi tamamen kaldırıldı (kullanıcı sitede
+istemedi). `NarSpinner.tsx`, `public/anor-nar.png` ve `globals.css`'teki
+`anor-nar-spin` keyframe silindi; misafir favicon eski haline döndürüldü.
+**Nar amblemi SADECE admin panel uygulamasında** kalıyor (PWA ikonları +
+admin favicon — `NAR.jpeg`'ten kırpma). Guest-site'ta nar görseli YOK.
 
 ---
 

@@ -20,16 +20,3 @@ body {
   font-family: var(--font-body), system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
-
-/* Yavaşça kendi ekseninde dönen nar amblemi (hero) */
-@keyframes anor-nar-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-.anor-nar-spin {
-  animation: anor-nar-spin 26s linear infinite;
-}
-/* Hareket hassasiyeti olan kullanıcılar için durdur */
-@media (prefers-reduced-motion: reduce) {
-  .anor-nar-spin { animation: none; }
-}
