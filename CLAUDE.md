@@ -179,10 +179,18 @@ metin-öncelikli bölüm tasarla (ikon + kısa açıklama).
 
 ---
 
-## Hero Animasyon Notu (henüz onaylanmadı)
+## Hero Animasyon Notu
 
-Mert "nar çarpışması" konsepti önerdi. Konsept henüz karara bağlanmadı —
-**Claude Code bu animasyonu UYGULAMAYA BAŞLAMASIN**, önce Mert ile netleştirilecek.
+**"Nar çarpışması" konsepti (Mert):** hâlâ karara bağlanmadı —
+**Claude Code bu ÇARPIŞMA animasyonunu UYGULAMAYA BAŞLAMASIN**, önce Mert ile netleştirilecek.
+
+**Basit dönen nar amblemi (8 Tem 2026 — kullanıcı onayladı, uygulandı ✅):**
+Çarpışmadan ayrı, hafif marka dokunuşu. Hero'nun sağında yavaşça (26s) kendi
+ekseninde dönen nar. Görsel `guest-site/public/anor-nar.png` = `NAR.jpeg`'in
+BİREBİR kırpılmış hali (sunum arka planı + "1024x1024" yazısı atıldı; nar ve
+RENKLERİ değiştirilmedi — kullanıcı şeffaf/cutout sürümü reddetti, orijinal
+altın çerçeveli kare amblem kullanılıyor). Bileşen: `components/hotel/NarSpinner.tsx`
+(CSS `@keyframes anor-nar-spin`, `prefers-reduced-motion`'da durur, lg altı gizli).
 
 ---
 
@@ -337,6 +345,15 @@ Detaylı geçmiş: `docs/session-log.md`
   gösterir) hero + büyük kahvaltı kutusunda; kartlar/thumbnail'lar `cover` + center. `HotelVideo` = lazy oynatıcı.
 - `ffmpeg-static` build'i `pnpm-workspace.yaml` → `allowBuilds: ffmpeg-static: false` (prod install yalın;
   binary yalnızca lokal video scripti için, gerekirse elle `node node_modules/ffmpeg-static/install.js`).
+
+### Uygulama logosu / ikon (8 Temmuz 2026)
+- Kaynak: kök `NAR.jpeg` (768x1364 sunum görseli). İçindeki altın çerçeveli koyu kare + nar
+  amblemi `sharp` ile kırpıldı (crop `left:72 top:372 624x624`); gereksiz sunum arka planı +
+  "1024x1024 MASTER ASSET" yazısı atıldı. RENKLER değiştirilmedi.
+- Uygulanan yerler: `admin-panel/public/icons/{icon-192,icon-512,icon-maskable-512}.png` (maskable =
+  amblem koyu zemine %80 ortalı, OS maskesi güvenli bölge), admin favicon (`src/app/` + `public/`),
+  `guest-site/src/app/favicon.ico`. `layout.tsx` apple ikonu zaten `/icons/icon-192.png`'e bakıyor.
+- Guest-site dönen amblem: `guest-site/public/anor-nar.png` (aynı birebir kare) — bkz. Hero Animasyon Notu.
 
 ### Teslim öncesi QA denetimi (8 Temmuz 2026 — TAMAMLANDI ✅)
 - 9 fazlık tam denetim geçti: build/lint yeşil, RLS 34/34, roller uyumlu, guest-site 3 dil,
